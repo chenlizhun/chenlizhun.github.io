@@ -1,0 +1,479 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #fdf6ec, #fefefe);
+  color: #333;
+}
+
+.app {
+  max-width: 1120px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+/* 侧边栏 */
+
+.sidebar {
+  width: 240px;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff9f2;
+  padding: 12px 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.theme-btn {
+  border: none;
+  outline: none;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 999px;
+  font-size: 18px; /* 左侧分类字体 */
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  min-height: 44px; /* 适配 iPad，点按区域大一点 */
+}
+
+.theme-main {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.theme-name {
+  font-weight: 500;
+}
+
+.theme-count {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.theme-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.theme-complete-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #1f9c5a;
+  box-shadow: 0 0 0 2px rgba(31, 156, 90, 0.18);
+}
+
+.theme-btn:hover {
+  background: rgba(255, 194, 128, 0.18);
+  transform: translateY(-1px);
+}
+
+.theme-btn.active {
+  background: linear-gradient(135deg, #ffb86c, #ff9a9e);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn.active .theme-count {
+  opacity: 0.95;
+}
+
+/* 内容区 */
+
+.content {
+  flex: 1;
+  padding: 16px 18px 24px;
+}
+
+.header {
+  margin-bottom: 10px;
+}
+
+/* 标题 + 花的小游戏按钮同一行 */
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.header-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 花主题小游戏按钮 */
+
+.theme-game-btn {
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffb86c, #ff9a9e);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 36px;
+}
+
+.theme-game-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* 图例 */
+
+.legend {
+  margin: 10px 0 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.dot-black {
+  background: #222;
+}
+.dot-pink {
+  background: #ff7ab8;
+}
+.dot-green {
+  background: #36b26f;
+}
+.dot-red {
+  background: #9b59b6; /* 紫色表示非常不熟悉 */
+}
+
+/* 显示模式条 */
+
+.mode-bar {
+  margin: 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mode-label {
+  font-size: 13px;
+  color: #555;
+}
+
+.mode-group {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px;
+}
+
+.mode-btn {
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
+  min-width: 80px;
+}
+
+.mode-btn.active {
+  background: #ffb86c;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* 列表 */
+
+.poem-list-wrapper {
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  padding: 8px 10px 4px;
+}
+
+.poem-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.poem-item {
+  padding: 10px 6px 10px 4px;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+  border-radius: 12px;
+  margin: 1px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px; /* iPad 上点按面积 */
+}
+
+.poem-item:last-child {
+  border-bottom: none;
+}
+
+.poem-item:hover {
+  background: rgba(255, 240, 220, 0.4);
+  transform: translateY(-0.5px);
+}
+
+.poem-index {
+  width: 32px;
+  text-align: right;
+  font-size: 13px;
+  color: #999;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.poem-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.poem-sentence {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.poem-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.poem-eye {
+  flex-shrink: 0;
+  padding-left: 6px;
+  padding-right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 眼睛按钮：iPad 上区域大一点 */
+
+.eye-btn {
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.05s;
+  font-size: 20px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.eye-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-0.5px);
+}
+
+/* 状态颜色 */
+
+.status-default .poem-sentence {
+  color: #222;
+}
+
+.status-bomb .poem-sentence {
+  color: #ff4fa5;
+  font-weight: 600;
+}
+
+.status-bullet .poem-sentence {
+  color: #1f9c5a;
+  font-weight: 600;
+}
+
+.status-unfamiliar .poem-sentence {
+  color: #8e44ad; /* 紫色 */
+  font-weight: 600;
+}
+
+.status-bomb {
+  background: linear-gradient(90deg, rgba(255, 182, 193, 0.25), rgba(255, 255, 255, 0));
+}
+
+.status-bullet {
+  background: linear-gradient(90deg, rgba(152, 251, 152, 0.25), rgba(255, 255, 255, 0));
+}
+
+.status-unfamiliar {
+  background: linear-gradient(90deg, rgba(155, 89, 182, 0.18), rgba(255, 255, 255, 0));
+}
+
+/* 关键字高亮 */
+
+.highlight-word {
+  color: #e67e22;
+  font-weight: 700;
+  background: rgba(230, 126, 34, 0.12);
+  border-radius: 4px;
+  padding: 0 1px;
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* Modal 放大浮层 */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-dialog {
+  max-width: 680px;
+  width: 90%;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px 16px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: #999;
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #666;
+}
+
+.modal-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.modal-sentence {
+  font-size: 28px;
+  line-height: 1.7;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.modal-meta {
+  font-size: 13px;
+  color: #777;
+  text-align: center;
+}
+
+/* 自适应：iPad / 手机 */
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sidebar-title {
+    width: 100%;
+  }
+
+  .content {
+    padding: 12px 10px 18px;
+  }
+
+  .poem-list-wrapper {
+    padding: 8px 8px 4px;
+  }
+
+  .modal-sentence {
+    font-size: 22px;
+  }
+}

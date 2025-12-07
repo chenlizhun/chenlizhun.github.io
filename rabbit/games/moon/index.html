@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rabbit的诗词库 · 找月亮小游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="moon.css" />
+</head>
+<body>
+<div class="game-page">
+    <header class="game-header">
+        <button class="back-btn" id="btnBack">⟵ 返回诗词库</button>
+        <div class="game-title">找月亮小游戏</div>
+    </header>
+
+    <main class="game-main">
+        <section class="info-bar">
+            <div class="info-item" id="roundInfo">第 0 / 0 题</div>
+            <div class="info-item" id="scoreInfo">已答对：0 题</div>
+        </section>
+
+        <section class="sentence-card">
+            <div class="sentence-label">
+                请在下面的诗句中，点出所有的「月」字：
+            </div>
+            <div class="sentence-meta" id="poemMeta">——</div>
+
+            <div class="char-grid" id="charGrid">
+                <!-- 单字按钮由 JS 填充 -->
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </section>
+
+        <section class="control-bar">
+            <button class="control-btn" id="btnReset">重置本题 🔄</button>
+            <button class="control-btn main" id="btnCheck">确认答案 ✅</button>
+            <button class="control-btn next" id="btnNext" disabled>下一题 ▶</button>
+        </section>
+    </main>
+
+    <footer class="game-footer">
+        提示：题目来自主题“月”的诗词。<br />
+        <span class="tag tag-green">答对</span>：会让这句诗在主诗词库中至少变成
+        <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
+        <span class="tag tag-pink">炸弹（粉色）</span>；<br />
+        <span class="tag tag-purple">答错</span>：会把这句诗标记为
+        <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
+    </footer>
+</div>
+
+<script src="../../data.js"></script>
+<script src="moon.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rabbit的诗词库 · 10个主题记忆记录表</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+    <!-- 左侧侧边栏 -->
+    <aside class="sidebar">
+        <div class="sidebar-title">Rabbit的诗词库 · 10个主题</div>
+        <!-- 侧边主题按钮通过 JS 填充 -->
+    </aside>
+
+    <!-- 右侧内容区 -->
+    <main class="content">
+        <!-- 顶部标题 + 花主题小游戏按钮 -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-title" id="currentThemeTitle">主题：花</div>
+
+                <!-- 只在当前主题为“花”时显示，由 JS 控制 -->
+                <button class="theme-game-btn" id="flowerGameBtn" style="display:none;">
+                    🎮 花的小游戏
+                </button>
+            </div>
+
+            <div class="header-desc">
+                点击任意一行古诗，可以在
+                <strong>黑色 → 粉色(炸弹) → 绿色(子弹) → 紫色(非常不熟悉) → 黑色</strong>
+                之间循环切换。右侧 👁 可以放大查看。
+            </div>
+        </div>
+
+        <!-- 标记说明 -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="dot dot-black"></span><span>黑色：默认，尚未练习 / 未标记</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-pink"></span><span>粉色：炸弹（完全记住）</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-green"></span><span>绿色：子弹（差不多记住）</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-red"></span><span>紫色：非常不熟悉</span>
+            </div>
+        </div>
+
+        <!-- 显示模式 + 高亮模式 -->
+        <div class="mode-bar">
+            <span class="mode-label">显示模式：</span>
+            <div class="mode-group">
+                <button class="mode-btn" data-mode="full">显示全部</button>
+                <button class="mode-btn" data-mode="first">只显示首字</button>
+            </div>
+
+            <span class="mode-label">高亮：</span>
+            <div class="mode-group">
+                <button class="mode-btn" data-highlight="on">高亮</button>
+                <button class="mode-btn" data-highlight="off">不高亮</button>
+            </div>
+        </div>
+
+        <!-- 诗句列表 -->
+        <div class="poem-list-wrapper">
+            <ul class="poem-list" id="poemList">
+                <!-- 诗句列表通过 JS 渲染 -->
+            </ul>
+        </div>
+
+        <div class="hint">
+            提示：所有标记会自动保存在本地浏览器中。<br />
+            关键字高亮包含：花、春、秋、月、山、水、风、鸟、数、色、
+            一、二、三、四、五、六、七、八、九、十、百、千、万、
+            红、绿、蓝、青、碧、白、黑、翠。
+        </div>
+    </main>
+</div>
+
+<!-- Modal 浮层：放大显示单条诗句 -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-dialog" id="modalDialog">
+        <button class="modal-close" id="modalCloseBtn" aria-label="关闭">×</button>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-sentence" id="modalSentence"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+    </div>
+</div>
+
+<!-- 先加载数据，再加载逻辑 -->
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
