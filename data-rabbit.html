@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rabbit的诗词库 · 10个主题记忆记录表</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+          background: linear-gradient(135deg, #fdf6ec, #fefefe);
+          color: #333;
+        }
+
+        .app {
+          max-width: 1120px;
+          margin: 0 auto;
+          min-height: 100vh;
+          display: flex;
+          border-left: 1px solid rgba(0,0,0,0.05);
+          border-right: 1px solid rgba(0,0,0,0.05);
+          background: rgba(255,255,255,0.85);
+          backdrop-filter: blur(10px);
+        }
+
+        .sidebar {
+          width: 240px;
+          border-right: 1px solid rgba(0,0,0,0.06);
+          background: #fff9f2;
+          padding: 12px 10px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .sidebar-title {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 4px;
+          padding-left: 4px;
+        }
+
+        .theme-btn {
+          border: none;
+          outline: none;
+          width: 100%;
+          text-align: left;
+          padding: 10px 12px;
+          border-radius: 999px;
+          font-size: 20px;
+          cursor: pointer;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+          min-height: 44px; /* 触控更容易 */
+        }
+
+        .theme-main {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 4px;
+        }
+
+        .theme-name {
+          font-weight: 500;
+        }
+
+        .theme-count {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
+        .theme-right {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          opacity: 0.8;
+        }
+
+        .theme-complete-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #1f9c5a;
+          box-shadow: 0 0 0 2px rgba(31,156,90,0.18);
+        }
+
+        .theme-btn:hover {
+          background: rgba(255, 194, 128, 0.18);
+          transform: translateY(-1px);
+        }
+
+        .theme-btn.active {
+          background: linear-gradient(135deg, #ffb86c, #ff9a9e);
+          color: #fff;
+          box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .theme-btn.active .theme-count {
+          opacity: 0.95;
+        }
+
+        .content {
+          flex: 1;
+          padding: 16px 18px 24px;
+        }
+
+        .header {
+          margin-bottom: 10px;
+        }
+
+        .header-title {
+          font-size: 20px;
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+
+        .header-desc {
+          font-size: 13px;
+          color: #666;
+        }
+
+        .legend {
+          margin: 10px 0 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          font-size: 12px;
+          align-items: center;
+        }
+
+        .legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: rgba(0,0,0,0.02);
+        }
+
+        .dot {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          border: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .dot-black { background: #222; }
+        .dot-pink  { background: #ff7ab8; }
+        .dot-green { background: #36b26f; }
+        .dot-red   { background: #9b59b6; } /* 实际为紫色 */
+
+        /* 顶部模式栏 */
+        .mode-bar {
+          margin: 12px 0 8px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .mode-label {
+          font-size: 13px;
+          color: #555;
+        }
+
+        .mode-group {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(0,0,0,0.04);
+          padding: 2px;
+        }
+
+        .mode-btn {
+          border: none;
+          outline: none;
+          padding: 6px 14px;
+          border-radius: 999px;
+          font-size: 13px;
+          cursor: pointer;
+          background: transparent;
+          transition: background 0.15s, color 0.15s;
+          min-width: 80px;
+        }
+
+        .mode-btn.active {
+          background: #ffb86c;
+          color: #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        .poem-list-wrapper {
+          border-radius: 18px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.04);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+          padding: 8px 10px 4px;
+        }
+
+        .poem-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .poem-item {
+          padding: 10px 6px 10px 4px;
+          border-bottom: 1px dashed rgba(0,0,0,0.06);
+          cursor: pointer;
+          transition: background 0.15s, transform 0.05s;
+          border-radius: 12px;
+          margin: 1px 0;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          min-height: 44px; /* 提高触控区域 */
+        }
+
+        .poem-item:last-child {
+          border-bottom: none;
+        }
+
+        .poem-item:hover {
+          background: rgba(255, 240, 220, 0.4);
+          transform: translateY(-0.5px);
+        }
+
+        .poem-index {
+          width: 32px;
+          text-align: right;
+          font-size: 13px;
+          color: #999;
+          flex-shrink: 0;
+          padding-top: 2px;
+        }
+
+        .poem-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .poem-sentence {
+          font-size: 16px;
+          line-height: 1.5;
+        }
+
+        .poem-meta {
+          font-size: 12px;
+          color: #999;
+          margin-top: 2px;
+        }
+
+        .poem-eye {
+          flex-shrink: 0;
+          padding-left: 6px;
+          padding-right: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+        }
+
+        .eye-btn {
+          border: none;
+          background: rgba(0,0,0,0.04);
+          cursor: pointer;
+          padding: 8px 10px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s, transform 0.05s;
+          font-size: 20px;
+          min-width: 40px;
+          min-height: 40px; /* 加大触控面积 */
+        }
+
+        .eye-btn:hover {
+          background: rgba(0,0,0,0.1);
+          transform: translateY(-0.5px);
+        }
+
+        /* 状态颜色：默认黑 / 粉 / 绿 / 紫 */
+        .status-default .poem-sentence {
+          color: #222;
+        }
+
+        .status-bomb .poem-sentence {
+          color: #ff4fa5; /* 粉色：炸弹 */
+          font-weight: 600;
+        }
+
+        .status-bullet .poem-sentence {
+          color: #1f9c5a; /* 绿色：子弹 */
+          font-weight: 600;
+        }
+
+        .status-unfamiliar .poem-sentence {
+          color: #8e44ad; /* 紫色：非常不熟悉 */
+          font-weight: 600;
+        }
+
+        .status-bomb {
+          background: linear-gradient(90deg, rgba(255,182,193,0.25), rgba(255,255,255,0));
+        }
+
+        .status-bullet {
+          background: linear-gradient(90deg, rgba(152,251,152,0.25), rgba(255,255,255,0));
+        }
+
+        .status-unfamiliar {
+          background: linear-gradient(90deg, rgba(155,89,182,0.18), rgba(255,255,255,0));
+        }
+
+        .highlight-word {
+          color: #e67e22;
+          font-weight: 700;
+          background: rgba(230, 126, 34, 0.12);
+          border-radius: 4px;
+          padding: 0 1px;
+        }
+
+        .hint {
+          margin-top: 8px;
+          font-size: 12px;
+          color: #888;
+        }
+
+        /* Modal 浮框 */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.45);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .modal-overlay.active {
+          display: flex;
+        }
+
+        .modal-dialog {
+          max-width: 680px;
+          width: 90%;
+          background: #fff;
+          border-radius: 18px;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+          padding: 18px 20px 16px;
+          position: relative;
+        }
+
+        .modal-close {
+          position: absolute;
+          right: 10px;
+          top: 8px;
+          border: none;
+          background: transparent;
+          font-size: 22px;
+          cursor: pointer;
+          color: #999;
+          padding: 6px 8px;
+          border-radius: 999px;
+        }
+
+        .modal-close:hover {
+          background: rgba(0,0,0,0.06);
+          color: #666;
+        }
+
+        .modal-title {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 10px;
+          text-align: center;
+        }
+
+        .modal-sentence {
+          font-size: 28px;
+          line-height: 1.7;
+          text-align: center;
+          margin-bottom: 10px;
+        }
+
+        .modal-meta {
+          font-size: 13px;
+          color: #777;
+          text-align: center;
+        }
+
+        @media (max-width: 768px) {
+          .app {
+            flex-direction: column;
+          }
+          .sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+          .sidebar-title {
+            width: 100%;
+          }
+          .content {
+            padding: 12px 10px 18px;
+          }
+          .poem-list-wrapper {
+            padding: 8px 8px 4px;
+          }
+          .modal-sentence {
+            font-size: 22px;
+          }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-title">Rabbit的诗词库 · 10个主题</div>
+        <!-- 侧边主题按钮通过 JS 填充 -->
+    </aside>
+
+    <main class="content">
+        <div class="header">
+            <div class="header-title" id="currentThemeTitle">主题：花</div>
+            <div class="header-desc">
+                点击任意一行古诗，可以在
+                <strong>黑色 → 粉色(炸弹) → 绿色(子弹) → 紫色(非常不熟悉) → 黑色</strong>
+                之间循环切换。右侧 👁 可以放大查看。
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="dot dot-black"></span><span>黑色：默认，尚未练习 / 未标记</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-pink"></span><span>粉色：炸弹（完全记住）</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-green"></span><span>绿色：子弹（差不多记住）</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot dot-red"></span><span>紫色：非常不熟悉</span>
+            </div>
+        </div>
+
+        <!-- 显示模式 + 高亮模式 -->
+        <div class="mode-bar">
+            <span class="mode-label">显示模式：</span>
+            <div class="mode-group">
+                <button class="mode-btn" data-mode="full">显示全部</button>
+                <button class="mode-btn" data-mode="first">只显示首字</button>
+            </div>
+
+            <span class="mode-label">高亮：</span>
+            <div class="mode-group">
+                <button class="mode-btn" data-highlight="on">高亮</button>
+                <button class="mode-btn" data-highlight="off">不高亮</button>
+            </div>
+        </div>
+
+        <div class="poem-list-wrapper">
+            <ul class="poem-list" id="poemList">
+                <!-- 诗句列表通过 JS 渲染 -->
+            </ul>
+        </div>
+
+        <div class="hint">
+            提示：所有标记会自动保存在本地浏览器中。<br>
+            关键字高亮包含：花、春、秋、月、山、水、风、鸟、数、色、一、二、三、四、五、六、七、八、九、十、百、千、万、红、绿、蓝、青、碧、白、黑、翠。
+        </div>
+    </main>
+</div>
+
+<!-- Modal 浮层 -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-dialog" id="modalDialog">
+        <button class="modal-close" id="modalCloseBtn" aria-label="关闭">×</button>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-sentence" id="modalSentence"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+    </div>
+</div>
+
+<script>
+    // ====== 主题菜单：10 个 ======
+    const THEMES = [
+      { id: "flower",   name: "花" },
+      { id: "spring",   name: "春" },
+      { id: "autumn",   name: "秋" },
+      { id: "moon",     name: "月" },
+      { id: "mountain", name: "山" },
+      { id: "water",    name: "水" },
+      { id: "wind",     name: "风" },
+      { id: "bird",     name: "鸟" },
+      { id: "number",   name: "数字" },
+      { id: "color",    name: "颜色" }
+    ];
+
+    // 高亮字符集合
+    const HIGHLIGHT_CHARS = [
+      "花","春","秋","月","山","水","风","鸟","数","色",
+      "一","二","三","四","五","六","七","八","九","十","百","千","万",
+      "红","绿","蓝","青","碧","白","黑","翠"
+    ];
+
+    // ====== 诗库 ======
+    const POEMS = {
+      flower: [
+        {theme:"花",author:"刘因",dynasty:"元",title:"山家",sentence:"醉袖迎风受落花"},
+        {theme:"花",author:"李白",dynasty:"唐",title:"九日龙山饮",sentence:"九日龙山饮，黄花笑逐臣"},
+        {theme:"花",author:"王勃",dynasty:"唐",title:"九日",sentence:"九日重阳节，开门有菊花"},
+        {theme:"花",author:"孟浩然",dynasty:"唐",title:"春晓",sentence:"夜来风雨声，花落知多少"},
+        {theme:"花",author:"李峤",dynasty:"唐",title:"风",sentence:"解落三秋叶，能开二月花"},
+        {theme:"花",author:"邵雍",dynasty:"宋",title:"一去二三里",sentence:"亭台六七座，八九十枝花"},
+        {theme:"花",author:"王维",dynasty:"唐",title:"画",sentence:"春去花还在，人来鸟不惊"},
+        {theme:"花",author:"李白",dynasty:"唐",title:"赠汪伦",sentence:"桃花潭水深千尺，不及汪伦送我情"},
+        {theme:"花",author:"杨万里",dynasty:"宋",title:"小池",sentence:"小荷才露尖尖角，早有蜻蜓立上头"},
+        {theme:"花",author:"王安石",dynasty:"宋",title:"咏梅",sentence:"墙角数枝梅，凌寒独自开"},
+        {theme:"花",author:"孟浩然",dynasty:"唐",title:"过故人庄",sentence:"待到重阳日，还来就菊花"},
+        {theme:"花",author:"苏轼",dynasty:"宋",title:"惠崇春江晚景",sentence:"竹外桃花三两枝，春江水暖鸭先知"},
+        {theme:"花",author:"王维",dynasty:"唐",title:"鸟鸣涧",sentence:"人闲桂花落，夜静春山空"},
+        {theme:"花",author:"杨万里",dynasty:"宋",title:"晓出净慈寺送林子方",sentence:"接天莲叶无穷碧，映日荷花别样红"},
+        {theme:"花",author:"杜牧",dynasty:"唐",title:"清明",sentence:"牧童遥指杏花村，借问酒家何处有"},
+        {theme:"花",author:"白居易",dynasty:"唐",title:"忆江南",sentence:"日出江花红胜火"},
+        {theme:"花",author:"杜甫",dynasty:"唐",title:"绝句二首·其一",sentence:"迟日江山丽，春风花草香"},
+        {theme:"花",author:"杜甫",dynasty:"唐",title:"江畔独步寻花·其五",sentence:"桃花一簇开无主，可爱深红爱浅红"}
+      ],
+      spring: [
+        {theme:"春",author:"孟浩然",dynasty:"唐",title:"春晓",sentence:"春眠不觉晓，处处闻啼鸟"},
+        {theme:"春",author:"杜甫",dynasty:"唐",title:"春夜喜雨",sentence:"好雨知时节，当春乃发生"},
+        {theme:"春",author:"王维",dynasty:"唐",title:"画",sentence:"春去花还在，人来鸟不惊"},
+        {theme:"春",author:"李绅",dynasty:"唐",title:"悯农",sentence:"春种一粒粟，秋收万颗子"},
+        {theme:"春",author:"王维",dynasty:"唐",title:"相思",sentence:"红豆生南国，春来发几枝"},
+        {theme:"春",author:"王维",dynasty:"唐",title:"送别",sentence:"春草明年绿，王孙归不归"},
+        {theme:"春",author:"孟郊",dynasty:"唐",title:"游子吟",sentence:"谁言寸草心，报得三春晖"},
+        {theme:"春",author:"朱熹",dynasty:"宋",title:"春日",sentence:"等闲识得东风面，万紫千红总是春"},
+        {theme:"春",author:"叶绍翁",dynasty:"宋",title:"游园不值",sentence:"春色满园关不住，一枝红杏出墙来"},
+        {theme:"春",author:"苏轼",dynasty:"宋",title:"惠崇春江晚景",sentence:"竹外桃花三两枝，春江水暖鸭先知"},
+        {theme:"春",author:"王安石",dynasty:"宋",title:"元日",sentence:"爆竹声中一岁除，春风送暖入屠苏"},
+        {theme:"春",author:"杜甫",dynasty:"唐",title:"绝句二首·其一",sentence:"迟日江山丽，春风花草香"},
+        {theme:"春",author:"白居易",dynasty:"唐",title:"赋得古原草送别",sentence:"野火烧不尽，春风吹又生"},
+        {theme:"春",author:"王维",dynasty:"唐",title:"鸟鸣涧",sentence:"人闲桂花落，夜静春山空"}
+      ],
+      autumn: [
+        {theme:"秋",author:"王维",dynasty:"唐",title:"山居秋暝",sentence:"空山新雨后，天气晚来秋"},
+        {theme:"秋",author:"李绅",dynasty:"唐",title:"悯农",sentence:"春种一粒粟，秋收万颗子"},
+        {theme:"秋",author:"张籍",dynasty:"唐",title:"秋思",sentence:"洛阳城里见秋风，欲作家书意万重"},
+        {theme:"秋",author:"杜甫",dynasty:"唐",title:"绝句",sentence:"窗含西岭千秋雪，门泊东吴万里船"},
+        {theme:"秋",author:"李贺",dynasty:"唐",title:"马诗",sentence:"何当金络脑，快走踏清秋"},
+        {theme:"秋",author:"李峤",dynasty:"唐",title:"风",sentence:"解落三秋叶，能开二月花"},
+        {theme:"秋",author:"王绩",dynasty:"唐",title:"野望",sentence:"树树皆秋色，山山唯落晖"},
+        {theme:"秋",author:"杜牧",dynasty:"唐",title:"秋夕",sentence:"银烛秋光冷画屏，轻罗小扇扑流萤"}
+      ],
+      moon: [
+        {theme:"月",author:"李白",dynasty:"唐",title:"静夜思",sentence:"床前明月光，疑是地上霜"},
+        {theme:"月",author:"李白",dynasty:"唐",title:"静夜思",sentence:"举头望明月，低头思故乡"},
+        {theme:"月",author:"李白",dynasty:"唐",title:"古朗月行",sentence:"小时不识月，呼作白玉盘"},
+        {theme:"月",author:"刘禹锡",dynasty:"唐",title:"望洞庭",sentence:"湖光秋月两相和，潭面无风镜未磨"},
+        {theme:"月",author:"王维",dynasty:"唐",title:"山居秋暝",sentence:"明月松间照，清泉石上流"},
+        {theme:"月",author:"王维",dynasty:"唐",title:"鸟鸣涧",sentence:"月出惊山鸟，时鸣春涧中"},
+        {theme:"月",author:"王昌龄",dynasty:"唐",title:"出塞",sentence:"秦时明月汉时关，万里长征人未还"},
+        {theme:"月",author:"王安石",dynasty:"宋",title:"泊船瓜洲",sentence:"春风又绿江南岸，明月何时照我还"},
+        {theme:"月",author:"辛弃疾",dynasty:"宋",title:"西江月·夜行黄沙道中",sentence:"明月别枝惊鹊，清风半夜鸣蝉"}
+      ],
+      mountain: [
+        {theme:"山",author:"王之涣",dynasty:"唐",title:"登鹳雀楼",sentence:"白日依山尽，黄河入海流"},
+        {theme:"山",author:"王维",dynasty:"唐",title:"鹿柴",sentence:"空山不见人，但闻人语响"},
+        {theme:"山",author:"王维",dynasty:"唐",title:"画",sentence:"远看山有色，近听水无声"},
+        {theme:"山",author:"李白",dynasty:"唐",title:"独坐敬亭山",sentence:"相看两不厌，只有敬亭山"},
+        {theme:"山",author:"柳宗元",dynasty:"唐",title:"江雪",sentence:"千山鸟飞绝，万径人踪灭"},
+        {theme:"山",author:"陆游",dynasty:"宋",title:"游山西村",sentence:"山重水复疑无路，柳暗花明又一村"},
+        {theme:"山",author:"李白",dynasty:"唐",title:"望天门山",sentence:"两岸青山相对出，孤帆一片日边来"},
+        {theme:"山",author:"张志和",dynasty:"唐",title:"渔歌子",sentence:"西塞山前白鹭飞，桃花流水鳜鱼肥"},
+        {theme:"山",author:"王维",dynasty:"唐",title:"山居秋暝",sentence:"空山新雨后，天气晚来秋"},
+        {theme:"山",author:"林升",dynasty:"宋",title:"题临安邸",sentence:"山外青山楼外楼，西湖歌舞几时休"},
+        {theme:"山",author:"王之涣",dynasty:"唐",title:"凉州词二首·其一",sentence:"黄河远上白云间，一片孤城万仞山"}
+      ],
+      water: [
+        {theme:"水",author:"骆宾王",dynasty:"唐",title:"咏鹅",sentence:"白毛浮绿水，红掌拨清波"},
+        {theme:"水",author:"王维",dynasty:"唐",title:"画",sentence:"远看山有色，近听水无声"},
+        {theme:"水",author:"李白",dynasty:"唐",title:"赠汪伦",sentence:"桃花潭水深千尺，不及汪伦送我情"},
+        {theme:"水",author:"杨万里",dynasty:"宋",title:"小池",sentence:"泉眼无声惜细流，树阴照水爱晴柔"},
+        {theme:"水",author:"白居易",dynasty:"唐",title:"池上",sentence:"小娃撑小艇，偷采白莲回"},
+        {theme:"水",author:"苏轼",dynasty:"宋",title:"惠崇春江晚景",sentence:"竹外桃花三两枝，春江水暖鸭先知"},
+        {theme:"水",author:"白居易",dynasty:"唐",title:"忆江南",sentence:"日出江花红胜火，春来江水绿如蓝"},
+        {theme:"水",author:"张志和",dynasty:"唐",title:"渔歌子",sentence:"西塞山前白鹭飞，桃花流水鳜鱼肥"},
+        {theme:"水",author:"苏轼",dynasty:"宋",title:"饮湖上初晴后雨",sentence:"水光潋滟晴方好，山色空蒙雨亦奇"},
+        {theme:"水",author:"白居易",dynasty:"唐",title:"暮江吟",sentence:"一道残阳铺水中，半江瑟瑟半江红"},
+        {theme:"水",author:"刘禹锡",dynasty:"唐",title:"望洞庭",sentence:"遥望洞庭山水翠，白银盘里一青螺"},
+        {theme:"水",author:"李白",dynasty:"唐",title:"黄鹤楼送孟浩然之广陵",sentence:"孤帆远影碧空尽，唯见长江天际流"},
+        {theme:"水",author:"李白",dynasty:"唐",title:"早发白帝城",sentence:"朝辞白帝彩云间，千里江陵一日还"},
+        {theme:"水",author:"杜牧",dynasty:"唐",title:"秋夕",sentence:"天街夜色凉如水，卧看牵牛织女星"},
+        {theme:"水",author:"范仲淹",dynasty:"宋",title:"江上渔者",sentence:"江上往来人，但爱鲈鱼美"}
+      ],
+      wind: [
+        {theme:"风",author:"佚名",dynasty:"北朝",title:"敕勒歌",sentence:"风吹草低见牛羊"},
+        {theme:"风",author:"孟浩然",dynasty:"唐",title:"春晓",sentence:"夜来风雨声，花落知多少"},
+        {theme:"风",author:"白居易",dynasty:"唐",title:"赋得古原草送别",sentence:"野火烧不尽，春风吹又生"},
+        {theme:"风",author:"贺知章",dynasty:"唐",title:"咏柳",sentence:"不知细叶谁裁出，二月春风似剪刀"},
+        {theme:"风",author:"高鼎",dynasty:"清",title:"村居",sentence:"儿童散学归来早，忙趁东风放纸鸢"},
+        {theme:"风",author:"杜甫",dynasty:"唐",title:"绝句",sentence:"迟日江山丽，春风花草香"},
+        {theme:"风",author:"王安石",dynasty:"宋",title:"元日",sentence:"爆竹声中一岁除，春风送暖入屠苏"},
+        {theme:"风",author:"刘禹锡",dynasty:"唐",title:"望洞庭",sentence:"潭面无风镜未磨"},
+        {theme:"风",author:"朱熹",dynasty:"宋",title:"春日",sentence:"等闲识得东风面，万紫千红总是春"}
+      ],
+      bird: [
+        {theme:"鸟",author:"丘为",dynasty:"唐",title:"泛若耶溪（节选）",sentence:"日暮鸟雀稀，稚子呼牛归"},
+        {theme:"鸟",author:"孟浩然",dynasty:"唐",title:"春晓",sentence:"春眠不觉晓，处处闻啼鸟"},
+        {theme:"鸟",author:"柳宗元",dynasty:"唐",title:"江雪",sentence:"千山鸟飞绝，万径人踪灭"},
+        {theme:"鸟",author:"王维",dynasty:"唐",title:"画",sentence:"春去花还在，人来鸟不惊"},
+        {theme:"鸟",author:"王维",dynasty:"唐",title:"鸟鸣涧",sentence:"月出惊山鸟，时鸣春涧中"},
+        {theme:"鸟",author:"李白",dynasty:"唐",title:"独坐敬亭山",sentence:"众鸟高飞尽，孤云独去闲"}
+      ],
+      number: [
+        {theme:"数字",author:"邵雍",dynasty:"宋",title:"山村咏怀",sentence:"一去二三里，烟村四五家"},
+        {theme:"数字",author:"邵雍",dynasty:"宋",title:"山村咏怀",sentence:"亭台六七座，八九十枝花"},
+        {theme:"数字",author:"李峤",dynasty:"唐",title:"风",sentence:"解落三秋叶，能开二月花"},
+        {theme:"数字",author:"李峤",dynasty:"唐",title:"风",sentence:"过江千尺浪，入竹万竿斜"},
+        {theme:"数字",author:"王之涣",dynasty:"唐",title:"登鹳雀楼",sentence:"欲穷千里目，更上一层楼"},
+        {theme:"数字",author:"杜甫",dynasty:"唐",title:"绝句",sentence:"两个黄鹂鸣翠柳，一行白鹭上青天"},
+        {theme:"数字",author:"郑板桥",dynasty:"清",title:"咏雪诗",sentence:"一片两片三四片，五六七八九十片"},
+        {theme:"数字",author:"郑板桥",dynasty:"清",title:"咏雪诗",sentence:"千片万片无数片，飞入芦花总不见"},
+        {theme:"数字",author:"白居易",dynasty:"唐",title:"赋得古原草送别",sentence:"一岁一枯荣，野火烧不尽"},
+        {theme:"数字",author:"施肩吾",dynasty:"唐",title:"幼女词",sentence:"幼女才六岁，未知巧与拙"},
+        {theme:"数字",author:"李白",dynasty:"唐",title:"九日龙山饮",sentence:"九日龙山饮，黄花笑逐臣"},
+        {theme:"数字",author:"王勃",dynasty:"唐",title:"九日",sentence:"九日重阳节，开门有菊花"},
+        {theme:"数字",author:"高适",dynasty:"唐",title:"除夜作",sentence:"故乡今夜思千里，霜鬓明朝又一年"},
+        {theme:"数字",author:"张籍",dynasty:"唐",title:"秋思",sentence:"洛阳城里见秋风，欲作家书意万重"}
+      ],
+      color: [
+        {theme:"颜色",author:"王维",dynasty:"唐",title:"相思",sentence:"红豆生南国，春来发几枝"},
+        {theme:"颜色",author:"叶绍翁",dynasty:"宋",title:"游园不值",sentence:"春色满园关不住，一枝红杏出墙来"},
+        {theme:"颜色",author:"杨万里",dynasty:"宋",title:"晓出净慈寺送林子方",sentence:"接天莲叶无穷碧，映日荷花别样红"},
+        {theme:"颜色",author:"杜甫",dynasty:"唐",title:"江畔独步寻花·其五",sentence:"桃花一簇开无主，可爱深红爱浅红"},
+        {theme:"颜色",author:"王之涣",dynasty:"唐",title:"登鹳雀楼",sentence:"白日依山尽，黄河入海流"},
+        {theme:"颜色",author:"骆宾王",dynasty:"唐",title:"咏鹅",sentence:"白毛浮绿水，红掌拨清波"},
+        {theme:"颜色",author:"杜甫",dynasty:"唐",title:"绝句",sentence:"两个黄鹂鸣翠柳，一行白鹭上青天"},
+        {theme:"颜色",author:"李白",dynasty:"唐",title:"古朗月行",sentence:"小时不识月，呼作白玉盘"},
+        {theme:"颜色",author:"李白",dynasty:"唐",title:"早发白帝城",sentence:"朝辞白帝彩云间，千里江陵一日还"},
+        {theme:"颜色",author:"范成大",dynasty:"宋",title:"四时田园杂兴·其二十五",sentence:"梅子金黄杏子肥，麦花雪白菜花稀"},
+        {theme:"颜色",author:"文天祥",dynasty:"南宋",title:"过零丁洋",sentence:"人生自古谁无死？留取丹心照汗青"},
+        {theme:"颜色",author:"王安石",dynasty:"宋",title:"泊船瓜洲",sentence:"春风又绿江南岸，明月何时照我还"},
+        {theme:"颜色",author:"贺知章",dynasty:"唐",title:"咏柳",sentence:"碧玉妆成一树高，万条垂下绿丝绦"},
+        {theme:"颜色",author:"翁卷",dynasty:"宋",title:"乡村四月",sentence:"绿遍山原白满川，子规声里雨如烟"},
+        {theme:"颜色",author:"李清照",dynasty:"宋",title:"如梦令·昨夜雨疏风骤",sentence:"知否，知否？应是绿肥红瘦"},
+        {theme:"颜色",author:"白居易",dynasty:"唐",title:"忆江南·江南好",sentence:"日出江花红胜火，春来江水绿如蓝"},
+        {theme:"颜色",author:"刘禹锡",dynasty:"唐",title:"望洞庭",sentence:"遥望洞庭山水翠，白银盘里一青螺"}
+      ]
+    };
+
+    // ====== 音效：统一点击声 ======
+    let audioCtx = null;
+    function playClick() {
+      try {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          audioCtx = new AC();
+        }
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.value = 880;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } catch (e) {}
+    }
+
+    // ====== 状态管理 ======
+    const STATUS_ORDER = ["default", "bomb", "bullet", "unfamiliar"];
+    const STORAGE_KEY = "poemMemoryStatus_v1";
+    const DISPLAY_MODE_KEY = "poemDisplayMode_v1";
+    const HIGHLIGHT_MODE_KEY = "poemHighlightMode_v1";
+
+    let statusMap = {};
+    let displayMode = "full";   // full / first
+    let highlightOn = true;     // 高亮开关
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) statusMap = JSON.parse(raw) || {};
+      } catch (e) { statusMap = {}; }
+
+      try {
+        const mode = localStorage.getItem(DISPLAY_MODE_KEY);
+        if (mode === "full" || mode === "first") displayMode = mode;
+      } catch (e) {}
+
+      try {
+        const h = localStorage.getItem(HIGHLIGHT_MODE_KEY);
+        if (h === "on" || h === "off") highlightOn = (h === "on");
+      } catch (e) {}
+    }
+
+    function saveStatus() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap)); } catch (e) {}
+    }
+    function saveDisplayMode() {
+      try { localStorage.setItem(DISPLAY_MODE_KEY, displayMode); } catch (e) {}
+    }
+    function saveHighlightMode() {
+      try { localStorage.setItem(HIGHLIGHT_MODE_KEY, highlightOn ? "on" : "off"); } catch (e) {}
+    }
+
+    function getNextStatus(current) {
+      const idx = STATUS_ORDER.indexOf(current);
+      if (idx === -1 || idx === STATUS_ORDER.length - 1) return STATUS_ORDER[0];
+      return STATUS_ORDER[idx + 1];
+    }
+
+    function isThemeCompleted(themeId) {
+      const list = POEMS[themeId] || [];
+      if (list.length === 0) return false;
+      for (let i = 0; i < list.length; i++) {
+        const key = `${themeId}-${i}`;
+        const st = statusMap[key] || "default";
+        if (st !== "bomb") return false;
+      }
+      return true;
+    }
+
+    // 简单转义（防止万一有特殊字符）
+    function escapeHtml(str) {
+      return (str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    // 高亮逻辑
+    function highlightSentence(text) {
+      if (!highlightOn) {
+        return escapeHtml(text);
+      }
+      const pattern = new RegExp("[" + HIGHLIGHT_CHARS.join("") + "]", "g");
+      const safe = escapeHtml(text);
+      return safe.replace(pattern, m => `<span class="highlight-word">${m}</span>`);
+    }
+
+    // 根据显示模式处理文本
+    function renderSentenceText(sentence) {
+      let t = sentence || "";
+      if (displayMode === "first") {
+        t = t.charAt(0) || "";
+      }
+      return highlightSentence(t);
+    }
+
+    // ====== 渲染逻辑 ======
+    const sidebarEl = document.querySelector(".sidebar");
+    const poemListEl = document.getElementById("poemList");
+    const currentThemeTitleEl = document.getElementById("currentThemeTitle");
+
+    const displayModeButtons = document.querySelectorAll(".mode-btn[data-mode]");
+    const highlightButtons   = document.querySelectorAll(".mode-btn[data-highlight]");
+
+    const modalOverlay   = document.getElementById("modalOverlay");
+    const modalDialog    = document.getElementById("modalDialog");
+    const modalTitleEl   = document.getElementById("modalTitle");
+    const modalSentenceEl= document.getElementById("modalSentence");
+    const modalMetaEl    = document.getElementById("modalMeta");
+    const modalCloseBtn  = document.getElementById("modalCloseBtn");
+
+    let currentThemeId = "flower";
+
+    function renderDisplayModeButtons() {
+      displayModeButtons.forEach(btn => {
+        const m = btn.dataset.mode;
+        if (m === displayMode) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+    }
+
+    function renderHighlightButtons() {
+      highlightButtons.forEach(btn => {
+        const h = btn.dataset.highlight;
+        const isOn = (h === "on");
+        if (isOn === highlightOn) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+    }
+
+    function renderSidebar() {
+      const titleNode = sidebarEl.querySelector(".sidebar-title");
+      sidebarEl.innerHTML = "";
+      sidebarEl.appendChild(titleNode);
+
+      THEMES.forEach(theme => {
+        const btn = document.createElement("button");
+        btn.className = "theme-btn";
+        if (theme.id === currentThemeId) btn.classList.add("active");
+        btn.dataset.themeId = theme.id;
+
+        const count = (POEMS[theme.id] || []).length;
+        const completed = isThemeCompleted(theme.id);
+
+        const mainSpan = document.createElement("span");
+        mainSpan.className = "theme-main";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "theme-name";
+        nameSpan.textContent = theme.name;
+
+        const countSpan = document.createElement("span");
+        countSpan.className = "theme-count";
+        countSpan.textContent = `（${count}）`;
+
+        mainSpan.appendChild(nameSpan);
+        mainSpan.appendChild(countSpan);
+
+        const rightSpan = document.createElement("span");
+        rightSpan.className = "theme-right";
+        if (completed) {
+          const dot = document.createElement("span");
+          dot.className = "theme-complete-dot";
+          rightSpan.appendChild(dot);
+        }
+
+        btn.appendChild(mainSpan);
+        btn.appendChild(rightSpan);
+        sidebarEl.appendChild(btn);
+
+        btn.addEventListener("click", () => {
+          playClick();
+          currentThemeId = theme.id;
+          renderSidebar();
+          renderPoems();
+        });
+      });
+    }
+
+    function renderPoems() {
+      const themeMeta = THEMES.find(t => t.id === currentThemeId);
+      currentThemeTitleEl.textContent = `主题：${themeMeta ? themeMeta.name : currentThemeId}`;
+
+      poemListEl.innerHTML = "";
+      const list = POEMS[currentThemeId] || [];
+
+      list.forEach((poem, index) => {
+        const key = `${currentThemeId}-${index}`;
+        const currentStatus = statusMap[key] || "default";
+
+        const li = document.createElement("li");
+        li.className = `poem-item status-${currentStatus}`;
+        li.dataset.key = key;
+
+        const idxDiv = document.createElement("div");
+        idxDiv.className = "poem-index";
+        idxDiv.textContent = `${index + 1}.`;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "poem-content";
+
+        const sentenceDiv = document.createElement("div");
+        sentenceDiv.className = "poem-sentence";
+        sentenceDiv.innerHTML = renderSentenceText(poem.sentence);
+
+        const metaDiv = document.createElement("div");
+        metaDiv.className = "poem-meta";
+        metaDiv.textContent = `${poem.dynasty}·${poem.author}《${poem.title}》`;
+
+        contentDiv.appendChild(sentenceDiv);
+        contentDiv.appendChild(metaDiv);
+
+        const eyeDiv = document.createElement("div");
+        eyeDiv.className = "poem-eye";
+        const eyeBtn = document.createElement("button");
+        eyeBtn.className = "eye-btn";
+        eyeBtn.innerHTML = "👁";
+        eyeBtn.title = "放大查看";
+        eyeDiv.appendChild(eyeBtn);
+
+        // 点击整行切换状态
+        li.addEventListener("click", () => {
+          playClick();
+          const oldStatus = statusMap[key] || "default";
+          const next = getNextStatus(oldStatus);
+          statusMap[key] = next;
+          saveStatus();
+          li.className = `poem-item status-${next}`;
+          renderSidebar();
+        });
+
+        // 眼睛按钮：打开 Modal
+        eyeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          playClick();
+          openModal(poem);
+        });
+
+        li.appendChild(idxDiv);
+        li.appendChild(contentDiv);
+        li.appendChild(eyeDiv);
+        poemListEl.appendChild(li);
+      });
+    }
+
+    // Modal
+    function openModal(poem) {
+      modalTitleEl.textContent = `${poem.dynasty}·${poem.author}《${poem.title}》`;
+      modalSentenceEl.innerHTML = highlightSentence(poem.sentence); // Modal 始终显示完整句子，受高亮开关影响
+      modalMetaEl.textContent = `主题：${poem.theme}`;
+      modalOverlay.classList.add("active");
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove("active");
+    }
+
+    modalCloseBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      playClick();
+      closeModal();
+    });
+
+    modalOverlay.addEventListener("click", () => {
+      playClick();
+      closeModal();
+    });
+
+    modalDialog.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        playClick();
+        closeModal();
+      }
+    });
+
+    // 显示模式按钮
+    displayModeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.mode;
+        if (mode !== displayMode && (mode === "full" || mode === "first")) {
+          playClick();
+          displayMode = mode;
+          saveDisplayMode();
+          renderDisplayModeButtons();
+          renderPoems();
+        }
+      });
+    });
+
+    // 高亮模式按钮
+    highlightButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const h = btn.dataset.highlight;
+        const newOn = (h === "on");
+        if (newOn !== highlightOn) {
+          playClick();
+          highlightOn = newOn;
+          saveHighlightMode();
+          renderHighlightButtons();
+          renderPoems();
+        }
+      });
+    });
+
+    // ====== 初始化 ======
+    loadState();
+    renderDisplayModeButtons();
+    renderHighlightButtons();
+    renderSidebar();
+    renderPoems();
+</script>
+</body>
+</html>
