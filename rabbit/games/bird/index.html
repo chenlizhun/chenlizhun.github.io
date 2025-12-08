@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rabbit的诗词库 · 鸟的缺字填空小游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="bird.css" />
+</head>
+<body>
+<div class="game-page">
+    <header class="game-header">
+        <button class="back-btn" id="btnBack">⟵ 返回诗词库</button>
+        <div class="game-title">鸟的缺字填空小游戏</div>
+    </header>
+
+    <main class="game-main">
+        <section class="info-bar">
+            <div class="info-item" id="roundInfo">第 0 / 0 题</div>
+            <div class="info-item" id="scoreInfo">已答对：0 题</div>
+        </section>
+
+        <section class="question-card">
+            <div class="question-label">
+                请看看这句诗，想一想“□”里应该填哪个字：
+            </div>
+            <div class="sentence-text" id="sentenceText">——</div>
+            <div class="poem-meta" id="poemMeta">——</div>
+            <div class="feedback" id="feedback"></div>
+        </section>
+
+        <section class="options-area" id="optionsArea">
+            <!-- 选项按钮由 JS 填充 -->
+        </section>
+
+        <section class="control-bar">
+            <button class="control-btn next" id="btnNext" disabled>下一题 ▶</button>
+        </section>
+    </main>
+
+    <footer class="game-footer">
+        提示：题目来自主题“鸟”的诗词。<br />
+        <span class="tag tag-green">答对</span>：会让这句诗在主诗词库中至少变成
+        <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
+        <span class="tag tag-pink">炸弹（粉色）</span>；<br />
+        <span class="tag tag-purple">答错</span>：会把这句诗标记为
+        <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
+    </footer>
+</div>
+
+<script src="../../data.js"></script>
+<script src="bird.js"></script>
+</body>
+</html>

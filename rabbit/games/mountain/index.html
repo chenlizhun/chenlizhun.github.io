@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rabbit的诗词库 · 山的选择题小游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="mountain.css" />
+</head>
+<body>
+<div class="game-page">
+    <header class="game-header">
+        <button class="back-btn" id="btnBack">⟵ 返回诗词库</button>
+        <div class="game-title">山的选择题小游戏</div>
+    </header>
+
+    <main class="game-main">
+        <section class="info-bar">
+            <div class="info-item" id="roundInfo">第 0 / 0 题</div>
+            <div class="info-item" id="scoreInfo">已答对：0 题</div>
+        </section>
+
+        <section class="question-card">
+            <div class="question-label">
+                请根据下面的信息，从三个选项中选出<strong>出自这首诗</strong>的一句：
+            </div>
+            <div class="question-meta" id="poemMeta">——</div>
+            <div class="question-hint" id="questionHint">
+                （所有题目都和“山”有关）
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </section>
+
+        <section class="options-area">
+            <button class="option-btn" data-index="0"></button>
+            <button class="option-btn" data-index="1"></button>
+            <button class="option-btn" data-index="2"></button>
+        </section>
+
+        <section class="control-bar">
+            <button class="control-btn next" id="btnNext" disabled>下一题 ▶</button>
+        </section>
+    </main>
+
+    <footer class="game-footer">
+        提示：题目来自主题“山”的诗词。<br />
+        <span class="tag tag-green">答对</span>：会让这句诗在主诗词库中至少变成
+        <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
+        <span class="tag tag-pink">炸弹（粉色）</span>；<br />
+        <span class="tag tag-purple">答错</span>：会把这句诗标记为
+        <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
+    </footer>
+</div>
+
+<script src="../../data.js"></script>
+<script src="mountain.js"></script>
+</body>
+</html>
