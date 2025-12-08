@@ -1,89 +1,143 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8" />
     <title>花 · 记忆闯关小游戏</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="flower.css" />
 </head>
+
 <body>
-<div class="game-app">
-    <header class="game-header">
-        <div class="game-title">花 · 记忆闯关</div>
-        <div class="game-subtitle">
-            按顺序刷完“花”主题的古诗：先看提示，再显示完整诗句，然后让孩子自己选择：
-            <span class="tag tag-pink">完全记住</span>、
-            <span class="tag tag-green">差不多记住</span>、
-            <span class="tag tag-purple">非常不熟悉</span>。
-            记录结果会同步到主诗词库中的炸弹 / 子弹 / 紫色状态。
+    <div class="game-app">
+        <header class="game-header">
+            <div class="game-title">花 · 记忆闯关</div>
+            <div class="game-subtitle">
+                按顺序刷完“花”主题的古诗：先看提示，再显示完整诗句，然后让孩子自己选择：
+                <span class="tag tag-pink">完全记住</span>、
+                <span class="tag tag-green">差不多记住</span>、
+                <span class="tag tag-purple">非常不熟悉</span>。
+                记录结果会同步到主诗词库中的炸弹 / 子弹 / 紫色状态。
+            </div>
+        </header>
+
+        <main class="game-main">
+            <section class="game-status">
+                <div class="status-item">
+                    当前进度：
+                    <span id="progressText">0 / 0</span>
+                </div>
+                <div class="status-item">
+                    已标记：
+                    <span class="status-dot status-dot-pink"></span> <span id="countPink">0</span> /
+                    <span class="status-dot status-dot-green"></span> <span id="countGreen">0</span> /
+                    <span class="status-dot status-dot-purple"></span> <span id="countPurple">0</span>
+                </div>
+            </section>
+
+            <!-- 花瓣收集系统 -->
+            <section class="petal-collection">
+                <div class="petal-title">
+                    <span>🌸</span>
+                    <span>花瓣收集</span>
+                    <span class="petal-count" id="petalCount">0</span>
+                </div>
+                <div class="petal-progress">
+                    <div class="petal-bar">
+                        <div class="petal-fill" id="petalFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" id="mainCard">
+                <div class="card-theme">主题：花</div>
+                <div class="card-meta" id="cardMeta">——</div>
+
+                <div class="card-sentence-wrapper">
+                    <div class="card-sentence" id="cardSentence">点击“开始”进入第一句</div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" id="btnToggleShow" disabled>显示完整诗句</button>
+                    <button class="btn btn-secondary" id="btnPrev" disabled>上一句</button>
+                    <button class="btn btn-secondary" id="btnNext" disabled>下一句</button>
+                </div>
+            </section>
+
+            <section class="choice-panel">
+                <div class="choice-title">这句诗现在记得怎么样？</div>
+                <div class="choice-buttons">
+                    <button class="btn btn-memory btn-pink" id="btnMarkPink">
+                        💣 完全记住（炸弹）
+                    </button>
+                    <button class="btn btn-memory btn-green" id="btnMarkGreen">
+                        🔫 差不多记住（子弹）
+                    </button>
+                    <button class="btn btn-memory btn-purple" id="btnMarkPurple">
+                        💭 非常不熟悉（紫色）
+                    </button>
+                </div>
+            </section>
+
+            <section class="game-footer">
+                <button class="btn btn-primary" id="btnStart">▶ 开始 / 继续练习</button>
+                <button class="btn btn-ghost" id="btnBack">⟵ 返回诗词库</button>
+
+                <div class="game-hint">
+                    提示：
+                    <br>· “隐藏模式”会只显示诗句的首字，用来做回忆练习；
+                    <br>· “显示完整诗句”后，会自动对“花”等关键字进行高亮；
+                    <br>· 标记结果会保存到浏览器本地，主 App 中同一首诗会同步显示为相应颜色。
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- 游戏结束汇总模态框 -->
+    <div id="gameCompletionModal" class="game-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 游戏完成！</h2>
+            </div>
+            <div class="modal-body">
+                <div class="completion-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">总共学习诗句：</span>
+                        <span class="summary-value" id="summaryTotal">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">完全记住（炸弹）：</span>
+                        <span class="summary-value summary-pink" id="summaryPink">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">差不多记住（子弹）：</span>
+                        <span class="summary-value summary-green" id="summaryGreen">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">非常不熟悉（紫色）：</span>
+                        <span class="summary-value summary-purple" id="summaryPurple">0</span>
+                    </div>
+                    <div class="summary-message">
+                        <p>太棒了！你已经完成了所有"花"主题诗句的记忆练习。</p>
+                        <p>记得定期复习，巩固记忆效果哦！</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnReturnHome">返回诗词库</button>
+                <button class="btn btn-secondary" id="btnRestartGame">重新开始</button>
+            </div>
         </div>
-    </header>
+    </div>
+    
+    <script>
+        console.log("测试：页面已加载，但 data.js 还没加载");
+    </script>
 
-    <main class="game-main">
-        <section class="game-status">
-            <div class="status-item">
-                当前进度：
-                <span id="progressText">0 / 0</span>
-            </div>
-            <div class="status-item">
-                已标记：
-                <span class="status-dot status-dot-pink"></span> <span id="countPink">0</span> /
-                <span class="status-dot status-dot-green"></span> <span id="countGreen">0</span> /
-                <span class="status-dot status-dot-purple"></span> <span id="countPurple">0</span>
-            </div>
-        </section>
+    <script src="../../data.js"></script>
 
-        <section class="card">
-            <div class="card-theme">主题：花</div>
-            <div class="card-meta" id="cardMeta">——</div>
+    <script>
+        console.log("测试：data.js 加载完成后 POEMS =", window.POEMS);
+    </script>
 
-            <div class="card-sentence-wrapper">
-                <div class="card-sentence" id="cardSentence">点击“开始”进入第一句</div>
-            </div>
-
-            <div class="card-actions">
-                <button class="btn btn-secondary" id="btnToggleShow" disabled>显示完整诗句</button>
-                <button class="btn btn-secondary" id="btnPrev" disabled>上一句</button>
-                <button class="btn btn-secondary" id="btnNext" disabled>下一句</button>
-            </div>
-        </section>
-
-        <section class="choice-panel">
-            <div class="choice-title">这句诗现在记得怎么样？</div>
-            <div class="choice-buttons">
-                <button class="btn btn-memory btn-pink" id="btnMarkPink">
-                    💣 完全记住（炸弹）
-                </button>
-                <button class="btn btn-memory btn-green" id="btnMarkGreen">
-                    🔫 差不多记住（子弹）
-                </button>
-                <button class="btn btn-memory btn-purple" id="btnMarkPurple">
-                    💭 非常不熟悉（紫色）
-                </button>
-            </div>
-        </section>
-
-        <section class="game-footer">
-            <button class="btn btn-primary" id="btnStart">▶ 开始 / 继续练习</button>
-            <button class="btn btn-ghost" id="btnBack">⟵ 返回诗词库</button>
-
-            <div class="game-hint">
-                提示：
-                <br>· “隐藏模式”会只显示诗句的首字，用来做回忆练习；
-                <br>· “显示完整诗句”后，会自动对“花”等关键字进行高亮；
-                <br>· 标记结果会保存到浏览器本地，主 App 中同一首诗会同步显示为相应颜色。
-            </div>
-        </section>
-    </main>
-</div>
-<script>
-    console.log("测试：页面已加载，但 data.js 还没加载");
-</script>
-
-<script src="../../data.js"></script>
-
-<script>
-    console.log("测试：data.js 加载完成后 POEMS =", window.POEMS);
-</script>
-
-<script src="flower.js"></script>
+    <script src="flower.js"></script>

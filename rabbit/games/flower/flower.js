@@ -19,36 +19,64 @@ let statusMap = {};
 let flowerPoems = [];  // 实际的“花”主题诗句集合
 let currentIndex = 0;
 let showFullSentence = false;
+let gameProgress = 0;  // 当前游戏会话的进度（已完成的诗句数量）
 
-// ========= 点击音效 =========
+// ========= 增强声效系统 =========
 let audioCtx = null;
-function playClick() {
+
+// 创建音效
+function createSound(frequency, duration, type = 'sine') {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
+    if (!AC) return null;
     if (!audioCtx) {
       audioCtx = new AC();
     }
-    if (audioCtx.state === "suspended") {
+    if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = "square";
-    osc.frequency.value = 880;
+    osc.type = type;
+    osc.frequency.value = frequency;
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
     const now = audioCtx.currentTime;
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     osc.start(now);
-    osc.stop(now + 0.06);
+    osc.stop(now + duration);
   } catch (e) {
     // 静默失败
   }
+}
+
+// 点击音效
+function playClick() {
+  createSound(880, 0.06, 'square');
+}
+
+// 翻页音效(花朵轻柔声)
+function playFlip() {
+  createSound(660, 0.1, 'sine');
+  setTimeout(() => createSound(880, 0.08, 'sine'), 50);
+}
+
+// 标记音效(花朵绽放)
+function playMark() {
+  createSound(523, 0.1, 'sine');  // C
+  setTimeout(() => createSound(659, 0.1, 'sine'), 80);  // E
+  setTimeout(() => createSound(784, 0.15, 'sine'), 160); // G
+}
+
+// 完成音效(春天鸟鸣)
+function playComplete() {
+  createSound(784, 0.15, 'sine');
+  setTimeout(() => createSound(988, 0.15, 'sine'), 100);
+  setTimeout(() => createSound(1175, 0.2, 'sine'), 200);
 }
 
 // ========= localStorage 状态读写 =========
@@ -68,7 +96,7 @@ function loadStatus() {
 function saveStatus() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // ========= 工具函数 =========
@@ -172,10 +200,11 @@ function renderStatus() {
   const countPurpleEl = document.getElementById("countPurple");
 
   const total = flowerPoems.length;
-  const idx = total === 0 ? 0 : currentIndex + 1;
+  
+  // 使用游戏进度来显示当前进度
+  progressTextEl.textContent = `${gameProgress} / ${total}`;
 
-  progressTextEl.textContent = `${idx} / ${total}`;
-
+  // 仍然显示各种状态的数量统计
   const { pink, green, purple } = countStatuses();
   countPinkEl.textContent = pink;
   countGreenEl.textContent = green;
@@ -237,8 +266,11 @@ function markCurrent(statusType) {
 // ========= 启动 / 继续练习 =========
 function startPractice() {
   if (flowerPoems.length === 0) return;
+  // 重置游戏进度为0
+  gameProgress = 0;
   showFullSentence = false;
   renderCard();
+  renderStatus();
 }
 
 // ========= 返回主诗词库 =========
@@ -323,6 +355,183 @@ function initFlowerGame() {
 
   // 初始只渲染统计，不自动显示诗句
   renderStatus();
+
+  // 初始化花瓣系统
+  initPetalSystem();
+  
+  // 初始化游戏结束相关事件
+  initGameCompletionEvents();
 }
 
 document.addEventListener("DOMContentLoaded", initFlowerGame);
+
+// ========= 花瓣飘落动画 =========
+function createPetal() {
+  const petal = document.createElement('div');
+  petal.className = 'petal';
+  petal.textContent = ['🌸', '🌺', '🌼', '🌻'][Math.floor(Math.random() * 4)];
+  petal.style.left = Math.random() * 100 + '%';
+  petal.style.animationDuration = (Math.random() * 3 + 4) + 's';
+  document.body.appendChild(petal);
+
+  setTimeout(() => {
+    if (petal.parentNode) {
+      petal.parentNode.removeChild(petal);
+    }
+  }, 7000);
+}
+
+// 持续创建花瓣
+function startPetalFall() {
+  createPetal();
+  // 每0.5-1.5秒生成一片花瓣,让飘落更频繁
+  setTimeout(startPetalFall, Math.random() * 1000 + 500);
+}
+
+// 花朵绽放效果
+function createBloomEffect(x, y) {
+  const bloom = document.createElement('div');
+  bloom.className = 'bloom-effect';
+  bloom.textContent = '🌸';
+  bloom.style.left = x + 'px';
+  bloom.style.top = y + 'px';
+  document.body.appendChild(bloom);
+
+  setTimeout(() => {
+    if (bloom.parentNode) {
+      bloom.parentNode.removeChild(bloom);
+    }
+  }, 1000);
+}
+
+// ========= 花瓣收集系统 =========
+let petalCount = 0;
+
+function updatePetalProgress() {
+  const petalCountEl = document.getElementById('petalCount');
+  const petalFillEl = document.getElementById('petalFill');
+
+  // 使用游戏进度作为花瓣数量
+  petalCount = gameProgress;
+
+  if (petalCountEl) {
+    petalCountEl.textContent = petalCount;
+  }
+
+  if (petalFillEl) {
+    const maxPetals = flowerPoems.length;
+    const percentage = maxPetals > 0 ? Math.min(100, (petalCount / maxPetals) * 100) : 0;
+    petalFillEl.style.width = percentage + '%';
+  }
+}
+
+function collectPetal() {
+  // 直接更新进度,会重新计算粉色数量
+  updatePetalProgress();
+
+  // 创建花瓣飘落到收集区
+  const collection = document.querySelector('.petal-collection');
+  if (collection) {
+    const rect = collection.getBoundingClientRect();
+    createBloomEffect(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+}
+
+// 初始化花瓣系统
+function initPetalSystem() {
+  // 初始化时更新进度
+  updatePetalProgress();
+
+  // 立即启动花瓣飘落动画
+  startPetalFall();
+}
+
+// 检查游戏是否完成
+function checkGameCompletion() {
+  // 基于进度是否达到100%来判断游戏是否结束
+  if (gameProgress === flowerPoems.length && flowerPoems.length > 0) {
+    // 游戏完成，显示汇总
+    showGameCompletionSummary();
+  }
+}
+
+// 显示游戏完成汇总
+function showGameCompletionSummary() {
+  // 统计各种标记状态的数量
+  let pinkCount = 0;
+  let greenCount = 0;
+  let purpleCount = 0;
+  
+  flowerPoems.forEach((_, i) => {
+    const status = getCurrentStatus(i);
+    if (status === STATUS_TYPES.PINK) pinkCount++;
+    if (status === STATUS_TYPES.GREEN) greenCount++;
+    if (status === STATUS_TYPES.PURPLE) purpleCount++;
+  });
+  
+  // 更新汇总显示
+  document.getElementById("summaryTotal").textContent = flowerPoems.length;
+  document.getElementById("summaryPink").textContent = pinkCount;
+  document.getElementById("summaryGreen").textContent = greenCount;
+  document.getElementById("summaryPurple").textContent = purpleCount;
+  
+  // 显示模态框
+  const modal = document.getElementById("gameCompletionModal");
+  modal.classList.add("show");
+}
+
+// 初始化游戏结束相关事件
+function initGameCompletionEvents() {
+  // 返回首页按钮
+  document.getElementById("btnReturnHome").addEventListener("click", () => {
+    window.location.href = "../../index.html";
+  });
+  
+  // 重新开始按钮
+  document.getElementById("btnRestartGame").addEventListener("click", () => {
+    // 重新加载页面
+    window.location.reload();
+  });
+}
+
+// 增强标记函数,添加花瓣收集和自动推进
+const originalMarkCurrent = markCurrent;
+markCurrent = function (statusType) {
+  const oldStatus = getCurrentStatus(currentIndex);
+  originalMarkCurrent(statusType);
+
+  // 每标记一句增加游戏进度
+  gameProgress++;
+
+  // 如果标记为粉色(完全记住),播放音效和动画
+  if (statusType === STATUS_TYPES.PINK && oldStatus !== STATUS_TYPES.PINK) {
+    collectPetal();
+    playMark();
+  } else if (oldStatus === STATUS_TYPES.PINK && statusType !== STATUS_TYPES.PINK) {
+    // 如果取消粉色标记,更新进度
+    updatePetalProgress();
+  } else {
+    // 其他情况也更新进度,确保同步
+    updatePetalProgress();
+  }
+  
+  // 更新进度显示
+  renderStatus();
+  
+  // 标记完成后自动推进到下一句
+  if (currentIndex < flowerPoems.length - 1) {
+    currentIndex++;
+    showFullSentence = false;
+    renderCard();
+  } else {
+    // 如果已经是最后一句，检查是否所有诗句都已标记
+    checkGameCompletion();
+  }
+};
+
+// 增强渲染卡片,添加翻页音效
+const originalRenderCard = renderCard;
+renderCard = function () {
+  originalRenderCard();
+  playFlip();
+};

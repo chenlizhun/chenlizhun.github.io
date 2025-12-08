@@ -6,7 +6,7 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: linear-gradient(135deg, #fdf6ec, #fefefe);
+  background: linear-gradient(135deg, #fff8f0, #fffbf5);
   color: #333;
 }
 
@@ -25,19 +25,41 @@ body {
 
 .sidebar {
   width: 240px;
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
-  background: #fff9f2;
+  border-right: 2px solid #ffe4d0;
+  background: linear-gradient(180deg, #fff8f0, #fffbf5);
   padding: 12px 10px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
+}
+
+/* 萝卜装饰 */
+.sidebar::after {
+  content: "🥕";
+  position: absolute;
+  bottom: 20px;
+  right: 15px;
+  font-size: 50px;
+  opacity: 0.15;
+  pointer-events: none;
 }
 
 .sidebar-title {
-  font-size: 18px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.sidebar-rabbit {
+  font-size: 48px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.sidebar-text {
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 4px;
-  padding-left: 4px;
+  color: #333;
 }
 
 .theme-btn {
@@ -47,7 +69,8 @@ body {
   text-align: left;
   padding: 10px 12px;
   border-radius: 999px;
-  font-size: 18px; /* 左侧分类字体 */
+  font-size: 18px;
+  /* 左侧分类字体 */
   cursor: pointer;
   background: transparent;
   display: flex;
@@ -55,7 +78,8 @@ body {
   justify-content: space-between;
   gap: 8px;
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-  min-height: 44px; /* 适配 iPad，点按区域大一点 */
+  min-height: 44px;
+  /* 适配 iPad，点按区域大一点 */
 }
 
 .theme-main {
@@ -90,14 +114,14 @@ body {
 }
 
 .theme-btn:hover {
-  background: rgba(255, 194, 128, 0.18);
+  background: rgba(255, 159, 90, 0.2);
   transform: translateY(-1px);
 }
 
 .theme-btn.active {
-  background: linear-gradient(135deg, #ffb86c, #ff9a9e);
+  background: linear-gradient(135deg, #ff9f5a, #ff7f50);
   color: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 10px rgba(255, 127, 80, 0.3);
 }
 
 .theme-btn.active .theme-count {
@@ -125,9 +149,10 @@ body {
 }
 
 .header-title {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  text-align: center;
 }
 
 .header-desc {
@@ -140,21 +165,28 @@ body {
 .theme-game-btn {
   border: none;
   outline: none;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 13px;
+  background: rgba(255, 159, 90, 0.15);
   cursor: pointer;
-  background: linear-gradient(135deg, #ffb86c, #ff9a9e);
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  white-space: nowrap;
+  padding: 8px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.05s;
+  font-size: 20px;
+  min-width: 40px;
+  min-height: 40px;
   -webkit-tap-highlight-color: transparent;
-  min-height: 36px;
+}
+
+.theme-game-btn:hover {
+  background: rgba(255, 159, 90, 0.25);
+  transform: translateY(-0.5px);
 }
 
 .theme-game-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+  transform: translateY(0);
+  background: rgba(255, 159, 90, 0.3);
 }
 
 /* 图例 */
@@ -185,16 +217,22 @@ body {
 }
 
 .dot-black {
-  background: #222;
+  background: #999;
 }
+
 .dot-pink {
-  background: #ff7ab8;
+  background: #ff9f5a;
+  /* 萝卜橙色 */
 }
+
 .dot-green {
-  background: #36b26f;
+  background: #7ec850;
+  /* 萝卜叶绿色 */
 }
+
 .dot-red {
-  background: #9b59b6; /* 紫色表示非常不熟悉 */
+  background: #ff6b9d;
+  /* 柔和粉色 */
 }
 
 /* 显示模式条 */
@@ -232,9 +270,9 @@ body {
 }
 
 .mode-btn.active {
-  background: #ffb86c;
+  background: linear-gradient(135deg, #ff9f5a, #ff7f50);
   color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 4px rgba(255, 127, 80, 0.3);
 }
 
 /* 列表 */
@@ -251,6 +289,9 @@ body {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .poem-item {
@@ -263,7 +304,8 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  min-height: 44px; /* iPad 上点按面积 */
+  min-height: 44px;
+  /* iPad 上点按面积 */
 }
 
 .poem-item:last-child {
@@ -339,26 +381,29 @@ body {
 }
 
 .status-bomb .poem-sentence {
-  color: #ff4fa5;
+  color: #ff7ab8;
+  /* 粉色 - 炸弹/完全掌握 */
   font-weight: 600;
 }
 
 .status-bullet .poem-sentence {
-  color: #1f9c5a;
+  color: #36b26f;
+  /* 绿色 - 子弹/快要掌握 */
   font-weight: 600;
 }
 
 .status-unfamiliar .poem-sentence {
-  color: #8e44ad; /* 紫色 */
+  color: #9b59b6;
+  /* 紫色 - 不掌握 */
   font-weight: 600;
 }
 
 .status-bomb {
-  background: linear-gradient(90deg, rgba(255, 182, 193, 0.25), rgba(255, 255, 255, 0));
+  background: linear-gradient(90deg, rgba(255, 122, 184, 0.25), rgba(255, 255, 255, 0));
 }
 
 .status-bullet {
-  background: linear-gradient(90deg, rgba(152, 251, 152, 0.25), rgba(255, 255, 255, 0));
+  background: linear-gradient(90deg, rgba(54, 178, 111, 0.25), rgba(255, 255, 255, 0));
 }
 
 .status-unfamiliar {
@@ -433,10 +478,14 @@ body {
 }
 
 .modal-sentence {
-  font-size: 28px;
-  line-height: 1.7;
+  font-size: 36px;
+  line-height: 1.8;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-meta {
@@ -473,7 +522,232 @@ body {
     padding: 8px 8px 4px;
   }
 
+  .poem-list {
+    grid-template-columns: 1fr;
+  }
+
   .modal-sentence {
     font-size: 22px;
+  }
+
+  .sidebar::after {
+    font-size: 30px;
+    bottom: 10px;
+    right: 10px;
+  }
+}
+
+/* ========== 兔子和萝卜动画 ========== */
+
+/* 兔子跳跃动画 */
+@keyframes hop {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.rabbit-hop {
+  animation: hop 0.6s ease-in-out;
+}
+
+/* 萝卜飘落动画 */
+@keyframes fall {
+  0% {
+    transform: translateY(-50px) rotate(0deg);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.carrot-fall {
+  animation: fall 2s ease-in forwards;
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* ========== 萝卜收集系统 ========== */
+
+.carrot-system {
+  background: linear-gradient(135deg, #fff8f0, #ffe4d0);
+  border: 2px solid #ff9f5a;
+  border-radius: 15px;
+  padding: 15px 18px;
+  margin: 15px 0;
+  box-shadow: 0 4px 12px rgba(255, 127, 80, 0.15);
+}
+
+.carrot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.carrot-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff7f50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.carrot-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ff7f50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.carrot-progress {
+  margin: 6px 0;
+}
+
+.progress-bar {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9f5a, #ff7f50);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.carrot-hint {
+  font-size: 11px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* 成就系统独立区域 */
+.achievement-section {
+  display: none;
+  background: linear-gradient(135deg, #fff8f0, #fffbf5);
+  border: 2px solid #ffe4d0;
+  border-radius: 15px;
+  padding: 15px 18px;
+  margin: 15px 0 20px;
+  box-shadow: 0 4px 12px rgba(255, 127, 80, 0.1);
+}
+
+.achievement-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff7f50;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.achievement-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.achievement-item {
+  background: white;
+  padding: 8px 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.achievement-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-name {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.achievement-desc {
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.achievement-item.locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.achievement-item.unlocked {
+  background: linear-gradient(135deg, #fff8f0, #ffe4d0);
+  border: 1px solid #ff9f5a;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .achievement-list {
+    grid-template-columns: 1fr;
+  }
+
+  .carrot-system {
+    padding: 12px 15px;
   }
 }

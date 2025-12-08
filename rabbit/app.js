@@ -4,6 +4,7 @@
 const STATUS_STORAGE_KEY = "poemMemoryStatus_v1";
 const DISPLAY_MODE_KEY = "poemDisplayMode_v1";  // full / first
 const HIGHLIGHT_MODE_KEY = "poemHighlightMode_v1"; // on / off
+const CARROT_COUNT_KEY = "carrotCount_v1"; // 萝卜数量
 
 // 状态顺序：黑 → 粉 → 绿 → 紫 → 黑
 const STATUS_ORDER = ["default", "bomb", "bullet", "unfamiliar"];
@@ -28,6 +29,11 @@ let statusMap = {};      // { "flower-0": "bomb", ... }
 let displayMode = "full";
 let highlightOn = true;
 let currentThemeId = "flower";
+let carrotCount = 0;     // 萝卜数量
+
+// 兔子表情数组
+const RABBIT_EMOJIS = ["🐰", "🐇", "🥕", "🌸", "🎉", "😊", "💕", "⭐", "🌈", "🎈"];
+let currentRabbitIndex = 0;
 
 // ====== DOM 引用 ======
 const sidebarEl = document.querySelector(".sidebar");
@@ -44,6 +50,15 @@ const modalTitleEl = document.getElementById("modalTitle");
 const modalSentenceEl = document.getElementById("modalSentence");
 const modalMetaEl = document.getElementById("modalMeta");
 const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+// 萝卜收集系统DOM
+const carrotCountEl = document.getElementById("carrotCount");
+const progressFillEl = document.getElementById("progressFill");
+const carrotHintEl = document.getElementById("carrotHint");
+const achievement1 = document.getElementById("achievement1");
+const achievement2 = document.getElementById("achievement2");
+const achievement3 = document.getElementById("achievement3");
+const achievement4 = document.getElementById("achievement4");
 
 // ====== 点击音效 ======
 let audioCtx = null;
@@ -87,30 +102,41 @@ function loadState() {
   try {
     const m = localStorage.getItem(DISPLAY_MODE_KEY);
     if (m === "full" || m === "first") displayMode = m;
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     const h = localStorage.getItem(HIGHLIGHT_MODE_KEY);
     if (h === "on" || h === "off") highlightOn = h === "on";
-  } catch (_) {}
+  } catch (_) { }
+
+  try {
+    const c = localStorage.getItem(CARROT_COUNT_KEY);
+    if (c) carrotCount = parseInt(c, 10) || 0;
+  } catch (_) { }
 }
 
 function saveStatus() {
   try {
     localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(statusMap));
-  } catch (_) {}
+  } catch (_) { }
+}
+
+function saveCarrotCount() {
+  try {
+    localStorage.setItem(CARROT_COUNT_KEY, carrotCount.toString());
+  } catch (_) { }
 }
 
 function saveDisplayMode() {
   try {
     localStorage.setItem(DISPLAY_MODE_KEY, displayMode);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function saveHighlightMode() {
   try {
     localStorage.setItem(HIGHLIGHT_MODE_KEY, highlightOn ? "on" : "off");
-  } catch (_) {}
+  } catch (_) { }
 }
 
 // ====== 工具函数 ======
@@ -173,6 +199,138 @@ function isThemeCompleted(themeId) {
     if (st !== "bomb") return false;
   }
   return true;
+}
+
+// ====== 萝卜收集系统 ======
+// 计算当前萝卜数量(基于所有"bomb"状态的诗句)
+function calculateCarrotCount() {
+  let count = 0;
+  for (const key in statusMap) {
+    if (statusMap[key] === "bomb") {
+      count++;
+    }
+  }
+  return count;
+}
+
+// 更新萝卜收集系统UI
+function updateCarrotSystem() {
+  if (!carrotCountEl) return;
+
+  // 更新萝卜数量
+  carrotCountEl.textContent = carrotCount;
+
+  // 更新进度条
+  const maxCarrots = 100; // 最大目标
+  const percentage = Math.min(100, Math.floor((carrotCount / maxCarrots) * 100));
+  if (progressFillEl) {
+    progressFillEl.style.width = `${percentage}%`;
+    progressFillEl.textContent = `${percentage}%`;
+  }
+
+  // 更新提示文本
+  if (carrotHintEl) {
+    if (carrotCount >= 100) {
+      carrotHintEl.textContent = "🎉 恭喜!你已经收集了100个萝卜!";
+    } else if (carrotCount >= 50) {
+      carrotHintEl.textContent = `再收集 ${100 - carrotCount} 个萝卜就能成为萝卜大师!`;
+    } else if (carrotCount >= 10) {
+      carrotHintEl.textContent = `再收集 ${50 - carrotCount} 个萝卜解锁"萝卜达人"徽章! 🏆`;
+    } else {
+      carrotHintEl.textContent = `再收集 ${10 - carrotCount} 个萝卜解锁"萝卜新手"徽章!`;
+    }
+  }
+
+  // 更新成就状态
+  updateAchievements();
+}
+
+// 更新成就徽章状态
+function updateAchievements() {
+  // 萝卜新手: 10个萝卜
+  if (achievement1) {
+    if (carrotCount >= 10) {
+      achievement1.classList.remove("locked");
+      achievement1.classList.add("unlocked");
+    } else {
+      achievement1.classList.add("locked");
+      achievement1.classList.remove("unlocked");
+    }
+  }
+
+  // 萝卜达人: 50个萝卜
+  if (achievement2) {
+    if (carrotCount >= 50) {
+      achievement2.classList.remove("locked");
+      achievement2.classList.add("unlocked");
+    } else {
+      achievement2.classList.add("locked");
+      achievement2.classList.remove("unlocked");
+    }
+  }
+
+  // 萝卜大师: 100个萝卜
+  if (achievement3) {
+    if (carrotCount >= 100) {
+      achievement3.classList.remove("locked");
+      achievement3.classList.add("unlocked");
+    } else {
+      achievement3.classList.add("locked");
+      achievement3.classList.remove("unlocked");
+    }
+  }
+
+  // 诗词兔兔: 完成全部10个主题
+  if (achievement4 && window.THEMES) {
+    let allCompleted = true;
+    for (const theme of THEMES) {
+      if (!isThemeCompleted(theme.id)) {
+        allCompleted = false;
+        break;
+      }
+    }
+    if (allCompleted) {
+      achievement4.classList.remove("locked");
+      achievement4.classList.add("unlocked");
+    } else {
+      achievement4.classList.add("locked");
+      achievement4.classList.remove("unlocked");
+    }
+  }
+}
+
+// 添加萝卜飘落动画
+function showCarrotAnimation() {
+  const carrotSystem = document.getElementById("carrotSystem");
+  if (!carrotSystem) return;
+
+  // 创建飘落的萝卜
+  const carrot = document.createElement("div");
+  carrot.textContent = "🥕";
+  carrot.style.position = "fixed";
+  carrot.style.fontSize = "30px";
+  carrot.style.left = `${Math.random() * 80 + 10}%`;
+  carrot.style.top = "-50px";
+  carrot.style.zIndex = "9999";
+  carrot.style.pointerEvents = "none";
+  carrot.className = "carrot-fall";
+
+  document.body.appendChild(carrot);
+
+  // 2秒后移除
+  setTimeout(() => {
+    if (carrot.parentNode) {
+      carrot.parentNode.removeChild(carrot);
+    }
+  }, 2000);
+
+  // 萝卜计数添加脉冲动画
+  if (carrotCountEl) {
+    carrotCountEl.classList.add("pulse");
+    setTimeout(() => {
+      carrotCountEl.classList.remove("pulse");
+    }, 500);
+  }
 }
 
 // ====== 渲染侧边栏 ======
@@ -249,15 +407,15 @@ function renderHighlightButtons() {
 // ====== 渲染诗列表 ======
 function renderPoems() {
   const themeMeta = (window.THEMES || []).find((t) => t.id === currentThemeId);
-  currentThemeTitleEl.textContent = `主题：${themeMeta ? themeMeta.name : currentThemeId}`;
+  const themeName = themeMeta ? themeMeta.name : currentThemeId;
+  currentThemeTitleEl.textContent = themeName;
 
   // 控制“当前主题小游戏”按钮显隐
   if (flowerGameBtn) {
     if (GAME_THEMES.includes(currentThemeId)) {
       flowerGameBtn.style.display = "inline-flex";
-      // 文案跟着主题走，例如：花的小游戏 / 春的小游戏
-      const themeName = themeMeta ? themeMeta.name : "";
-      flowerGameBtn.textContent = `🎮 ${themeName}的小游戏`;
+      // 只显示游戏手柄图标
+      flowerGameBtn.textContent = "🎮";
     } else {
       flowerGameBtn.style.display = "none";
     }
@@ -300,7 +458,7 @@ function renderPoems() {
     eyeDiv.className = "poem-eye";
     const eyeBtn = document.createElement("button");
     eyeBtn.className = "eye-btn";
-    eyeBtn.innerHTML = "👁";
+    eyeBtn.innerHTML = "🔍";
     eyeBtn.title = "放大查看";
     eyeDiv.appendChild(eyeBtn);
 
@@ -312,6 +470,18 @@ function renderPoems() {
       setStatus(currentThemeId, index, next);
       saveStatus();
       li.className = `poem-item status-${next}`;
+
+      // 萝卜收集逻辑
+      const oldCarrotCount = carrotCount;
+      carrotCount = calculateCarrotCount();
+
+      // 如果萝卜数量增加,显示动画
+      if (carrotCount > oldCarrotCount) {
+        showCarrotAnimation();
+      }
+
+      saveCarrotCount();
+      updateCarrotSystem();
       renderSidebar(); // 更新左侧完成绿点
     });
 
@@ -414,7 +584,25 @@ if (flowerGameBtn) {
 
 // ====== 初始化 ======
 loadState();
+carrotCount = calculateCarrotCount(); // 根据现有状态计算萝卜数
 renderDisplayModeButtons();
 renderHighlightButtons();
 renderSidebar();
 renderPoems();
+updateCarrotSystem(); // 初始化萝卜收集系统UI
+
+// ====== 兔子Logo点击切换表情 ======
+const rabbitLogo = document.querySelector(".sidebar-rabbit");
+if (rabbitLogo) {
+  rabbitLogo.style.cursor = "pointer";
+  rabbitLogo.addEventListener("click", () => {
+    playClick();
+    currentRabbitIndex = (currentRabbitIndex + 1) % RABBIT_EMOJIS.length;
+    rabbitLogo.textContent = RABBIT_EMOJIS[currentRabbitIndex];
+    // 添加跳跃动画
+    rabbitLogo.classList.add("rabbit-hop");
+    setTimeout(() => {
+      rabbitLogo.classList.remove("rabbit-hop");
+    }, 600);
+  });
+}

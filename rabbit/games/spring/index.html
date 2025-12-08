@@ -1,52 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8" />
     <title>Rabbit的诗词库 · 春天填空小游戏</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="spring.css" />
 </head>
+
 <body>
-<div class="game-page">
-    <header class="game-header">
-        <button class="back-btn" id="btnBack">⟵ 返回诗词库</button>
-        <div class="game-title">春天填空小游戏</div>
-    </header>
+    <div class="game-page">
+        <header class="game-header">
+            <button class="back-btn" id="btnBack">⟵ 返回诗词库</button>
+            <div class="game-title">春天填空小游戏</div>
+        </header>
 
-    <main class="game-main">
-        <section class="info-bar">
-            <div class="info-item" id="roundInfo">第 0 / 0 题</div>
-            <div class="info-item" id="scoreInfo">已答对：0 题</div>
-        </section>
+        <main class="game-main">
+            <section class="info-bar">
+                <div class="info-item" id="roundInfo">第 0 / 0 题</div>
+                <div class="info-item" id="scoreInfo">已答对：0 题</div>
+            </section>
 
-        <section class="sentence-card">
-            <div class="sentence-label">请选出空格中应该填的字：</div>
-            <div class="sentence-text" id="maskedSentence">——</div>
-            <div class="sentence-meta" id="poemMeta">——</div>
-            <div class="feedback" id="feedback"></div>
-        </section>
+            <!-- 春芽收集系统 -->
+            <section class="sprout-collection">
+                <div class="sprout-title">
+                    <span>🌱</span>
+                    <span>春芽收集</span>
+                    <span class="sprout-count" id="sproutCount">0</span>
+                </div>
+                <div class="sprout-progress">
+                    <div class="sprout-bar">
+                        <div class="sprout-fill" id="sproutFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </section>
 
-        <section class="options-area">
-            <button class="option-btn" data-index="0"></button>
-            <button class="option-btn" data-index="1"></button>
-            <button class="option-btn" data-index="2"></button>
-        </section>
+            <section class="sentence-card">
+                <div class="sentence-label">请选出空格中应该填的字：</div>
+                <div class="sentence-text" id="maskedSentence">——</div>
+                <div class="sentence-meta" id="poemMeta">——</div>
+                <div class="feedback" id="feedback"></div>
+            </section>
 
-        <section class="control-bar">
-            <button class="next-btn" id="btnNext" disabled>下一题 ▶</button>
-        </section>
-    </main>
+            <section class="options-area">
+                <button class="option-btn" data-index="0"></button>
+                <button class="option-btn" data-index="1"></button>
+                <button class="option-btn" data-index="2"></button>
+            </section>
 
-    <footer class="game-footer">
-        提示：本游戏题目来自主题“春”的诗词。答对会让这句诗在主诗词库中变成
-        <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
-        <span class="tag tag-pink">炸弹（粉色）</span>；
-        答错则会被标记为
-        <span class="tag tag-purple">非常不熟悉（紫色）</span>。
-    </footer>
-</div>
+            <section class="control-bar">
+                <button class="next-btn" id="btnNext" disabled>下一题 ▶</button>
+            </section>
+        </main>
 
-<script src="../../data.js"></script>
-<script src="spring.js"></script>
+        <footer class="game-footer">
+            提示：本游戏题目来自主题“春”的诗词。答对会让这句诗在主诗词库中变成
+            <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
+            <span class="tag tag-pink">炸弹（粉色）</span>；
+            答错则会被标记为
+            <span class="tag tag-purple">非常不熟悉（紫色）</span>。
+        </footer>
+    </div>
+
+    <script src="../../data.js"></script>
+    <script src="spring.js"></script>
+    
+    <!-- 游戏结束汇总模态框 -->
+    <div id="gameCompletionModal" class="game-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 游戏完成！</h2>
+            </div>
+            <div class="modal-body">
+                <div class="completion-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">总共学习诗句：</span>
+                        <span class="summary-value" id="summaryTotal">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">完全记住（炸弹）：</span>
+                        <span class="summary-value summary-pink" id="summaryPink">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">差不多记住（子弹）：</span>
+                        <span class="summary-value summary-green" id="summaryGreen">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">非常不熟悉（紫色）：</span>
+                        <span class="summary-value summary-purple" id="summaryPurple">0</span>
+                    </div>
+                    <div class="summary-message">
+                        <p>太棒了！你已经完成了所有"春"主题诗句的记忆练习。</p>
+                        <p>记得定期复习，巩固记忆效果哦！</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnReturnHome">返回诗词库</button>
+                <button class="btn btn-secondary" id="btnRestartGame">重新开始</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

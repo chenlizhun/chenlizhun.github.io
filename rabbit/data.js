@@ -2,16 +2,16 @@
 
 // 侧边栏主题配置
 window.THEMES = [
-  { id: "flower",  name: "花" },
-  { id: "spring",  name: "春" },
-  { id: "autumn",  name: "秋" },
-  { id: "moon",    name: "月" },
-  { id: "mountain",name: "山" },
-  { id: "water",   name: "水" },
-  { id: "wind",    name: "风" },
-  { id: "bird",    name: "鸟" },
-  { id: "number",  name: "数字" },
-  { id: "color",   name: "颜色" }
+  { id: "flower", name: "花", icon: "🌸" },
+  { id: "spring", name: "春", icon: "🌱" },
+  { id: "autumn", name: "秋", icon: "🍂" },
+  { id: "moon", name: "月", icon: "🌙" },
+  { id: "mountain", name: "山", icon: "⛰️" },
+  { id: "water", name: "水", icon: "💧" },
+  { id: "wind", name: "风", icon: "🍃" },
+  { id: "bird", name: "鸟", icon: "🐦" },
+  { id: "number", name: "数字", icon: "🔢" },
+  { id: "color", name: "颜色", icon: "🎨" }
 ];
 
 // 关键字高亮字符

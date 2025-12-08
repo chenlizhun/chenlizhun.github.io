@@ -3,6 +3,11 @@
 const THEME_ID = "autumn";
 const STORAGE_KEY = "poemMemoryStatus_v1";
 
+// 秋叶动画效果
+const LEAF_SYMBOLS = ['🍂', '🍁', '🍃', '🍄'];
+const LEAF_CLASSES = ['leaf-1', 'leaf-2', 'leaf-3', 'leaf-4'];
+const MAX_LEAVES = 20;
+
 // DOM 引用
 const roundInfoEl = document.getElementById("roundInfo");
 const scoreInfoEl = document.getElementById("scoreInfo");
@@ -14,6 +19,18 @@ const btnReset = document.getElementById("btnReset");
 const btnCheck = document.getElementById("btnCheck");
 const btnNext = document.getElementById("btnNext");
 const btnBack = document.getElementById("btnBack");
+// 进度条相关DOM引用
+const progressCountEl = document.getElementById("progressCount");
+const progressFillEl = document.getElementById("progressFill");
+
+// 模态窗口DOM元素（将在页面加载完成后获取）
+let gameCompletionModalEl;
+let summaryTotalEl;
+let summaryPinkEl;
+let summaryGreenEl;
+let summaryPurpleEl;
+let btnReturnHomeEl;
+let btnRestartGameEl;
 
 let audioCtx = null;
 function playClick() {
@@ -47,6 +64,7 @@ let autumnPoems = [];
 let orderIndices = [];
 let currentRound = 0;
 let correctCount = 0;
+let gameProgress = 0;  // 当前游戏会话的进度（已完成的诗句数量）
 
 let currentPoemIndex = -1;
 let correctFragments = [];   // 正确顺序的碎片
@@ -239,6 +257,10 @@ function checkAnswer() {
   if (isCorrect) {
     correctCount++;
     feedbackEl.textContent = "✅ 太棒啦！你拼对了这句秋天的诗～";
+    feedbackEl.classList.add('celebration');
+    
+    // 显示烟花效果
+    showFireworks();
 
     const old = getStatus(THEME_ID, poemIndex);
     let next = old;
@@ -249,6 +271,11 @@ function checkAnswer() {
     }
     setStatus(THEME_ID, poemIndex, next);
     saveStatus();
+    
+    // 移除庆祝效果类，以便下次可以再次触发
+    setTimeout(() => {
+      feedbackEl.classList.remove('celebration');
+    }, 500);
   } else {
     feedbackEl.textContent =
       "❌ 这次顺序还不太对，可以点“重置本题”再试一试。";
@@ -266,6 +293,169 @@ function checkAnswer() {
   });
 
   btnNext.disabled = false;
+}
+
+// 更新进度条函数
+function updateProgress() {
+  if (!progressCountEl || !progressFillEl) return;
+  
+  // 使用gameProgress计算进度
+  const total = autumnPoems.length;
+  const percentage = total > 0 ? Math.min(Math.round((gameProgress / total) * 100), 100) : 0;
+  
+  progressCountEl.textContent = gameProgress;
+  progressFillEl.style.width = `${percentage}%`;
+}
+
+// 游戏完成检测
+function checkGameCompletion() {
+  const total = autumnPoems.length;
+  console.log(`checkGameCompletion: gameProgress=${gameProgress}, total=${total}`);
+  
+  // 当游戏进度达到或超过总题目数时，显示完成模态框
+  if (gameProgress >= total && total > 0) {
+    console.log('游戏完成，显示模态框');
+    showGameCompletionSummary();
+  }
+}
+
+// 显示游戏完成汇总模态窗口
+function showGameCompletionSummary() {
+  console.log('showGameCompletionSummary: 开始显示模态框');
+  
+  // 确保DOM元素已获取
+  if (!gameCompletionModalEl) {
+    console.log('错误：模态窗口DOM元素未获取');
+    return;
+  }
+  
+  // 禁用下一题按钮，防止用户继续点击
+  btnNext.disabled = true;
+  
+  // 计算总学习诗句数
+  const totalPoems = autumnPoems.length;
+  
+  // 计算不同记忆状态的诗句数量
+  let pinkCount = 0;
+  let greenCount = 0;
+  let purpleCount = 0;
+  
+  autumnPoems.forEach((poem, index) => {
+    const storedStatus = getStatus(THEME_ID, index);
+    if (storedStatus === 'bullet') {
+      pinkCount++;
+    } else if (storedStatus === 'bomb') {
+      greenCount++;
+    } else {
+      // default或unfamiliar状态
+      purpleCount++;
+    }
+  });
+  
+  // 更新模态窗口中的数据
+  if (summaryTotalEl) summaryTotalEl.textContent = totalPoems;
+  if (summaryPinkEl) summaryPinkEl.textContent = pinkCount;
+  if (summaryGreenEl) summaryGreenEl.textContent = greenCount;
+  if (summaryPurpleEl) summaryPurpleEl.textContent = purpleCount;
+  
+  // 显示模态窗口
+  console.log('显示模态窗口');
+  gameCompletionModalEl.style.display = 'flex';
+}
+
+// 返回首页处理函数
+function returnHomeHandler() {
+  window.location.href = '../../index.html';
+}
+
+// 重新开始游戏处理函数
+function restartGameHandler() {
+  // 关闭模态窗口
+  gameCompletionModalEl.style.display = 'none';
+  
+  // 重置游戏状态
+  currentRound = 0;
+  correctCount = 0;
+  chosenFragments = [];
+  gameProgress = 0;
+  
+  // 重新启用下一题按钮
+  btnNext.disabled = false;
+  
+  // 更新进度条
+  updateProgress();
+  
+  // 重新渲染游戏
+  renderRound();
+}
+
+// 生成飘落的秋叶
+function createFallingLeaf() {
+  const leaf = document.createElement('div');
+  leaf.className = 'falling-leaf';
+  
+  // 随机选择秋叶符号和样式类
+  const symbolIndex = Math.floor(Math.random() * LEAF_SYMBOLS.length);
+  leaf.textContent = LEAF_SYMBOLS[symbolIndex];
+  leaf.classList.add(LEAF_CLASSES[symbolIndex]);
+  
+  // 随机位置和动画延迟
+  leaf.style.left = Math.random() * window.innerWidth + 'px';
+  leaf.style.animationDelay = Math.random() * 5 + 's';
+  
+  // 添加到页面
+  document.body.appendChild(leaf);
+  
+  // 动画结束后移除元素
+  leaf.addEventListener('animationend', () => {
+    if (leaf.parentNode) {
+      leaf.parentNode.removeChild(leaf);
+    }
+  });
+}
+
+// 初始化秋叶动画
+function initLeafAnimation() {
+  // 初始生成一些秋叶
+  for (let i = 0; i < MAX_LEAVES; i++) {
+    setTimeout(createFallingLeaf, i * 500);
+  }
+  
+  // 定期生成新的秋叶
+  setInterval(() => {
+    if (document.querySelectorAll('.falling-leaf').length < MAX_LEAVES) {
+      createFallingLeaf();
+    }
+  }, 2000);
+}
+
+// 显示烟花效果
+function showFireworks() {
+  const FIREWORK_SYMBOLS = ['✨', '🎊', '🎉', '🌟', '💫'];
+  const fireworkCount = 5;
+  
+  for (let i = 0; i < fireworkCount; i++) {
+    setTimeout(() => {
+      const firework = document.createElement('div');
+      firework.className = 'firework';
+      firework.textContent = FIREWORK_SYMBOLS[Math.floor(Math.random() * FIREWORK_SYMBOLS.length)];
+      
+      // 随机位置
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * (window.innerHeight * 0.5);
+      firework.style.left = x + 'px';
+      firework.style.top = y + 'px';
+      
+      document.body.appendChild(firework);
+      
+      // 动画结束后移除
+      firework.addEventListener('animationend', () => {
+        if (firework.parentNode) {
+          firework.parentNode.removeChild(firework);
+        }
+      });
+    }, i * 100);
+  }
 }
 
 // ====== 初始化 ======
@@ -287,8 +477,32 @@ function initGame() {
 
   currentRound = 0;
   correctCount = 0;
+  gameProgress = 0; // 重置游戏进度
+  
+  // 获取模态窗口DOM元素
+  gameCompletionModalEl = document.getElementById('gameCompletionModal');
+  summaryTotalEl = document.getElementById('summaryTotal');
+  summaryPinkEl = document.getElementById('summaryPink');
+  summaryGreenEl = document.getElementById('summaryGreen');
+  summaryPurpleEl = document.getElementById('summaryPurple');
+  btnReturnHomeEl = document.getElementById('btnReturnHome');
+  btnRestartGameEl = document.getElementById('btnRestartGame');
 
   renderRound();
+  updateProgress(); // 初始化进度条
+  initLeafAnimation(); // 初始化秋叶动画
+  
+  // 为模态窗口按钮添加事件监听
+  if (btnReturnHomeEl) {
+    btnReturnHomeEl.addEventListener('click', returnHomeHandler);
+  }
+  if (btnRestartGameEl) {
+    btnRestartGameEl.addEventListener('click', restartGameHandler);
+  }
+  
+  console.log('初始化完成，模态窗口DOM元素获取状态：');
+  console.log(`gameCompletionModalEl: ${gameCompletionModalEl ? '获取成功' : '获取失败'}`);
+  console.log(`autumnPoems.length: ${autumnPoems.length}`);
 }
 
 // 事件绑定
@@ -305,7 +519,10 @@ btnCheck.addEventListener("click", () => {
 btnNext.addEventListener("click", () => {
   playClick();
   currentRound++;
+  gameProgress++;
+  updateProgress();
   renderRound();
+  checkGameCompletion();
 });
 
 // 返回主页面

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>🐰 Rabbit诗词库 - 视觉设计预览</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #fff8f0, #fffbf5);
+            color: #333;
+            padding: 20px;
+        }
+
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(255, 159, 90, 0.15);
+        }
+
+        .preview-header h1 {
+            font-size: 36px;
+            margin: 0 0 10px;
+            color: #ff7f50;
+        }
+
+        .preview-header p {
+            font-size: 16px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .comparison-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ff7f50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .design-card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .design-card h3 {
+            margin: 0 0 15px;
+            font-size: 18px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .old-design h3 {
+            color: #999;
+        }
+
+        .new-design h3 {
+            color: #ff7f50;
+        }
+
+        /* 配色展示 */
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-item {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .color-box {
+            height: 60px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* 模拟应用界面 */
+        .app-preview {
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .mock-app {
+            display: flex;
+            min-height: 400px;
+        }
+
+        .mock-sidebar {
+            width: 200px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .old-design .mock-sidebar {
+            background: #fff9f2;
+            border-right: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .new-design .mock-sidebar {
+            background: linear-gradient(180deg, #fff8f0, #fffbf5);
+            border-right: 2px solid #ffe4d0;
+            position: relative;
+        }
+
+        /* 萝卜装饰 */
+        .new-design .mock-sidebar::after {
+            content: "🥕";
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 40px;
+            opacity: 0.3;
+        }
+
+        .mock-sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .new-design .mock-sidebar-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mock-theme-btn {
+            padding: 8px 10px;
+            border-radius: 999px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .old-design .mock-theme-btn {
+            background: transparent;
+        }
+
+        .old-design .mock-theme-btn.active {
+            background: linear-gradient(135deg, #ffb86c, #ff9a9e);
+            color: white;
+        }
+
+        .new-design .mock-theme-btn {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .new-design .mock-theme-btn.active {
+            background: linear-gradient(135deg, #ff9f5a, #ff7f50);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 127, 80, 0.3);
+        }
+
+        .new-design .mock-theme-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 159, 90, 0.2);
+        }
+
+        .mock-content {
+            flex: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .mock-header {
+            margin-bottom: 15px;
+        }
+
+        .mock-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .new-design .mock-title {
+            color: #ff7f50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 状态图例 */
+        .mock-legend {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            font-size: 11px;
+        }
+
+        .mock-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        /* 旧配色 */
+        .old-design .status-default { background: #222; }
+        .old-design .status-bomb { background: #ff7ab8; }
+        .old-design .status-bullet { background: #36b26f; }
+        .old-design .status-unfamiliar { background: #9b59b6; }
+
+        /* 新配色 */
+        .new-design .status-default { background: #999; }
+        .new-design .status-bomb { background: #ff9f5a; }
+        .new-design .status-bullet { background: #7ec850; }
+        .new-design .status-unfamiliar { background: #ff6b9d; }
+
+        /* 诗句列表 */
+        .mock-poem-list {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .mock-poem-item {
+            padding: 10px;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .mock-poem-item:hover {
+            background: rgba(255, 240, 220, 0.4);
+        }
+
+        .mock-poem-index {
+            width: 24px;
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .mock-poem-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .old-design .mock-poem-item.bomb .mock-poem-text {
+            color: #ff4fa5;
+            font-weight: 600;
+        }
+
+        .old-design .mock-poem-item.bullet .mock-poem-text {
+            color: #1f9c5a;
+            font-weight: 600;
+        }
+
+        .new-design .mock-poem-item.bomb .mock-poem-text {
+            color: #ff9f5a;
+            font-weight: 600;
+        }
+
+        .new-design .mock-poem-item.bullet .mock-poem-text {
+            color: #7ec850;
+            font-weight: 600;
+        }
+
+        /* 萝卜收集系统 */
+        .carrot-system {
+            background: linear-gradient(135deg, #fff8f0, #ffe4d0);
+            border: 2px solid #ff9f5a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .carrot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .carrot-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff7f50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .carrot-progress {
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9f5a, #ff7f50);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .achievement-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .achievement-item {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .achievement-icon {
+            font-size: 20px;
+        }
+
+        .achievement-item.locked {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+
+        /* 动画演示 */
+        .animation-demo {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .demo-rabbit {
+            font-size: 80px;
+            display: inline-block;
+            animation: hop 1s ease-in-out infinite;
+        }
+
+        @keyframes hop {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .demo-carrots {
+            font-size: 40px;
+            margin: 20px 0;
+        }
+
+        .falling-carrot {
+            display: inline-block;
+            animation: fall 2s ease-in infinite;
+        }
+
+        .falling-carrot:nth-child(2) { animation-delay: 0.3s; }
+        .falling-carrot:nth-child(3) { animation-delay: 0.6s; }
+        .falling-carrot:nth-child(4) { animation-delay: 0.9s; }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #ff9f5a, #ff7f50);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 127, 80, 0.3);
+            transition: all 0.2s;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 127, 80, 0.4);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mock-app {
+                flex-direction: column;
+            }
+
+            .mock-sidebar {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .achievement-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fff8f0, #ffe4d0);
+            border-left: 4px solid #ff7f50;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .highlight-box h4 {
+            margin: 0 0 10px;
+            color: #ff7f50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .highlight-box ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        .highlight-box li {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <!-- 预览头部 -->
+        <div class="preview-header">
+            <h1>🐰 Rabbit诗词库 视觉设计预览 🥕</h1>
+            <p>为孩子打造更可爱、更有趣的学习界面</p>
+            <p style="font-size: 14px; color: #999; margin-top: 10px;">
+                向下滚动查看新旧设计对比、配色方案、动画效果和萝卜奖励系统
+            </p>
+        </div>
+
+        <!-- 1. 配色方案对比 -->
+        <div class="comparison-section">
+            <div class="section-title">🎨 配色方案对比</div>
+            <div class="comparison-grid">
+                <div class="design-card old-design">
+                    <h3>❌ 原配色</h3>
+                    <div class="color-palette">
+                        <div class="color-item">
+                            <div class="color-box" style="background: #ff7ab8;"></div>
+                            <div class="color-label">完全记住<br>粉色</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: #36b26f;"></div>
+                            <div class="color-label">差不多<br>绿色</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: #9b59b6;"></div>
+                            <div class="color-label">不熟悉<br>紫色</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: linear-gradient(135deg, #ffb86c, #ff9a9e);"></div>
+                            <div class="color-label">主题按钮<br>渐变</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="design-card new-design">
+                    <h3>✅ 新配色 (兔子🐰 + 萝卜🥕主题)</h3>
+                    <div class="color-palette">
+                        <div class="color-item">
+                            <div class="color-box" style="background: #ff9f5a;"></div>
+                            <div class="color-label">完全记住<br>萝卜橙🥕</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: #7ec850;"></div>
+                            <div class="color-label">差不多<br>萝卜叶绿🌿</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: #ff6b9d;"></div>
+                            <div class="color-label">不熟悉<br>柔和粉🐰</div>
+                        </div>
+                        <div class="color-item">
+                            <div class="color-box" style="background: linear-gradient(135deg, #ff9f5a, #ff7f50);"></div>
+                            <div class="color-label">主题按钮<br>胡萝卜渐变</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 界面对比 -->
+        <div class="comparison-section">
+            <div class="section-title">📱 界面效果对比</div>
+            <div class="comparison-grid">
+                <div class="design-card old-design">
+                    <h3>❌ 原界面</h3>
+                    <div class="app-preview">
+                        <div class="mock-app">
+                            <div class="mock-sidebar">
+                                <div class="mock-sidebar-title">Rabbit的诗词库 · 10个主题</div>
+                                <div class="mock-theme-btn active">花 (18)</div>
+                                <div class="mock-theme-btn">春 (14)</div>
+                                <div class="mock-theme-btn">秋 (8)</div>
+                                <div class="mock-theme-btn">月 (9)</div>
+                            </div>
+                            <div class="mock-content">
+                                <div class="mock-header">
+                                    <div class="mock-title">主题：花</div>
+                                </div>
+                                <div class="mock-legend">
+                                    <div class="mock-legend-item">
+                                        <span class="status-dot status-default"></span>
+                                        <span>默认</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span class="status-dot status-bomb"></span>
+                                        <span>炸弹</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span class="status-dot status-bullet"></span>
+                                        <span>子弹</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span class="status-dot status-unfamiliar"></span>
+                                        <span>不熟悉</span>
+                                    </div>
+                                </div>
+                                <div class="mock-poem-list">
+                                    <div class="mock-poem-item">
+                                        <div class="mock-poem-index">1</div>
+                                        <div class="mock-poem-text">醉袖迎风受落花</div>
+                                    </div>
+                                    <div class="mock-poem-item bomb">
+                                        <div class="mock-poem-index">2</div>
+                                        <div class="mock-poem-text">人间四月芳菲尽</div>
+                                    </div>
+                                    <div class="mock-poem-item bullet">
+                                        <div class="mock-poem-index">3</div>
+                                        <div class="mock-poem-text">桃花一簇开无主</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="design-card new-design">
+                    <h3>✅ 新界面 (兔子🐰 + 萝卜🥕)</h3>
+                    <div class="app-preview">
+                        <div class="mock-app">
+                            <div class="mock-sidebar">
+                                <div class="mock-sidebar-title">
+                                    <span>🐰 Rabbit的诗词库</span>
+                                </div>
+                                <div class="mock-theme-btn active">🌸 花 (18)</div>
+                                <div class="mock-theme-btn">🌱 春 (14)</div>
+                                <div class="mock-theme-btn">🍂 秋 (8)</div>
+                                <div class="mock-theme-btn">🌙 月 (9)</div>
+                            </div>
+                            <div class="mock-content">
+                                <div class="mock-header">
+                                    <div class="mock-title">
+                                        <span>🌸 主题：花</span>
+                                    </div>
+                                </div>
+                                <div class="mock-legend">
+                                    <div class="mock-legend-item">
+                                        <span>😐</span>
+                                        <span>默认</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span>🐰</span>
+                                        <span>完全记住</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span>💪</span>
+                                        <span>差不多</span>
+                                    </div>
+                                    <div class="mock-legend-item">
+                                        <span>🤔</span>
+                                        <span>不熟悉</span>
+                                    </div>
+                                </div>
+                                <div class="mock-poem-list">
+                                    <div class="mock-poem-item">
+                                        <div class="mock-poem-index">1</div>
+                                        <div class="mock-poem-text">醉袖迎风受落花</div>
+                                        <span>😐</span>
+                                    </div>
+                                    <div class="mock-poem-item bomb">
+                                        <div class="mock-poem-index">2</div>
+                                        <div class="mock-poem-text">人间四月芳菲尽</div>
+                                        <span>🐰</span>
+                                    </div>
+                                    <div class="mock-poem-item bullet">
+                                        <div class="mock-poem-index">3</div>
+                                        <div class="mock-poem-text">桃花一簇开无主</div>
+                                        <span>💪</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 萝卜收集系统 (新功能) -->
+        <div class="comparison-section">
+            <div class="section-title">🥕 萝卜收集系统 (新增功能)</div>
+            <div class="design-card new-design full-width">
+                <h3>✨ 让学习变成游戏!</h3>
+                <div class="carrot-system">
+                    <div class="carrot-header">
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: #ff7f50; margin-bottom: 5px;">
+                                🐰 兔兔的萝卜收集
+                            </div>
+                            <div style="font-size: 12px; color: #999;">
+                                每记住一首诗,兔兔就能得到一个萝卜!
+                            </div>
+                        </div>
+                        <div class="carrot-count">
+                            <span>🥕</span>
+                            <span>23</span>
+                        </div>
+                    </div>
+                    
+                    <div class="carrot-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 46%;">46%</div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            再收集 27 个萝卜解锁"萝卜达人"徽章! 🏆
+                        </div>
+                    </div>
+
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <div class="achievement-icon">🏆</div>
+                            <div>
+                                <div style="font-weight: 600;">萝卜新手</div>
+                                <div style="font-size: 10px; color: #999;">收集10个萝卜</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">🏆</div>
+                            <div>
+                                <div style="font-weight: 600;">萝卜达人</div>
+                                <div style="font-size: 10px; color: #999;">收集50个萝卜</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">🏆</div>
+                            <div>
+                                <div style="font-weight: 600;">萝卜大师</div>
+                                <div style="font-size: 10px; color: #999;">收集100个萝卜</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">👑</div>
+                            <div>
+                                <div style="font-weight: 600;">诗词兔兔</div>
+                                <div style="font-size: 10px; color: #999;">完成全部主题</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box" style="margin-top: 20px;">
+                    <h4>🎯 萝卜获得规则</h4>
+                    <ul>
+                        <li>标记为"完全记住"(橙色): <strong>+1个萝卜 🥕</strong></li>
+                        <li>完成整个主题(18首全部记住): <strong>+5个萝卜 🥕🥕🥕🥕🥕</strong></li>
+                        <li>完成全部10个主题: <strong>+50个萝卜 🎊</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 动画效果演示 -->
+        <div class="comparison-section">
+            <div class="section-title">✨ 动画效果演示</div>
+            <div class="design-card new-design full-width">
+                <h3>🎬 互动动画让学习更有趣</h3>
+                <div class="animation-demo">
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: #ff7f50; margin-bottom: 15px;">兔兔跳跃动画</h4>
+                        <div class="demo-rabbit">🐰</div>
+                        <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                            完成学习时,兔兔会开心地跳跃!
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: #ff7f50; margin-bottom: 15px;">萝卜飘落动画</h4>
+                        <div class="demo-carrots">
+                            <span class="falling-carrot">🥕</span>
+                            <span class="falling-carrot">🥕</span>
+                            <span class="falling-carrot">🥕</span>
+                            <span class="falling-carrot">🥕</span>
+                        </div>
+                        <p style="font-size: 12px; color: #999;">
+                            完成整个主题时,萝卜从天而降!
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #ff7f50; margin-bottom: 15px;">按钮交互效果</h4>
+                        <button class="demo-button">🎮 开始学习</button>
+                        <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                            悬停和点击都有流畅的动画反馈
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 设计亮点总结 -->
+        <div class="comparison-section">
+            <div class="section-title">💡 设计亮点总结</div>
+            <div class="design-card new-design full-width">
+                <div class="highlight-box">
+                    <h4>🎨 视觉优化</h4>
+                    <ul>
+                        <li><strong>温暖配色</strong>: 胡萝卜橙色系 + 奶油色背景,更温馨</li>
+                        <li><strong>兔子元素</strong>: Logo、状态图标、装饰,陪伴孩子学习</li>
+                        <li><strong>萝卜元素</strong>: 奖励系统、进度条、背景装饰</li>
+                        <li><strong>Emoji图标</strong>: 用表情替代抽象圆点,更直观</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>🎮 游戏化设计</h4>
+                    <ul>
+                        <li><strong>萝卜收集</strong>: 每记住一首诗获得萝卜奖励</li>
+                        <li><strong>成就系统</strong>: 4个成就徽章,激励持续学习</li>
+                        <li><strong>进度可视化</strong>: 进度条和百分比显示</li>
+                        <li><strong>庆祝动画</strong>: 完成时的视觉反馈</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>✨ 交互增强</h4>
+                    <ul>
+                        <li><strong>跳跃动画</strong>: 兔兔跳跃表达开心</li>
+                        <li><strong>飘落效果</strong>: 萝卜从天而降的庆祝</li>
+                        <li><strong>悬停反馈</strong>: 按钮和卡片的微交互</li>
+                        <li><strong>平滑过渡</strong>: 所有状态变化都有动画</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>👶 儿童友好</h4>
+                    <ul>
+                        <li><strong>可爱形象</strong>: 兔子和萝卜符合儿童审美</li>
+                        <li><strong>清晰反馈</strong>: 表情图标比颜色更直观</li>
+                        <li><strong>即时奖励</strong>: 每次标记都有成就感</li>
+                        <li><strong>趣味性强</strong>: 学习过程像玩游戏</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部说明 -->
+        <div class="preview-header" style="margin-top: 40px;">
+            <h2 style="font-size: 24px; color: #ff7f50; margin-bottom: 15px;">
+                🎯 下一步
+            </h2>
+            <p style="font-size: 15px; line-height: 1.6;">
+                如果您喜欢这个设计方案,我可以立即开始实施!<br>
+                将会修改 <code>index.html</code>、<code>app.js</code>、<code>styles.css</code> 等文件,<br>
+                添加兔子🐰和萝卜🥕元素,实现萝卜收集系统和动画效果。
+            </p>
+            <p style="font-size: 14px; color: #999; margin-top: 15px;">
+                💡 您也可以提出修改建议,比如调整配色、改变兔子表情、修改萝卜奖励规则等。
+            </p>
+        </div>
+    </div>
+</body>
+</html>

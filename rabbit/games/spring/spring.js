@@ -8,6 +8,7 @@ let springPoems = [];
 let orderIndices = [];
 let currentRound = 0;
 let correctCount = 0;
+let gameProgress = 0;
 
 let currentPoemIndex = -1;  // 在 springPoems 中的索引
 let correctChar = "";
@@ -51,7 +52,7 @@ function playClick() {
 
     osc.start(now);
     osc.stop(now + 0.05);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 // ====== 本地存储读写 ======
@@ -71,7 +72,7 @@ function loadStatus() {
 function saveStatus() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function statusKey(themeId, index) {
@@ -219,6 +220,7 @@ function renderRound() {
     btn.textContent = optionsChars[i] || "";
     btn.disabled = false;
     btn.classList.remove("disabled");
+    btn.classList.remove("correct");
     btn.dataset.char = optionsChars[i] || "";
   });
 
@@ -299,7 +301,10 @@ optionButtons.forEach((btn) => {
 
 btnNext.addEventListener("click", () => {
   playClick();
+  gameProgress++;
   currentRound++;
+  updateSproutProgress();
+  checkGameCompletion();
   renderRound();
 });
 
@@ -318,3 +323,239 @@ btnBack.addEventListener("click", () => {
 });
 
 document.addEventListener("DOMContentLoaded", initGame);
+
+// ========= 春雨飘落动画 =========
+function createRaindrop() {
+  const drop = document.createElement('div');
+  drop.className = 'raindrop';
+  drop.textContent = '💧';
+  drop.style.left = Math.random() * 100 + '%';
+  drop.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+  document.body.appendChild(drop);
+
+  setTimeout(() => {
+    if (drop.parentNode) {
+      drop.parentNode.removeChild(drop);
+    }
+  }, 3000);
+}
+
+// 持续创建春雨
+function startRainFall() {
+  createRaindrop();
+  setTimeout(startRainFall, Math.random() * 800 + 400);
+}
+
+// 春芽生长效果
+function createSproutEffect(x, y) {
+  const sprout = document.createElement('div');
+  sprout.className = 'sprout-effect';
+  sprout.textContent = '🌱';
+  sprout.style.left = x + 'px';
+  sprout.style.top = y + 'px';
+  document.body.appendChild(sprout);
+
+  setTimeout(() => {
+    if (sprout.parentNode) {
+      sprout.parentNode.removeChild(sprout);
+    }
+  }, 1000);
+}
+
+// 增强声效
+function playCorrect() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !audioCtx) return;
+
+    // 正确音效 - 春天鸟鸣
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 659; // E
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+    osc.start(now);
+    osc.stop(now + 0.15);
+
+    // 第二个音符
+    setTimeout(() => {
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.value = 784; // G
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+
+      const now2 = audioCtx.currentTime;
+      gain2.gain.setValueAtTime(0.15, now2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now2 + 0.2);
+
+      osc2.start(now2);
+      osc2.stop(now2 + 0.2);
+    }, 100);
+  } catch (_) { }
+}
+
+// ========= 春芽收集系统 =========
+let sproutCount = 0;
+
+function updateSproutProgress() {
+  const sproutCountEl = document.getElementById('sproutCount');
+  const sproutFillEl = document.getElementById('sproutFill');
+
+  // 使用gameProgress作为进度值，表示已完成的答题数量
+  sproutCount = gameProgress;
+
+  if (sproutCountEl) {
+    sproutCountEl.textContent = sproutCount;
+  }
+
+  if (sproutFillEl) {
+    const total = springPoems.length;
+    const percentage = total > 0 ? Math.min(100, (gameProgress / total) * 100) : 0;
+    sproutFillEl.style.width = percentage + '%';
+  }
+}
+
+// 增强handleAnswer函数
+const originalHandleAnswer = handleAnswer;
+handleAnswer = function (chosen) {
+  const isCorrect = chosen === correctChar;
+  originalHandleAnswer(chosen);
+
+  if (isCorrect) {
+    playCorrect();
+    // 在反馈区域显示春芽生长效果
+    const feedbackRect = feedbackEl.getBoundingClientRect();
+    createSproutEffect(feedbackRect.left + feedbackRect.width / 2, feedbackRect.top);
+
+    // 正确答案的按钮添加动画
+    optionButtons.forEach((btn) => {
+      if (btn.dataset.char === correctChar) {
+        btn.classList.add('correct');
+      }
+    });
+
+    // 更新春芽进度
+    updateSproutProgress();
+  }
+};
+
+// 游戏完成检测
+function checkGameCompletion() {
+  // 当gameProgress等于springPoems.length且springPoems不为空时，游戏完成
+  if (gameProgress === springPoems.length && springPoems.length > 0) {
+    showGameCompletionSummary();
+  }
+}
+
+// 游戏完成事件初始化
+function initGameCompletionEvents() {
+  const btnReturnHome = document.getElementById('btnReturnHome');
+  const btnRestartGame = document.getElementById('btnRestartGame');
+  
+  if (btnReturnHome) {
+    btnReturnHome.addEventListener('click', () => {
+      window.location.href = '../../index.html';
+    });
+  }
+  
+  if (btnRestartGame) {
+    btnRestartGame.addEventListener('click', () => {
+      // 重新开始游戏
+      initGame();
+      // 关闭模态窗口
+      const modal = document.getElementById('gameCompletionModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+}
+
+// 游戏完成汇总显示
+function showGameCompletionSummary() {
+  const modal = document.getElementById('gameCompletionModal');
+  if (!modal) return;
+  
+  // 统计不同状态的诗句数量
+  let pinkCount = 0;
+  let greenCount = 0;
+  let purpleCount = 0;
+  
+  springPoems.forEach((_, i) => {
+    const st = getStatus(THEME_ID, i);
+    if (st === 'bomb') {
+      pinkCount++;
+    } else if (st === 'bullet') {
+      greenCount++;
+    } else if (st === 'unfamiliar') {
+      purpleCount++;
+    }
+  });
+  
+  // 更新模态窗口内容
+  const totalEl = document.getElementById('summaryTotal');
+  const pinkEl = document.getElementById('summaryPink');
+  const greenEl = document.getElementById('summaryGreen');
+  const purpleEl = document.getElementById('summaryPurple');
+  
+  if (totalEl) totalEl.textContent = springPoems.length;
+  if (pinkEl) pinkEl.textContent = pinkCount;
+  if (greenEl) greenEl.textContent = greenCount;
+  if (purpleEl) purpleEl.textContent = purpleCount;
+  
+  // 重新绑定按钮事件（确保DOM加载完成）
+  const btnReturnHome = document.getElementById('btnReturnHome');
+  const btnRestartGame = document.getElementById('btnRestartGame');
+  
+  if (btnReturnHome) {
+    // 先移除可能存在的事件监听器
+    btnReturnHome.removeEventListener('click', returnHomeHandler);
+    // 添加新的事件监听器
+    btnReturnHome.addEventListener('click', returnHomeHandler);
+  }
+  
+  if (btnRestartGame) {
+    // 先移除可能存在的事件监听器
+    btnRestartGame.removeEventListener('click', restartGameHandler);
+    // 添加新的事件监听器
+    btnRestartGame.addEventListener('click', restartGameHandler);
+  }
+  
+  // 显示模态窗口
+  modal.style.display = 'flex';
+}
+
+// 按钮事件处理函数
+function returnHomeHandler() {
+  window.location.href = '../../index.html';
+}
+
+function restartGameHandler() {
+  // 重新开始游戏
+  initGame();
+  // 关闭模态窗口
+  const modal = document.getElementById('gameCompletionModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// 增强初始化
+const originalInit = initGame;
+initGame = function () {
+  gameProgress = 0;
+  originalInit();
+  updateSproutProgress();
+  initGameCompletionEvents();
+};
+
+// 启动春雨飘落
+setTimeout(startRainFall, 500);
