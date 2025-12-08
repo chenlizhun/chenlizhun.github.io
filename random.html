@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>多样式抽签程序（18种模式）</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+            "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+          background: linear-gradient(135deg,#fdf6ec,#fefefe);
+          color: #333;
+        }
+        .app {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 16px 12px 40px;
+        }
+        h1 {
+          text-align: center;
+          margin: 8px 0 4px;
+          font-size: 24px;
+        }
+        .sub {
+          text-align: center;
+          font-size: 13px;
+          color: #888;
+          margin-bottom: 12px;
+        }
+        .toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: center;
+          margin-bottom: 12px;
+        }
+        .toolbar button {
+          border: none;
+          padding: 6px 12px;
+          font-size: 13px;
+          border-radius: 999px;
+          cursor: pointer;
+          background: #ffe4c4;
+          transition: transform .1s, box-shadow .1s, background .1s;
+        }
+        .toolbar button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0,0,0,.15);
+          background: #ffd1a0;
+        }
+        .toolbar button.active {
+          background: #ff9f43;
+          color: #fff;
+        }
+
+        .panel {
+          background: #fff;
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 4px 16px rgba(0,0,0,.08);
+          margin-bottom: 16px;
+        }
+        .panel h2 {
+          margin: 0 0 8px;
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .panel h2 span.emoji {
+          font-size: 22px;
+        }
+        .panel-tip {
+          font-size: 12px;
+          color: #777;
+          margin-bottom: 10px;
+        }
+        .panel.hidden {
+          display: none;
+        }
+        .btn-primary {
+          border: none;
+          padding: 8px 16px;
+          border-radius: 999px;
+          cursor: pointer;
+          font-size: 14px;
+          background: #ff9f43;
+          color: #fff;
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+          transition: transform .1s, box-shadow .1s, background .1s;
+        }
+        .btn-primary:disabled {
+          opacity: .6;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+        .btn-primary:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,.25);
+          background: #ff8a1a;
+        }
+        .result {
+          margin-top: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #e67e22;
+        }
+        .name-badge {
+          display: inline-block;
+          padding: 3px 8px;
+          border-radius: 999px;
+          background: #ffeaa7;
+          border: 1px solid #fdcb6e;
+          margin: 2px;
+          font-size: 12px;
+        }
+        .names-line {
+          margin-bottom: 8px;
+          font-size: 12px;
+          color: #666;
+        }
+
+        /* 名单管理 */
+        .student-textarea {
+          width: 100%;
+          font-size: 13px;
+          padding: 6px 8px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+          resize: vertical;
+        }
+
+        /* 1. 转盘样式 */
+        .wheel-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+        }
+        .wheel {
+          width: 260px;
+          height: 260px;
+          border-radius: 50%;
+          border: 8px solid #ff9f43;
+          position: relative;
+          background:
+            conic-gradient(
+              #ffeaa7 0deg 32.7deg,
+              #fab1a0 32.7deg 65.4deg,
+              #74b9ff 65.4deg 98.1deg,
+              #a29bfe 98.1deg 130.8deg,
+              #55efc4 130.8deg 163.5deg,
+              #ffeaa7 163.5deg 196.2deg,
+              #fab1a0 196.2deg 228.9deg,
+              #74b9ff 228.9deg 261.6deg,
+              #a29bfe 261.6deg 294.3deg,
+              #55efc4 294.3deg 327deg,
+              #fd79a8 327deg 360deg
+            );
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          box-shadow: 0 6px 14px rgba(0,0,0,.2);
+          transition: transform 4s cubic-bezier(0.15,0.9,0.25,1);
+        }
+        .wheel-label {
+          position: absolute;
+          width: 50%;
+          left: 50%;
+          top: 50%;
+          transform-origin: 0% 0%;
+          font-size: 10px;
+          text-align: left;
+          color: #2d3436;
+          font-weight: 600;
+        }
+        .wheel-center {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: #fff;
+          border: 4px solid #ff7675;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          z-index: 1;
+          font-size: 12px;
+          font-weight: 700;
+          color: #d35400;
+        }
+        .wheel-pointer {
+          width: 0;
+          height: 0;
+          border-left: 14px solid transparent;
+          border-right: 14px solid transparent;
+          border-bottom: 20px solid #d63031;
+          position: relative;
+          top: 6px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+        }
+
+        /* 2. 水果机 / 老虎机 */
+        .slot-machine {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+        }
+        .slot-window {
+          display: flex;
+          gap: 8px;
+          padding: 12px;
+          border-radius: 12px;
+          background: linear-gradient(145deg,#dfe6e9,#ffffff);
+          box-shadow: inset 0 0 0 2px #b2bec3, 0 6px 14px rgba(0,0,0,.25);
+        }
+        .slot-column {
+          width: 80px;
+          height: 110px;
+          overflow: hidden;
+          border-radius: 8px;
+          background: #2d3436;
+          color: #fff;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          justify-content: flex-start;
+          font-size: 14px;
+        }
+        .slot-item {
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        /* 3. 滚轮 / 跑马灯 */
+        .roller {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .roller-window {
+          width: 260px;
+          height: 46px;
+          border-radius: 999px;
+          border: 2px solid #0984e3;
+          overflow: hidden;
+          background: #dfe6e9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 700;
+          color: #2d3436;
+          box-shadow: inset 0 0 6px rgba(0,0,0,.15);
+        }
+        .roller-inner {
+          white-space: nowrap;
+          animation: roller-move 1.2s linear infinite;
+        }
+        @keyframes roller-move {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        /* 4. 抽卡片 / 翻牌 */
+        .cards {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(60px,1fr));
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .card {
+          position: relative;
+          height: 80px;
+          perspective: 600px;
+          cursor: pointer;
+        }
+        .card-inner {
+          position: absolute;
+          inset: 0;
+          border-radius: 10px;
+          transform-style: preserve-3d;
+          transition: transform .5s;
+        }
+        .card-front,
+        .card-back {
+          position: absolute;
+          inset: 0;
+          border-radius: 10px;
+          backface-visibility: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .card-front {
+          background: #ff9f43;
+          color: #fff;
+        }
+        .card-back {
+          background: #ffeaa7;
+          color: #2d3436;
+          transform: rotateY(180deg);
+        }
+        .card.flipped .card-inner {
+          transform: rotateY(180deg);
+        }
+        .card.winner .card-back {
+          background: #00b894;
+          color: #fff;
+          box-shadow: 0 4px 10px rgba(0,0,0,.25);
+        }
+
+        /* 5. 网格闪烁（N 宫格） */
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill,minmax(80px,1fr));
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .grid-item {
+          padding: 12px 4px;
+          border-radius: 10px;
+          background: #dfe6e9;
+          text-align: center;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: default;
+          transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .grid-item.flash {
+          background: #ffeaa7;
+          transform: translateY(-2px);
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+        .grid-item.winner {
+          background: #00b894;
+          color: #fff;
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 4px 12px rgba(0,0,0,.28);
+        }
+
+        /* 6. 列表高亮 */
+        .list {
+          list-style: none;
+          margin: 10px 0 0;
+          padding: 0;
+          max-width: 260px;
+        }
+        .list-item {
+          padding: 6px 10px;
+          border-radius: 999px;
+          background: #dfe6e9;
+          margin-bottom: 6px;
+          font-size: 13px;
+          transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .list-item.active {
+          background: #00b894;
+          color: #fff;
+          transform: translateX(4px);
+          box-shadow: 0 3px 8px rgba(0,0,0,.25);
+        }
+
+        /* 7. 彩球抽签 */
+        .balls {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .ball {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: #ffeaa7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 600;
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+          transition: transform .15s, box-shadow .15s, background .15s;
+          text-align: center;
+          padding: 4px;
+        }
+        .ball.active {
+          transform: translateY(-3px);
+          background: #fdcb6e;
+        }
+        .ball.winner {
+          background: #e84393;
+          color: #fff;
+          transform: translateY(-4px) scale(1.06);
+          box-shadow: 0 4px 12px rgba(0,0,0,.3);
+        }
+
+        /* 8. 赛跑抽签 */
+        .race-list {
+          margin-top: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .race-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .race-name {
+          width: 70px;
+          font-size: 12px;
+          text-align: right;
+        }
+        .race-bar-wrap {
+          flex: 1;
+          height: 10px;
+          border-radius: 999px;
+          background: #dfe6e9;
+          overflow: hidden;
+        }
+        .race-bar {
+          height: 100%;
+          width: 0;
+          border-radius: 999px;
+          background: #74b9ff;
+          transition: width .2s;
+        }
+        .race-row.winner .race-bar {
+          background: #00b894;
+        }
+
+        /* 通用大号显示区域（倒计时、打字机、聚光灯等用） */
+        .center-display {
+          margin-top: 10px;
+          min-height: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          font-weight: 700;
+          color: #2d3436;
+        }
+
+        /* 9. 倒计时抽签 */
+        .countdown-number {
+          font-size: 40px;
+        }
+
+        /* 10. 骰子抽签 */
+        .dice-area {
+          display: flex;
+          gap: 12px;
+          margin-top: 10px;
+          align-items: center;
+          justify-content: center;
+        }
+        .dice {
+          width: 60px;
+          height: 60px;
+          border-radius: 10px;
+          background: #fff;
+          border: 2px solid #2d3436;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          font-weight: 700;
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+
+        /* 11. 彩虹进度条抽签 */
+        .rainbow-wrap {
+          margin-top: 10px;
+          width: 260px;
+          max-width: 100%;
+          height: 16px;
+          border-radius: 999px;
+          background: #dfe6e9;
+          overflow: hidden;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .rainbow-bar {
+          height: 100%;
+          width: 0;
+          border-radius: 999px;
+          background: linear-gradient(90deg,#ff7675,#fdcb6e,#55efc4,#74b9ff,#a29bfe);
+          transition: width .15s;
+        }
+
+        /* 13. 编号盒子抽签 */
+        .boxes {
+          margin-top: 10px;
+          display: grid;
+          grid-template-columns: repeat(auto-fill,minmax(70px,1fr));
+          gap: 8px;
+        }
+        .box-item {
+          padding: 10px 4px;
+          border-radius: 10px;
+          background: #dfe6e9;
+          text-align: center;
+          font-size: 13px;
+          cursor: default;
+          transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .box-item.active {
+          background: #ffeaa7;
+          transform: translateY(-2px);
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+        .box-item.winner {
+          background: #00b894;
+          color: #fff;
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 4px 12px rgba(0,0,0,.28);
+        }
+
+        /* 14. 名字云抽签 */
+        .cloud-names {
+          margin-top: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .cloud-name {
+          padding: 4px 10px;
+          border-radius: 999px;
+          background: #dfe6e9;
+          font-size: 12px;
+          transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .cloud-name.level1 { font-size: 12px; }
+        .cloud-name.level2 { font-size: 14px; }
+        .cloud-name.level3 { font-size: 16px; }
+        .cloud-name.active {
+          background: #ffeaa7;
+          transform: translateY(-2px);
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+        .cloud-name.winner {
+          background: #e84393;
+          color: #fff;
+          transform: translateY(-3px) scale(1.04);
+          box-shadow: 0 4px 12px rgba(0,0,0,.3);
+        }
+
+        /* 15. 淘汰赛抽签 */
+        .elim-list {
+          list-style: none;
+          padding: 0;
+          margin: 10px 0 0;
+          max-width: 260px;
+        }
+        .elim-item {
+          padding: 6px 10px;
+          border-radius: 8px;
+          background: #dfe6e9;
+          margin-bottom: 4px;
+          font-size: 13px;
+          transition: opacity .2s, transform .2s, background .2s;
+        }
+        .elim-item.removed {
+          opacity: 0.25;
+          background: #b2bec3;
+          transform: translateX(8px);
+        }
+        .elim-item.alive {
+          background: #55efc4;
+        }
+
+        /* 16. 聚光灯抽签 */
+        .spotlight {
+          min-height: 80px;
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 30px;
+          font-weight: 800;
+          color: #2d3436;
+          text-shadow: 0 0 12px rgba(241,196,15,.8);
+        }
+
+        /* 17. 阶梯抽签 */
+        .ladder-list {
+          list-style: none;
+          margin: 10px 0 0;
+          padding: 0;
+          max-width: 260px;
+        }
+        .ladder-item {
+          padding: 4px 10px;
+          border-radius: 999px;
+          background: #dfe6e9;
+          margin-bottom: 4px;
+          font-size: 13px;
+          position: relative;
+          transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .ladder-item span {
+          position: relative;
+          z-index: 1;
+        }
+        .ladder-item.active {
+          background: #ffeaa7;
+          transform: translateX(6px);
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+        .ladder-item.winner {
+          background: #00b894;
+          color: #fff;
+          transform: translateX(8px);
+          box-shadow: 0 4px 12px rgba(0,0,0,.28);
+        }
+
+        /* 18. 星星抽签 */
+        .stars {
+          margin-top: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .star-item {
+          padding: 8px 10px;
+          border-radius: 999px;
+          background: #ffeaa7;
+          font-size: 13px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: transform .15s, box-shadow .15s, background .15s;
+        }
+        .star-item .icon {
+          font-size: 16px;
+        }
+        .star-item.active {
+          transform: translateY(-2px);
+          background: #fdcb6e;
+          box-shadow: 0 3px 8px rgba(0,0,0,.2);
+        }
+        .star-item.winner {
+          transform: translateY(-3px) scale(1.05);
+          background: #fd79a8;
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(0,0,0,.3);
+        }
+
+        @media (max-width: 600px) {
+          .wheel { width: 220px; height: 220px; }
+          .roller-window { width: 220px; }
+          .slot-column { width: 70px; }
+          .race-name { width: 60px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <h1>多样式抽签程序（18种模式）</h1>
+    <div class="sub">从学生名单中随机抽出 1 名，可切换不同抽签玩法</div>
+
+    <!-- 学生名单管理 -->
+    <div class="panel" id="managePanel">
+        <h2><span class="emoji">👥</span>学生名单管理</h2>
+        <div class="panel-tip">使用顿号「、」、逗号或空格分隔姓名，点击“更新名单”后生效。</div>
+        <textarea id="studentInput" rows="2" class="student-textarea"></textarea>
+        <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; align-items:center;">
+            <button id="btnResetNames" type="button" class="btn-primary" style="background:#b2bec3;">恢复默认名单</button>
+            <button id="btnUpdateNames" type="button" class="btn-primary">更新名单</button>
+        </div>
+    </div>
+
+    <div class="names-line" id="namesLine"></div>
+
+    <div class="toolbar">
+        <button data-target="wheelPanel" class="active">🎯 转盘</button>
+        <button data-target="slotPanel">🎰 水果机</button>
+        <button data-target="rollerPanel">🎡 滚轮</button>
+        <button data-target="cardPanel">🃏 卡片</button>
+        <button data-target="gridPanel">🔲 网格</button>
+        <button data-target="listPanel">📃 列表</button>
+        <button data-target="ballPanel">⚽ 彩球</button>
+        <button data-target="racePanel">🏃 赛跑</button>
+        <button data-target="countdownPanel">🔔 倒计时</button>
+        <button data-target="dicePanel">🎲 骰子</button>
+        <button data-target="rainbowPanel">🌈 进度条</button>
+        <button data-target="typePanel">⌨️ 打字机</button>
+        <button data-target="boxPanel">📦 盒子</button>
+        <button data-target="cloudPanel">☁️ 名字云</button>
+        <button data-target="elimPanel">🧨 淘汰赛</button>
+        <button data-target="spotlightPanel">💡 聚光灯</button>
+        <button data-target="ladderPanel">🪜 阶梯</button>
+        <button data-target="starPanel">⭐ 星星</button>
+    </div>
+
+    <!-- 1. 转盘 -->
+    <div class="panel" id="wheelPanel">
+        <h2><span class="emoji">🎯</span>转盘抽签</h2>
+        <div class="panel-tip">点击“开始转动”，转盘旋转后停在指针所指的名字即为被抽中的学生。</div>
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="wheel" id="wheel">
+                <div class="wheel-center">抽签</div>
+            </div>
+            <button id="btnWheel" class="btn-primary">开始转动</button>
+            <div class="result" id="wheelResult"></div>
+        </div>
+    </div>
+
+    <!-- 2. 水果机 -->
+    <div class="panel hidden" id="slotPanel">
+        <h2><span class="emoji">🎰</span>水果机抽签</h2>
+        <div class="panel-tip">三个滚轮滚动后停在中间一格的名字上。</div>
+        <div class="slot-machine">
+            <div class="slot-window">
+                <div class="slot-column" id="slotCol1"></div>
+                <div class="slot-column" id="slotCol2"></div>
+                <div class="slot-column" id="slotCol3"></div>
+            </div>
+            <button id="btnSlot" class="btn-primary">开始摇动</button>
+            <div class="result" id="slotResult"></div>
+        </div>
+    </div>
+
+    <!-- 3. 滚轮 -->
+    <div class="panel hidden" id="rollerPanel">
+        <h2><span class="emoji">🎡</span>滚轮抽签</h2>
+        <div class="panel-tip">名字像跑马灯一样快速滚动，随后减速停在被抽中的名字。</div>
+        <div class="roller">
+            <div class="roller-window">
+                <div class="roller-inner" id="rollerInner">准备抽签...</div>
+            </div>
+            <button id="btnRoller" class="btn-primary">开始滚动</button>
+            <div class="result" id="rollerResult"></div>
+        </div>
+    </div>
+
+    <!-- 4. 卡片 -->
+    <div class="panel hidden" id="cardPanel">
+        <h2><span class="emoji">🃏</span>卡片抽签</h2>
+        <div class="panel-tip">“洗牌并抽卡”后随机一张卡片背面写上名字，点击翻开查看。</div>
+        <button id="btnCard" class="btn-primary">洗牌并抽卡</button>
+        <div class="cards" id="cards"></div>
+        <div class="result" id="cardResult"></div>
+    </div>
+
+    <!-- 5. 网格闪烁 -->
+    <div class="panel hidden" id="gridPanel">
+        <h2><span class="emoji">🔲</span>网格闪烁抽签</h2>
+        <div class="panel-tip">名字在网格里快速闪烁，最后停在被抽中的格子上。</div>
+        <button id="btnGrid" class="btn-primary">开始闪烁</button>
+        <div class="grid" id="grid"></div>
+        <div class="result" id="gridResult"></div>
+    </div>
+
+    <!-- 6. 列表高亮 -->
+    <div class="panel hidden" id="listPanel">
+        <h2><span class="emoji">📃</span>列表高亮抽签</h2>
+        <div class="panel-tip">像点名一样，从上到下快速高亮，最后停在被抽中的那一名。</div>
+        <button id="btnList" class="btn-primary">开始点亮</button>
+        <ul class="list" id="listNames"></ul>
+        <div class="result" id="listResult"></div>
+    </div>
+
+    <!-- 7. 彩球抽签 -->
+    <div class="panel hidden" id="ballPanel">
+        <h2><span class="emoji">⚽</span>彩球抽签</h2>
+        <div class="panel-tip">每个学生是一颗彩球，随机闪烁一段时间后某一颗变成“中奖球”。</div>
+        <button id="btnBall" class="btn-primary">开始滚动彩球</button>
+        <div class="balls" id="balls"></div>
+        <div class="result" id="ballResult"></div>
+    </div>
+
+    <!-- 8. 赛跑抽签 -->
+    <div class="panel hidden" id="racePanel">
+        <h2><span class="emoji">🏃</span>赛跑抽签</h2>
+        <div class="panel-tip">每人一条进度条，随机向终点冲刺，第一个到达的是被抽中的学生。</div>
+        <button id="btnRace" class="btn-primary">开始赛跑</button>
+        <div class="race-list" id="raceList"></div>
+        <div class="result" id="raceResult"></div>
+    </div>
+
+    <!-- 9. 倒计时抽签 -->
+    <div class="panel hidden" id="countdownPanel">
+        <h2><span class="emoji">🔔</span>倒计时抽签</h2>
+        <div class="panel-tip">3、2、1 倒计时之后，公布被抽中的学生。</div>
+        <button id="btnCountdown" class="btn-primary">开始倒计时</button>
+        <div class="center-display" id="countdownDisplay"></div>
+        <div class="result" id="countdownResult"></div>
+    </div>
+
+    <!-- 10. 骰子抽签 -->
+    <div class="panel hidden" id="dicePanel">
+        <h2><span class="emoji">🎲</span>骰子抽签</h2>
+        <div class="panel-tip">投出两个骰子，用点数之和决定抽中的学生。</div>
+        <button id="btnDice" class="btn-primary">开始掷骰子</button>
+        <div class="dice-area">
+            <div class="dice" id="dice1">-</div>
+            <div class="dice" id="dice2">-</div>
+        </div>
+        <div class="center-display" id="diceNameDisplay"></div>
+        <div class="result" id="diceResult"></div>
+    </div>
+
+    <!-- 11. 彩虹进度条抽签 -->
+    <div class="panel hidden" id="rainbowPanel">
+        <h2><span class="emoji">🌈</span>彩虹进度条抽签</h2>
+        <div class="panel-tip">进度条前进的过程中不断切换名字，进度满格时停下来。</div>
+        <button id="btnRainbow" class="btn-primary">开始抽签</button>
+        <div class="center-display" id="rainbowNameDisplay"></div>
+        <div class="rainbow-wrap">
+            <div class="rainbow-bar" id="rainbowBar"></div>
+        </div>
+        <div class="result" id="rainbowResult"></div>
+    </div>
+
+    <!-- 12. 打字机抽签 -->
+    <div class="panel hidden" id="typePanel">
+        <h2><span class="emoji">⌨️</span>打字机抽签</h2>
+        <div class="panel-tip">像打字机一样，一个字一个字打出被抽中的学生名字。</div>
+        <button id="btnType" class="btn-primary">开始打字</button>
+        <div class="center-display" id="typeDisplay"></div>
+        <div class="result" id="typeResult"></div>
+    </div>
+
+    <!-- 13. 编号盒子抽签 -->
+    <div class="panel hidden" id="boxPanel">
+        <h2><span class="emoji">📦</span>编号盒子抽签</h2>
+        <div class="panel-tip">一人一个盒子，盒子编号随机闪动，最终停在某个盒子并显示名字。</div>
+        <button id="btnBox" class="btn-primary">开始洗盒子</button>
+        <div class="boxes" id="boxes"></div>
+        <div class="result" id="boxResult"></div>
+    </div>
+
+    <!-- 14. 名字云抽签 -->
+    <div class="panel hidden" id="cloudPanel">
+        <h2><span class="emoji">☁️</span>名字云抽签</h2>
+        <div class="panel-tip">名字像标签云一样分布，随机闪烁并停到一位学生。</div>
+        <button id="btnCloud" class="btn-primary">开始闪烁</button>
+        <div class="cloud-names" id="cloudNames"></div>
+        <div class="result" id="cloudResult"></div>
+    </div>
+
+    <!-- 15. 淘汰赛抽签 -->
+    <div class="panel hidden" id="elimPanel">
+        <h2><span class="emoji">🧨</span>淘汰赛抽签</h2>
+        <div class="panel-tip">每次随机淘汰一人，最后留下的那位就是被抽中的学生。</div>
+        <button id="btnElim" class="btn-primary">开始淘汰</button>
+        <ul class="elim-list" id="elimList"></ul>
+        <div class="result" id="elimResult"></div>
+    </div>
+
+    <!-- 16. 聚光灯抽签 -->
+    <div class="panel hidden" id="spotlightPanel">
+        <h2><span class="emoji">💡</span>聚光灯抽签</h2>
+        <div class="panel-tip">中间大字快速闪烁名字，逐渐减速后停下。</div>
+        <button id="btnSpotlight" class="btn-primary">开启聚光灯</button>
+        <div class="spotlight" id="spotlightDisplay">准备抽签</div>
+        <div class="result" id="spotlightResult"></div>
+    </div>
+
+    <!-- 17. 阶梯抽签 -->
+    <div class="panel hidden" id="ladderPanel">
+        <h2><span class="emoji">🪜</span>阶梯抽签</h2>
+        <div class="panel-tip">名字按阶梯排布，从上到下依次跑格子，最后停在被抽中的那一格。</div>
+        <button id="btnLadder" class="btn-primary">开始跑阶梯</button>
+        <ul class="ladder-list" id="ladderList"></ul>
+        <div class="result" id="ladderResult"></div>
+    </div>
+
+    <!-- 18. 星星抽签 -->
+    <div class="panel hidden" id="starPanel">
+        <h2><span class="emoji">⭐</span>星星抽签</h2>
+        <div class="panel-tip">每位学生是一颗星星，随机闪烁，最终某一颗变成“幸运星”。</div>
+        <button id="btnStar" class="btn-primary">点亮幸运星</button>
+        <div class="stars" id="stars"></div>
+        <div class="result" id="starResult"></div>
+    </div>
+</div>
+
+<script>
+    // ---------- 默认学生数据 ----------
+    const defaultStudents = [
+      "陈金浩","赵子杰","钟浩翔","何军标","温彬泓",
+      "许增灿","李浩文","刘家祈","吴卓希","张尚岳","林承熙"
+    ];
+    let students = [...defaultStudents];
+
+    const namesLine = document.getElementById("namesLine");
+    const studentInput = document.getElementById("studentInput");
+    const btnUpdateNames = document.getElementById("btnUpdateNames");
+    const btnResetNames = document.getElementById("btnResetNames");
+
+    // 顶部模式切换
+    const toolbarButtons = document.querySelectorAll(".toolbar button");
+    const panels = {
+      wheelPanel: document.getElementById("wheelPanel"),
+      slotPanel: document.getElementById("slotPanel"),
+      rollerPanel: document.getElementById("rollerPanel"),
+      cardPanel: document.getElementById("cardPanel"),
+      gridPanel: document.getElementById("gridPanel"),
+      listPanel: document.getElementById("listPanel"),
+      ballPanel: document.getElementById("ballPanel"),
+      racePanel: document.getElementById("racePanel"),
+      countdownPanel: document.getElementById("countdownPanel"),
+      dicePanel: document.getElementById("dicePanel"),
+      rainbowPanel: document.getElementById("rainbowPanel"),
+      typePanel: document.getElementById("typePanel"),
+      boxPanel: document.getElementById("boxPanel"),
+      cloudPanel: document.getElementById("cloudPanel"),
+      elimPanel: document.getElementById("elimPanel"),
+      spotlightPanel: document.getElementById("spotlightPanel"),
+      ladderPanel: document.getElementById("ladderPanel"),
+      starPanel: document.getElementById("starPanel")
+    };
+
+    toolbarButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        toolbarButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.getAttribute("data-target");
+        Object.keys(panels).forEach(key => {
+          panels[key].classList.toggle("hidden", key !== target);
+        });
+      });
+    });
+
+    function updateNamesLine() {
+      if (!students.length) {
+        namesLine.textContent = "当前学生名单为空，请在上面添加学生。";
+        return;
+      }
+      namesLine.innerHTML = "当前学生名单：" +
+        students.map(n => `<span class="name-badge">${n}</span>`).join("");
+    }
+
+    function parseStudentInput(text) {
+      const parts = text
+        .split(/[\s、，,;；]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      return Array.from(new Set(parts));
+    }
+
+    btnUpdateNames.addEventListener("click", () => {
+      const next = parseStudentInput(studentInput.value || "");
+      if (!next.length) {
+        alert("请至少输入 1 个学生姓名。");
+        return;
+      }
+      students = next;
+      refreshAllUI();
+    });
+
+    btnResetNames.addEventListener("click", () => {
+      students = [...defaultStudents];
+      studentInput.value = defaultStudents.join("、");
+      refreshAllUI();
+    });
+
+    function randomIndex() {
+      return Math.floor(Math.random() * students.length);
+    }
+
+    // ---------- 1. 转盘 ----------
+    const wheel = document.getElementById("wheel");
+    const wheelResult = document.getElementById("wheelResult");
+    const btnWheel = document.getElementById("btnWheel");
+    let wheelRotation = 0;
+    let wheelSpinning = false;
+
+    function createWheelLabels() {
+      Array.from(wheel.querySelectorAll(".wheel-label")).forEach(el => el.remove());
+      if (!students.length) return;
+      const sliceAngle = 360 / students.length;
+      students.forEach((name, i) => {
+        const label = document.createElement("div");
+        label.className = "wheel-label";
+        const angle = sliceAngle * i + sliceAngle / 2;
+        label.style.transform = `rotate(${angle}deg) translate(-50%, -50%)`;
+        label.textContent = name;
+        wheel.appendChild(label);
+      });
+    }
+
+    btnWheel.addEventListener("click", () => {
+      if (wheelSpinning || !students.length) return;
+      wheelSpinning = true;
+      btnWheel.disabled = true;
+      wheelResult.textContent = "";
+
+      const sliceAngle = 360 / students.length;
+      const targetIndex = randomIndex();
+      const targetName = students[targetIndex];
+      const extraTurns = 5 + Math.floor(Math.random() * 4);
+      const centerAngleOfSlice = targetIndex * sliceAngle + sliceAngle / 2;
+      const targetAngle = 360 - centerAngleOfSlice;
+      wheelRotation = extraTurns * 360 + targetAngle;
+      wheel.style.transform = `rotate(${wheelRotation}deg)`;
+
+      setTimeout(() => {
+        wheelResult.textContent = `本轮抽中的学生是：${targetName}`;
+        wheelSpinning = false;
+        btnWheel.disabled = false;
+      }, 4000);
+    });
+
+    // ---------- 2. 水果机 ----------
+    const slotCol1 = document.getElementById("slotCol1");
+    const slotCol2 = document.getElementById("slotCol2");
+    const slotCol3 = document.getElementById("slotCol3");
+    const slotResult = document.getElementById("slotResult");
+    const btnSlot = document.getElementById("btnSlot");
+    const slotScrollTarget = new Map();
+
+    function fillSlotColumn(col, winnerName = null) {
+      col.innerHTML = "";
+      const total = 20;
+      let winnerRowIndex = -1;
+
+      for (let i = 0; i < total; i++) {
+        let name;
+        if (winnerName && i === total - 3) {
+          name = winnerName;
+          winnerRowIndex = i;
+        } else {
+          name = students[Math.floor(Math.random() * students.length)];
+        }
+        const item = document.createElement("div");
+        item.className = "slot-item";
+        item.textContent = name;
+        col.appendChild(item);
+      }
+      col.scrollTop = 0;
+
+      const maxScroll = col.scrollHeight - col.clientHeight;
+      const itemEl = col.firstElementChild;
+      const itemHeight = itemEl ? itemEl.offsetHeight : 36;
+      if (winnerName && winnerRowIndex >= 0) {
+        let finalScroll = winnerRowIndex * itemHeight - (col.clientHeight - itemHeight) / 2;
+        finalScroll = Math.max(0, Math.min(finalScroll, maxScroll));
+        slotScrollTarget.set(col, finalScroll);
+      } else {
+        slotScrollTarget.set(col, maxScroll);
+      }
+    }
+
+    function spinColumn(col, duration) {
+      return new Promise(resolve => {
+        const start = performance.now();
+        const finalScroll = slotScrollTarget.get(col) ?? (col.scrollHeight - col.clientHeight);
+        function step(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          col.scrollTop = finalScroll * progress;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            resolve();
+          }
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    btnSlot.addEventListener("click", async () => {
+      if (!students.length) return;
+      btnSlot.disabled = true;
+      slotResult.textContent = "";
+
+      const targetIndex = randomIndex();
+      const name = students[targetIndex];
+
+      fillSlotColumn(slotCol1, name);
+      fillSlotColumn(slotCol2, name);
+      fillSlotColumn(slotCol3, name);
+
+      await Promise.all([
+        spinColumn(slotCol1, 1200),
+        spinColumn(slotCol2, 1500),
+        spinColumn(slotCol3, 1800),
+      ]);
+
+      slotResult.textContent = `本轮抽中的学生是：${name}`;
+      btnSlot.disabled = false;
+    });
+
+    // ---------- 3. 滚轮 ----------
+    const rollerInner = document.getElementById("rollerInner");
+    const rollerResult = document.getElementById("rollerResult");
+    const btnRoller = document.getElementById("btnRoller");
+    let rollerTimer = null;
+
+    function makeRollerText() {
+      const base = students.join("   ◆   ");
+      return `${base}   ◆   ${base}   ◆   ${base}`;
+    }
+
+    btnRoller.addEventListener("click", () => {
+      if (rollerTimer || !students.length) return;
+      btnRoller.disabled = true;
+      rollerResult.textContent = "";
+
+      let currentName = "";
+      let timePassed = 0;
+      let interval = 60;
+
+      rollerTimer = setInterval(() => {
+        timePassed += interval;
+        const randomIdx = randomIndex();
+        currentName = students[randomIdx];
+        rollerInner.textContent = currentName;
+
+        if (timePassed > 800 && interval < 120) interval = 120;
+        if (timePassed > 1400 && interval < 220) interval = 220;
+        if (timePassed > 2000) {
+          clearInterval(rollerTimer);
+          rollerTimer = null;
+          rollerResult.textContent = `本轮抽中的学生是：${currentName}`;
+          btnRoller.disabled = false;
+        }
+      }, interval);
+    });
+
+    // ---------- 4. 卡片 ----------
+    const cardsContainer = document.getElementById("cards");
+    const cardResult = document.getElementById("cardResult");
+    const btnCard = document.getElementById("btnCard");
+    const CARD_COUNT = 8;
+    let cardWinnerName = "";
+    let cardReady = false;
+
+    function buildCards() {
+      cardsContainer.innerHTML = "";
+      for (let i = 0; i < CARD_COUNT; i++) {
+        const card = document.createElement("div");
+        card.className = "card";
+        const inner = document.createElement("div");
+        inner.className = "card-inner";
+
+        const front = document.createElement("div");
+        front.className = "card-front";
+        front.textContent = "点击翻开";
+
+        const back = document.createElement("div");
+        back.className = "card-back";
+        back.textContent = "";
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+        cardsContainer.appendChild(card);
+      }
+    }
+
+    btnCard.addEventListener("click", () => {
+      if (!students.length) return;
+      cardResult.textContent = "";
+      buildCards();
+      const name = students[randomIndex()];
+      cardWinnerName = name;
+      cardReady = false;
+
+      const cards = Array.from(document.querySelectorAll(".card"));
+      const winnerCard = cards[Math.floor(Math.random() * cards.length)];
+      winnerCard.classList.add("winner");
+      const back = winnerCard.querySelector(".card-back");
+      back.textContent = "??";
+
+      cards.forEach(card => {
+        card.addEventListener("click", () => {
+          if (!cardReady) return;
+          if (card.classList.contains("flipped")) return;
+          card.classList.add("flipped");
+          const isWinner = card.classList.contains("winner");
+          const backEl = card.querySelector(".card-back");
+          if (isWinner) {
+            backEl.textContent = cardWinnerName;
+            cardResult.textContent = `恭喜！本轮抽中的学生是：${cardWinnerName}`;
+          } else if (!cardResult.textContent) {
+            cardResult.textContent = "这张不是哦，可以继续翻其它卡片～";
+          }
+        });
+      });
+
+      setTimeout(() => {
+        cardReady = true;
+        cardResult.textContent = "已洗牌，请点击任意一张卡片翻开。";
+      }, 400);
+    });
+
+    // ---------- 5. 网格闪烁 ----------
+    const gridContainer = document.getElementById("grid");
+    const gridResult = document.getElementById("gridResult");
+    const btnGrid = document.getElementById("btnGrid");
+    let gridTimer = null;
+
+    function buildGrid() {
+      gridContainer.innerHTML = "";
+      students.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "grid-item";
+        div.textContent = name;
+        gridContainer.appendChild(div);
+      });
+    }
+
+    btnGrid.addEventListener("click", () => {
+      if (gridTimer || !students.length) return;
+      btnGrid.disabled = true;
+      gridResult.textContent = "";
+
+      const items = Array.from(document.querySelectorAll(".grid-item"));
+      items.forEach(i => i.classList.remove("winner","flash"));
+
+      const targetIndex = randomIndex();
+      const targetName = students[targetIndex];
+
+      let flashCount = 0;
+      gridTimer = setInterval(() => {
+        flashCount++;
+        items.forEach(i => i.classList.remove("flash"));
+        const idx = Math.floor(Math.random() * items.length);
+        items[idx].classList.add("flash");
+
+        if (flashCount > 20) {
+          clearInterval(gridTimer);
+          gridTimer = null;
+          items.forEach(i => i.classList.remove("flash"));
+          const winnerCell = items[targetIndex];
+          winnerCell.classList.add("winner");
+          winnerCell.textContent = targetName;
+          gridResult.textContent = `本轮抽中的学生是：${targetName}`;
+          btnGrid.disabled = false;
+        }
+      }, 100);
+    });
+
+    // ---------- 6. 列表高亮 ----------
+    const listNames = document.getElementById("listNames");
+    const listResult = document.getElementById("listResult");
+    const btnList = document.getElementById("btnList");
+    let listTimer = null;
+
+    function buildList() {
+      listNames.innerHTML = "";
+      students.forEach(name => {
+        const li = document.createElement("li");
+        li.className = "list-item";
+        li.textContent = name;
+        listNames.appendChild(li);
+      });
+    }
+
+    btnList.addEventListener("click", () => {
+      if (listTimer || !students.length) return;
+      const items = Array.from(document.querySelectorAll(".list-item"));
+      if (!items.length) return;
+
+      items.forEach(i => i.classList.remove("active"));
+      listResult.textContent = "";
+      btnList.disabled = true;
+
+      const targetIndex = randomIndex();
+      const totalSteps = students.length * 2 + targetIndex;
+      let currentIndex = -1;
+      let step = 0;
+
+      listTimer = setInterval(() => {
+        step++;
+        currentIndex = (currentIndex + 1) % items.length;
+        items.forEach(i => i.classList.remove("active"));
+        items[currentIndex].classList.add("active");
+
+        if (step >= totalSteps) {
+          clearInterval(listTimer);
+          listTimer = null;
+          items[currentIndex].classList.add("active");
+          const winnerName = students[targetIndex];
+          listResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnList.disabled = false;
+        }
+      }, 100);
+    });
+
+    // ---------- 7. 彩球抽签 ----------
+    const ballsContainer = document.getElementById("balls");
+    const ballResult = document.getElementById("ballResult");
+    const btnBall = document.getElementById("btnBall");
+    let ballTimer = null;
+
+    function buildBalls() {
+      ballsContainer.innerHTML = "";
+      students.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "ball";
+        div.textContent = name;
+        ballsContainer.appendChild(div);
+      });
+    }
+
+    btnBall.addEventListener("click", () => {
+      if (ballTimer || !students.length) return;
+      const balls = Array.from(document.querySelectorAll(".ball"));
+      if (!balls.length) return;
+
+      balls.forEach(b => b.classList.remove("active","winner"));
+      ballResult.textContent = "";
+      btnBall.disabled = true;
+
+      const targetIndex = randomIndex();
+      const winnerName = students[targetIndex];
+
+      let flashes = 0;
+      ballTimer = setInterval(() => {
+        flashes++;
+        balls.forEach(b => b.classList.remove("active"));
+        const idx = Math.floor(Math.random() * balls.length);
+        balls[idx].classList.add("active");
+
+        if (flashes > 25) {
+          clearInterval(ballTimer);
+          ballTimer = null;
+          balls.forEach(b => b.classList.remove("active"));
+          const winnerBall = balls[targetIndex];
+          if (winnerBall) {
+            winnerBall.classList.add("winner");
+          }
+          ballResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnBall.disabled = false;
+        }
+      }, 90);
+    });
+
+    // ---------- 8. 赛跑抽签 ----------
+    const raceList = document.getElementById("raceList");
+    const raceResult = document.getElementById("raceResult");
+    const btnRace = document.getElementById("btnRace");
+    let raceTimer = null;
+
+    function buildRace() {
+      raceList.innerHTML = "";
+      students.forEach(name => {
+        const row = document.createElement("div");
+        row.className = "race-row";
+        const label = document.createElement("div");
+        label.className = "race-name";
+        label.textContent = name;
+        const barWrap = document.createElement("div");
+        barWrap.className = "race-bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = "race-bar";
+
+        barWrap.appendChild(bar);
+        row.appendChild(label);
+        row.appendChild(barWrap);
+        raceList.appendChild(row);
+      });
+    }
+
+    btnRace.addEventListener("click", () => {
+      if (raceTimer || !students.length) return;
+      raceResult.textContent = "";
+      btnRace.disabled = true;
+
+      const rows = Array.from(document.querySelectorAll(".race-row"));
+      const bars = rows.map(r => r.querySelector(".race-bar"));
+      const progress = new Array(bars.length).fill(0);
+      rows.forEach(r => r.classList.remove("winner"));
+
+      raceTimer = setInterval(() => {
+        let winnerIndex = -1;
+        bars.forEach((bar, i) => {
+          const inc = Math.random() * 8 + 2;
+          progress[i] = Math.min(100, progress[i] + inc);
+          bar.style.width = progress[i] + "%";
+          if (progress[i] >= 100 && winnerIndex === -1) {
+            winnerIndex = i;
+          }
+        });
+
+        if (winnerIndex !== -1) {
+          clearInterval(raceTimer);
+          raceTimer = null;
+          rows[winnerIndex].classList.add("winner");
+          const winnerName = students[winnerIndex];
+          raceResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnRace.disabled = false;
+        }
+      }, 160);
+    });
+
+    // ---------- 9. 倒计时抽签 ----------
+    const btnCountdown = document.getElementById("btnCountdown");
+    const countdownDisplay = document.getElementById("countdownDisplay");
+    const countdownResult = document.getElementById("countdownResult");
+
+    btnCountdown.addEventListener("click", () => {
+      if (!students.length) return;
+      btnCountdown.disabled = true;
+      countdownResult.textContent = "";
+      let count = 3;
+      countdownDisplay.textContent = count;
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownDisplay.textContent = count;
+        } else {
+          clearInterval(timer);
+          const name = students[randomIndex()];
+          countdownDisplay.textContent = name;
+          countdownResult.textContent = `本轮抽中的学生是：${name}`;
+          btnCountdown.disabled = false;
+        }
+      }, 600);
+    });
+
+    // ---------- 10. 骰子抽签 ----------
+    const btnDice = document.getElementById("btnDice");
+    const dice1 = document.getElementById("dice1");
+    const dice2 = document.getElementById("dice2");
+    const diceNameDisplay = document.getElementById("diceNameDisplay");
+    const diceResult = document.getElementById("diceResult");
+
+    btnDice.addEventListener("click", () => {
+      if (!students.length) return;
+      btnDice.disabled = true;
+      diceResult.textContent = "";
+      diceNameDisplay.textContent = "";
+      let rolls = 0;
+      const timer = setInterval(() => {
+        rolls++;
+        const a = 1 + Math.floor(Math.random() * 6);
+        const b = 1 + Math.floor(Math.random() * 6);
+        dice1.textContent = a;
+        dice2.textContent = b;
+        if (rolls > 12) {
+          clearInterval(timer);
+          const sum = a + b;
+          const index = (sum - 2) % students.length;
+          const name = students[index];
+          diceNameDisplay.textContent = name;
+          diceResult.textContent = `骰子点数之和为 ${sum}，本轮抽中的学生是：${name}`;
+          btnDice.disabled = false;
+        }
+      }, 120);
+    });
+
+    // ---------- 11. 彩虹进度条抽签 ----------
+    const btnRainbow = document.getElementById("btnRainbow");
+    const rainbowBar = document.getElementById("rainbowBar");
+    const rainbowNameDisplay = document.getElementById("rainbowNameDisplay");
+    const rainbowResult = document.getElementById("rainbowResult");
+
+    btnRainbow.addEventListener("click", () => {
+      if (!students.length) return;
+      btnRainbow.disabled = true;
+      rainbowResult.textContent = "";
+      rainbowBar.style.width = "0%";
+      rainbowNameDisplay.textContent = "";
+      let progress = 0;
+      let currentName = "";
+      const timer = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        progress = Math.min(progress, 100);
+        rainbowBar.style.width = progress + "%";
+        currentName = students[randomIndex()];
+        rainbowNameDisplay.textContent = currentName;
+        if (progress >= 100) {
+          clearInterval(timer);
+          rainbowResult.textContent = `本轮抽中的学生是：${currentName}`;
+          btnRainbow.disabled = false;
+        }
+      }, 160);
+    });
+
+    // ---------- 12. 打字机抽签 ----------
+    const btnType = document.getElementById("btnType");
+    const typeDisplay = document.getElementById("typeDisplay");
+    const typeResult = document.getElementById("typeResult");
+
+    btnType.addEventListener("click", () => {
+      if (!students.length) return;
+      btnType.disabled = true;
+      typeResult.textContent = "";
+      typeDisplay.textContent = "";
+      const name = students[randomIndex()];
+      const text = `本轮抽中的学生是：${name}`;
+      let i = 0;
+      const timer = setInterval(() => {
+        typeDisplay.textContent = text.slice(0, i);
+        i++;
+        if (i > text.length) {
+          clearInterval(timer);
+          typeResult.textContent = `本轮抽中的学生是：${name}`;
+          btnType.disabled = false;
+        }
+      }, 80);
+    });
+
+    // ---------- 13. 编号盒子抽签 ----------
+    const btnBox = document.getElementById("btnBox");
+    const boxesContainer = document.getElementById("boxes");
+    const boxResult = document.getElementById("boxResult");
+    let boxTimer = null;
+
+    function buildBoxes() {
+      boxesContainer.innerHTML = "";
+      students.forEach((_, i) => {
+        const div = document.createElement("div");
+        div.className = "box-item";
+        div.textContent = `盒子 ${i + 1}`;
+        boxesContainer.appendChild(div);
+      });
+    }
+
+    btnBox.addEventListener("click", () => {
+      if (boxTimer || !students.length) return;
+      const boxes = Array.from(document.querySelectorAll(".box-item"));
+      if (!boxes.length) return;
+      boxes.forEach(b => b.classList.remove("active","winner"));
+      boxResult.textContent = "";
+      btnBox.disabled = true;
+
+      const targetIndex = randomIndex();
+      const winnerName = students[targetIndex];
+      let steps = 0;
+      const totalSteps = students.length * 3 + targetIndex;
+
+      boxTimer = setInterval(() => {
+        steps++;
+        const idx = steps % boxes.length;
+        boxes.forEach(b => b.classList.remove("active"));
+        boxes[idx].classList.add("active");
+
+        if (steps >= totalSteps) {
+          clearInterval(boxTimer);
+          boxTimer = null;
+          boxes.forEach(b => b.classList.remove("active"));
+          const winnerBox = boxes[targetIndex];
+          winnerBox.classList.add("winner");
+          winnerBox.textContent = `${winnerName}`;
+          boxResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnBox.disabled = false;
+        }
+      }, 90);
+    });
+
+    // ---------- 14. 名字云抽签 ----------
+    const btnCloud = document.getElementById("btnCloud");
+    const cloudNamesContainer = document.getElementById("cloudNames");
+    const cloudResult = document.getElementById("cloudResult");
+    let cloudTimer = null;
+
+    function buildCloud() {
+      cloudNamesContainer.innerHTML = "";
+      students.forEach((name, i) => {
+        const span = document.createElement("span");
+        span.className = "cloud-name level" + (1 + (i % 3));
+        span.textContent = name;
+        cloudNamesContainer.appendChild(span);
+      });
+    }
+
+    btnCloud.addEventListener("click", () => {
+      if (cloudTimer || !students.length) return;
+      const tags = Array.from(document.querySelectorAll(".cloud-name"));
+      if (!tags.length) return;
+      tags.forEach(t => t.classList.remove("active","winner"));
+      cloudResult.textContent = "";
+      btnCloud.disabled = true;
+
+      const targetIndex = randomIndex();
+      const winnerName = students[targetIndex];
+      let flashes = 0;
+
+      cloudTimer = setInterval(() => {
+        flashes++;
+        tags.forEach(t => t.classList.remove("active"));
+        const idx = Math.floor(Math.random() * tags.length);
+        tags[idx].classList.add("active");
+        if (flashes > 30) {
+          clearInterval(cloudTimer);
+          cloudTimer = null;
+          tags.forEach(t => t.classList.remove("active"));
+          const winnerTag = tags[targetIndex];
+          winnerTag.classList.add("winner");
+          cloudResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnCloud.disabled = false;
+        }
+      }, 80);
+    });
+
+    // ---------- 15. 淘汰赛抽签 ----------
+    const btnElim = document.getElementById("btnElim");
+    const elimList = document.getElementById("elimList");
+    const elimResult = document.getElementById("elimResult");
+    let elimTimer = null;
+
+    function buildElimList() {
+      elimList.innerHTML = "";
+      students.forEach(name => {
+        const li = document.createElement("li");
+        li.className = "elim-item alive";
+        li.textContent = name;
+        elimList.appendChild(li);
+      });
+    }
+
+    btnElim.addEventListener("click", () => {
+      if (elimTimer || !students.length) return;
+      const items = Array.from(document.querySelectorAll(".elim-item"));
+      if (!items.length) return;
+
+      items.forEach(i => {
+        i.classList.remove("removed","alive");
+        i.classList.add("alive");
+      });
+      elimResult.textContent = "";
+      btnElim.disabled = true;
+
+      let remaining = items.slice();
+      elimTimer = setInterval(() => {
+        if (remaining.length <= 1) {
+          clearInterval(elimTimer);
+          elimTimer = null;
+          if (remaining.length === 1) {
+            const last = remaining[0];
+            last.classList.add("alive");
+            const name = last.textContent;
+            elimResult.textContent = `本轮抽中的学生是：${name}`;
+          }
+          btnElim.disabled = false;
+          return;
+        }
+        const idx = Math.floor(Math.random() * remaining.length);
+        const item = remaining[idx];
+        item.classList.remove("alive");
+        item.classList.add("removed");
+        remaining.splice(idx, 1);
+      }, 200);
+    });
+
+    // ---------- 16. 聚光灯抽签 ----------
+    const btnSpotlight = document.getElementById("btnSpotlight");
+    const spotlightDisplay = document.getElementById("spotlightDisplay");
+    const spotlightResult = document.getElementById("spotlightResult");
+    let spotlightTimer = null;
+
+    btnSpotlight.addEventListener("click", () => {
+      if (spotlightTimer || !students.length) return;
+      btnSpotlight.disabled = true;
+      spotlightResult.textContent = "";
+      let timePassed = 0;
+      let interval = 80;
+      spotlightTimer = setInterval(() => {
+        timePassed += interval;
+        const name = students[randomIndex()];
+        spotlightDisplay.textContent = name;
+
+        if (timePassed > 1000 && interval < 140) interval = 140;
+        if (timePassed > 1800 && interval < 230) interval = 230;
+        if (timePassed > 2600) {
+          clearInterval(spotlightTimer);
+          spotlightTimer = null;
+          const finalName = students[randomIndex()];
+          spotlightDisplay.textContent = finalName;
+          spotlightResult.textContent = `本轮抽中的学生是：${finalName}`;
+          btnSpotlight.disabled = false;
+        }
+      }, interval);
+    });
+
+    // ---------- 17. 阶梯抽签 ----------
+    const btnLadder = document.getElementById("btnLadder");
+    const ladderList = document.getElementById("ladderList");
+    const ladderResult = document.getElementById("ladderResult");
+    let ladderTimer = null;
+
+    function buildLadder() {
+      ladderList.innerHTML = "";
+      students.forEach((name, i) => {
+        const li = document.createElement("li");
+        li.className = "ladder-item";
+        li.style.marginLeft = (i * 6) + "px";
+        const span = document.createElement("span");
+        span.textContent = name;
+        li.appendChild(span);
+        ladderList.appendChild(li);
+      });
+    }
+
+    btnLadder.addEventListener("click", () => {
+      if (ladderTimer || !students.length) return;
+      const items = Array.from(document.querySelectorAll(".ladder-item"));
+      if (!items.length) return;
+      items.forEach(i => i.classList.remove("active","winner"));
+      ladderResult.textContent = "";
+      btnLadder.disabled = true;
+
+      const targetIndex = randomIndex();
+      const winnerName = students[targetIndex];
+      let current = 0;
+      let rounds = 0;
+      const maxRounds = 2;
+
+      ladderTimer = setInterval(() => {
+        items.forEach(i => i.classList.remove("active"));
+        items[current].classList.add("active");
+        current++;
+        if (current >= items.length) {
+          current = 0;
+          rounds++;
+        }
+        if (rounds >= maxRounds && current === targetIndex) {
+          clearInterval(ladderTimer);
+          ladderTimer = null;
+          items.forEach(i => i.classList.remove("active"));
+          items[targetIndex].classList.add("winner");
+          ladderResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnLadder.disabled = false;
+        }
+      }, 120);
+    });
+
+    // ---------- 18. 星星抽签 ----------
+    const btnStar = document.getElementById("btnStar");
+    const starsContainer = document.getElementById("stars");
+    const starResult = document.getElementById("starResult");
+    let starTimer = null;
+
+    function buildStars() {
+      starsContainer.innerHTML = "";
+      students.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "star-item";
+        const icon = document.createElement("span");
+        icon.className = "icon";
+        icon.textContent = "★";
+        const label = document.createElement("span");
+        label.textContent = name;
+        div.appendChild(icon);
+        div.appendChild(label);
+        starsContainer.appendChild(div);
+      });
+    }
+
+    btnStar.addEventListener("click", () => {
+      if (starTimer || !students.length) return;
+      const stars = Array.from(document.querySelectorAll(".star-item"));
+      if (!stars.length) return;
+      stars.forEach(s => s.classList.remove("active","winner"));
+      starResult.textContent = "";
+      btnStar.disabled = true;
+
+      const targetIndex = randomIndex();
+      const winnerName = students[targetIndex];
+      let flashes = 0;
+
+      starTimer = setInterval(() => {
+        flashes++;
+        stars.forEach(s => s.classList.remove("active"));
+        const idx = Math.floor(Math.random() * stars.length);
+        stars[idx].classList.add("active");
+        if (flashes > 30) {
+          clearInterval(starTimer);
+          starTimer = null;
+          stars.forEach(s => s.classList.remove("active"));
+          const winnerStar = stars[targetIndex];
+          winnerStar.classList.add("winner");
+          starResult.textContent = `本轮抽中的学生是：${winnerName}`;
+          btnStar.disabled = false;
+        }
+      }, 80);
+    });
+
+    // ---------- 刷新所有 UI ----------
+    function refreshAllUI() {
+      updateNamesLine();
+      createWheelLabels();
+      if (students.length) {
+        fillSlotColumn(slotCol1);
+        fillSlotColumn(slotCol2);
+        fillSlotColumn(slotCol3);
+      } else {
+        slotCol1.innerHTML = "";
+        slotCol2.innerHTML = "";
+        slotCol3.innerHTML = "";
+      }
+      rollerInner.textContent = students.length ? makeRollerText() : "请先添加学生名单";
+      cardReady = false;
+      buildCards();
+      buildGrid();
+      buildList();
+      buildBalls();
+      buildRace();
+      buildBoxes();
+      buildCloud();
+      buildElimList();
+      buildLadder();
+      buildStars();
+    }
+
+    // ---------- 初始化 ----------
+    studentInput.value = defaultStudents.join("、");
+    refreshAllUI();
+</script>
+</body>
+</html>
