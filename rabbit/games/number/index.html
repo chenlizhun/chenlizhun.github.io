@@ -18,6 +18,12 @@
             <div class="info-item" id="roundInfo">第 0 / 0 题</div>
             <div class="info-item" id="scoreInfo">已答对：0 题</div>
         </section>
+        
+        <section class="progress-section">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </section>
 
         <section class="question-card">
             <div class="question-label">
@@ -52,5 +58,33 @@
 
 <script src="../../data.js"></script>
 <script src="number.js"></script>
+    <!-- 游戏总结模态框 -->
+    <div id="gameCompletionModal" class="game-completion-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">游戏完成！</h2>
+            <div class="statistics">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalQuestions">0</div>
+                    <div class="stat-label">总题目数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value correct" id="correctAnswers">0</div>
+                    <div class="stat-label">答对题数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value wrong" id="wrongAnswers">0</div>
+                    <div class="stat-label">答错题数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value percentage" id="accuracy">0%</div>
+                    <div class="stat-label">正确率</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="restartGameBtn" class="control-btn">重新开始</button>
+                <button id="backToMainBtn" class="control-btn">返回主页面</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

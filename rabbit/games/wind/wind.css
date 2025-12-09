@@ -6,8 +6,262 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: linear-gradient(135deg, #fdf6ec, #fefefe);
+  background: linear-gradient(135deg, #f0f8ff, #e8f5fd, #d1ecfd);
+  background-size: 200% 200%;
   color: #333;
+  animation: skyShift 15s ease-in-out infinite;
+  overflow-x: hidden;
+}
+
+/* 天空渐变动画 */
+@keyframes skyShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 飘动的云 */
+.cloud {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50px;
+  z-index: -1;
+  opacity: 0.7;
+  animation: floatCloud linear infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+.cloud.small {
+  width: 60px;
+  height: 25px;
+  top: 15%;
+  left: -100px;
+  animation-duration: 25s;
+}
+
+.cloud.small::before {
+  width: 30px;
+  height: 30px;
+  top: -15px;
+  left: 10px;
+}
+
+.cloud.small::after {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  right: 10px;
+}
+
+.cloud.medium {
+  width: 100px;
+  height: 40px;
+  top: 30%;
+  left: -150px;
+  animation-duration: 35s;
+}
+
+.cloud.medium::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 15px;
+}
+
+.cloud.medium::after {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  right: 15px;
+}
+
+.cloud.large {
+  width: 140px;
+  height: 50px;
+  top: 20%;
+  left: -200px;
+  animation-duration: 45s;
+}
+
+.cloud.large::before {
+  width: 70px;
+  height: 70px;
+  top: -35px;
+  left: 20px;
+}
+
+.cloud.large::after {
+  width: 80px;
+  height: 80px;
+  top: -40px;
+  right: 20px;
+}
+
+/* 云朵飘动动画 */
+@keyframes floatCloud {
+  0% {
+    transform: translateX(-100px) translateY(0);
+  }
+  50% {
+    transform: translateX(calc(100vw + 200px)) translateY(-10px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 200px)) translateY(0);
+  }
+}
+
+/* 飞鸟样式和动画 */
+.bird {
+  position: fixed;
+  width: 30px;
+  height: 20px;
+  z-index: -1;
+  opacity: 0.8;
+  animation: flyBird linear infinite;
+  transform-origin: center;
+}
+
+.bird::before, .bird::after {
+  content: '';
+  position: absolute;
+  background: #333;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+/* 鸟身体 */
+.bird::before {
+  width: 20px;
+  height: 14px;
+  left: 5px;
+  top: 3px;
+}
+
+/* 鸟头 */
+.bird::after {
+  width: 8px;
+  height: 8px;
+  left: 22px;
+  top: 6px;
+  background: #444;
+}
+
+/* 鸟翅膀 */
+.bird .wing {
+  position: absolute;
+  width: 12px;
+  height: 8px;
+  background: #555;
+  border-radius: 4px;
+  transform-origin: left center;
+  animation: flapWing 1s ease-in-out infinite alternate;
+}
+
+.bird .wing.left {
+  top: 4px;
+  left: 6px;
+  transform: rotate(-30deg);
+}
+
+.bird .wing.right {
+  top: 8px;
+  left: 6px;
+  transform: rotate(30deg);
+}
+
+/* 飞鸟飞行动画 */
+@keyframes flyBird {
+  0% {
+    transform: translateX(-50px) translateY(0) scale(1) rotate(0deg);
+  }
+  25% {
+    transform: translateX(calc(25vw + 50px)) translateY(-20px) scale(1.1) rotate(-5deg);
+  }
+  50% {
+    transform: translateX(calc(50vw + 100px)) translateY(-10px) scale(0.95) rotate(2deg);
+  }
+  75% {
+    transform: translateX(calc(75vw + 150px)) translateY(-25px) scale(1.05) rotate(-3deg);
+  }
+  100% {
+    transform: translateX(calc(100vw + 200px)) translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+/* 鸟翅膀扇动动画 */
+@keyframes flapWing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(80deg);
+  }
+}
+
+/* 不同大小和颜色的鸟 */
+.bird.small {
+  transform: scale(0.6);
+  animation-duration: 35s;
+}
+
+.bird.medium {
+  transform: scale(0.9);
+  animation-duration: 45s;
+}
+
+.bird.large {
+  transform: scale(1.2);
+  animation-duration: 55s;
+}
+
+/* 彩色小鸟 */
+.bird.red::before {
+  background: #e74c3c;
+}
+
+.bird.red::after {
+  background: #c0392b;
+}
+
+.bird.red .wing {
+  background: #a93226;
+}
+
+.bird.blue::before {
+  background: #3498db;
+}
+
+.bird.blue::after {
+  background: #2980b9;
+}
+
+.bird.blue .wing {
+  background: #1f618d;
+}
+
+.bird.yellow::before {
+  background: #f1c40f;
+}
+
+.bird.yellow::after {
+  background: #f39c12;
+}
+
+.bird.yellow .wing {
+  background: #d35400;
 }
 
 .game-page {
@@ -39,11 +293,19 @@ body {
   font-size: 13px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  background: #ffd6a5;
 }
 
 .back-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .game-title {
@@ -71,6 +333,43 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+/* 进度条 */
+.progress-section {
+  margin: 0 4px;
+}
+
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) inset;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #74b9ff, #a29bfe, #74b9ff);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.3s ease-out;
+  animation: windFlow 3s ease-in-out infinite;
+}
+
+/* 风流动画 */
+@keyframes windFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .info-item {
   white-space: nowrap;
 }
@@ -83,6 +382,11 @@ body {
   padding: 14px 14px 10px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   border: 1px solid rgba(0,0,0,0.04);
+  transition: all 0.3s ease-out;
+}
+
+.question-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 .question-label {
@@ -130,11 +434,19 @@ body {
   text-align: center;
   -webkit-tap-highlight-color: transparent;
   min-height: 60px;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
 }
 
-.option-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+.option-btn:hover:not(.disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  background: rgba(255,255,255,1);
+}
+
+.option-btn:active:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .option-btn.disabled {
@@ -169,15 +481,30 @@ body {
   padding: 7px 18px;
   font-size: 13px;
   cursor: pointer;
-  background: #74b9ff;
+  background: linear-gradient(135deg, #74b9ff, #6c5ce7);
   color: #fff;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(116, 185, 255, 0.4);
+}
+
+.control-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(116, 185, 255, 0.5);
+  background: linear-gradient(135deg, #6c5ce7, #74b9ff);
+}
+
+.control-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.3);
 }
 
 .control-btn:disabled {
   background: #ddd;
   color: #999;
   cursor: default;
+  box-shadow: none;
 }
 
 /* 底部说明 */
@@ -190,6 +517,94 @@ body {
   border-radius: 12px;
   padding: 8px 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 游戏结束模态框 */
+#gameCompletionModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+#gameCompletionModal .modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 90%;
+  width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+#gameCompletionModal .modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#gameCompletionModal .modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+#gameCompletionModal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#gameCompletionModal .summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+#gameCompletionModal .summary-label {
+  font-size: 16px;
+  color: #666;
+}
+
+#gameCompletionModal .summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+#gameCompletionModal .summary-correct {
+  color: #27ae60;
+}
+
+#gameCompletionModal .summary-wrong {
+  color: #e74c3c;
+}
+
+#gameCompletionModal .modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* 模态框动画 */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .tag {

@@ -6,8 +6,170 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: linear-gradient(135deg, #fdf6ec, #fefefe);
+  background: linear-gradient(135deg, #87CEEB, #E0F7FA, #F0F4C3);
   color: #333;
+  animation: skyShift 15s ease-in-out infinite;
+  overflow-x: hidden;
+}
+
+@keyframes skyShift {
+  0%, 100% {
+    background: linear-gradient(135deg, #87CEEB, #E0F7FA, #F0F4C3);
+  }
+  50% {
+    background: linear-gradient(135deg, #B3E5FC, #E1F5FE, #FFF9C4);
+  }
+}
+
+/* 飞鸟动画 */
+.bird-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bird {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  background: #ff9800;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flyBird 15s linear infinite;
+  opacity: 0.6;
+}
+
+.bird::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: -10px;
+  width: 20px;
+  height: 15px;
+  background: #ff9800;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(45deg);
+}
+
+.bird::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  width: 20px;
+  height: 15px;
+  background: #ff9800;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(-45deg);
+}
+
+.bird.small {
+  width: 25px;
+  height: 20px;
+  background: #ffa726;
+}
+
+.bird.small::before,
+.bird.small::after {
+  width: 15px;
+  height: 10px;
+  background: #ffa726;
+}
+
+.bird.large {
+  width: 50px;
+  height: 40px;
+  background: #fb8c00;
+}
+
+.bird.large::before,
+.bird.large::after {
+  width: 25px;
+  height: 20px;
+  background: #fb8c00;
+}
+
+@keyframes flyBird {
+  0% {
+    left: -100px;
+    top: 20%;
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    left: 25%;
+    top: 15%;
+    transform: translateX(0) rotate(10deg);
+  }
+  50% {
+    left: 50%;
+    top: 25%;
+    transform: translateX(0) rotate(-5deg);
+  }
+  75% {
+    left: 75%;
+    top: 20%;
+    transform: translateX(0) rotate(5deg);
+  }
+  100% {
+    left: 110%;
+    top: 30%;
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+/* 羽毛装饰 */
+.feather {
+  position: fixed;
+  width: 30px;
+  height: 10px;
+  background: linear-gradient(90deg, #FFD54F, #FFE082);
+  border-radius: 20px 0 0 20px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+  animation: floatFeather 10s linear infinite;
+}
+
+.feather::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(45deg, #FFD54F, #FFE082);
+  border-radius: 50%;
+}
+
+@keyframes floatFeather {
+  0% {
+    left: -100px;
+    top: 10%;
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    left: 25%;
+    top: 20%;
+    transform: translateY(-10px) rotate(10deg);
+  }
+  50% {
+    left: 50%;
+    top: 15%;
+    transform: translateY(10px) rotate(-10deg);
+  }
+  75% {
+    left: 75%;
+    top: 25%;
+    transform: translateY(-5px) rotate(5deg);
+  }
+  100% {
+    left: 110%;
+    top: 30%;
+    transform: translateY(0) rotate(0deg);
+  }
 }
 
 .game-page {
@@ -39,11 +201,19 @@ body {
   font-size: 13px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
+}
+
+.back-btn:hover:not(:active) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  background: #ffd1a6;
 }
 
 .back-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
 }
 
 .game-title {
@@ -75,6 +245,49 @@ body {
   white-space: nowrap;
 }
 
+/* 进度条 */
+.progress-bar-container {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.3) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  animation: progressFly 2s linear infinite;
+}
+
+@keyframes progressFly {
+  from { background-position: 0 0; }
+  to { background-position: 40px 0; }
+}
+
 /* 题干卡片 */
 
 .question-card {
@@ -83,6 +296,11 @@ body {
   padding: 14px 14px 10px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   border: 1px solid rgba(0,0,0,0.04);
+  transition: box-shadow 0.3s ease-out;
+}
+
+.question-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
 .question-label {
@@ -136,11 +354,19 @@ body {
   text-align: center;
   -webkit-tap-highlight-color: transparent;
   min-height: 56px;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
+}
+
+.option-btn:hover:not(.disabled):not(:active) {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  background: rgba(255,255,255,1);
 }
 
 .option-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .option-btn.disabled {
@@ -175,9 +401,22 @@ body {
   padding: 7px 18px;
   font-size: 13px;
   cursor: pointer;
-  background: #74b9ff;
+  background: linear-gradient(90deg, #74b9ff, #6c5ce7);
   color: #fff;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-out;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.4);
+}
+
+.control-btn:hover:not(:disabled):not(:active) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(116, 185, 255, 0.6);
+}
+
+.control-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.4);
 }
 
 .control-btn:disabled {
@@ -236,4 +475,118 @@ body {
     font-size: 20px;
     min-height: 52px;
   }
+}
+
+/* 游戏总结模态框 */
+.game-completion-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-completion-modal.active {
+  display: flex;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  max-width: 90%;
+  width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  color: #2d3436;
+  font-size: 24px;
+  margin: 0;
+}
+
+.summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+}
+
+.stat-label {
+  color: #636e72;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.stat-value.correct {
+  color: #00b894;
+}
+
+.stat-value.wrong {
+  color: #d63031;
+}
+
+.stat-value.accuracy {
+  color: #e17055;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  background: linear-gradient(90deg, #74b9ff, #6c5ce7);
+  color: white;
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.4);
+}
+
+.modal-btn:hover:not(:active) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(116, 185, 255, 0.6);
+}
+
+.modal-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.4);
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

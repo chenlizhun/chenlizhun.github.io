@@ -3,15 +3,102 @@
 const THEME_ID = "wind";
 const STORAGE_KEY = "poemMemoryStatus_v1";
 
+// 云动画相关常量
+const CLOUD_CLASSES = ["small", "medium", "large"];
+const MAX_CLOUDS = 6;
+
+// 鸟动画相关常量
+const BIRD_CLASSES = ["small", "medium", "large"];
+const BIRD_COLORS = ["red", "blue", "yellow"];
+const MAX_BIRDS = 3;
+
+// 创建飘动的云
+function createCloud() {
+  const cloud = document.createElement("div");
+  const cloudSize = CLOUD_CLASSES[Math.floor(Math.random() * CLOUD_CLASSES.length)];
+  cloud.className = `cloud ${cloudSize}`;
+  
+  // 随机设置云的垂直位置
+  const top = Math.random() * 50 + 10; // 10% - 60% 高度
+  cloud.style.top = `${top}%`;
+  
+  // 设置随机的动画延迟
+  const delay = Math.random() * 5;
+  cloud.style.animationDelay = `${delay}s`;
+  
+  return cloud;
+}
+
+// 创建飞鸟
+function createBird() {
+  const bird = document.createElement("div");
+  const birdSize = BIRD_CLASSES[Math.floor(Math.random() * BIRD_CLASSES.length)];
+  const birdColor = BIRD_COLORS[Math.floor(Math.random() * BIRD_COLORS.length)];
+  bird.className = `bird ${birdSize} ${birdColor}`;
+  
+  // 创建翅膀
+  const leftWing = document.createElement("div");
+  leftWing.className = "wing left";
+  
+  const rightWing = document.createElement("div");
+  rightWing.className = "wing right";
+  
+  // 把翅膀添加到鸟身上
+  bird.appendChild(leftWing);
+  bird.appendChild(rightWing);
+  
+  // 随机设置鸟的垂直位置
+  const top = Math.random() * 50 + 20; // 20% - 70% 高度
+  bird.style.top = `${top}%`;
+  
+  // 设置随机的动画延迟
+  const delay = Math.random() * 10;
+  bird.style.animationDelay = `${delay}s`;
+  
+  return bird;
+}
+
+// 初始化云动画
+function initCloudAnimation() {
+  const container = document.body;
+  
+  // 创建多个云
+  for (let i = 0; i < MAX_CLOUDS; i++) {
+    const cloud = createCloud();
+    container.appendChild(cloud);
+  }
+}
+
+// 初始化鸟动画
+function initBirdAnimation() {
+  const container = document.body;
+  
+  // 创建多个鸟
+  for (let i = 0; i < MAX_BIRDS; i++) {
+    const bird = createBird();
+    container.appendChild(bird);
+  }
+}
+
 // DOM 引用
 const roundInfoEl = document.getElementById("roundInfo");
 const scoreInfoEl = document.getElementById("scoreInfo");
 const sentenceTextEl = document.getElementById("sentenceText");
 const poemMetaEl = document.getElementById("poemMeta");
 const feedbackEl = document.getElementById("feedback");
+const progressBarEl = document.getElementById("progressBar");
 const optionButtons = document.querySelectorAll(".option-btn");
 const btnNext = document.getElementById("btnNext");
 const btnBack = document.getElementById("btnBack");
+
+// 游戏结束模态框相关元素
+const gameCompletionModalEl = document.getElementById("gameCompletionModal");
+const totalQuestionsEl = document.getElementById("totalQuestions");
+const correctAnswersEl = document.getElementById("correctAnswers");
+const wrongAnswersEl = document.getElementById("wrongAnswers");
+const accuracyRateEl = document.getElementById("accuracyRate");
+const btnRestartGameEl = document.getElementById("btnRestartGame");
+const btnReturnHomeEl = document.getElementById("btnReturnHome");
 
 let audioCtx = null;
 function playClick() {
@@ -122,6 +209,7 @@ function renderRound() {
     sentenceTextEl.textContent = "——";
     poemMetaEl.textContent = "";
     feedbackEl.textContent = "请返回主页面。";
+    progressBarEl.style.width = "0%";
     optionButtons.forEach(btn => {
       btn.disabled = true;
       btn.classList.add("disabled");
@@ -141,6 +229,10 @@ function renderRound() {
 
   currentSentence = sentence;
   currentType = detectWindType(sentence);
+
+  // 计算并更新进度条
+  const progress = (currentRound / total) * 100;
+  progressBarEl.style.width = `${progress}%`;
 
   roundInfoEl.textContent = `第 ${currentRound + 1} / ${total} 题`;
   scoreInfoEl.textContent = `已答对：${correctCount} 题`;
@@ -193,6 +285,11 @@ function handleAnswer(btn) {
     saveStatus();
   }
 
+  // 如果是最后一题，进度条显示100%
+  if (currentRound + 1 >= windPoems.length) {
+    progressBarEl.style.width = "100%";
+  }
+
   scoreInfoEl.textContent = `已答对：${correctCount} 题`;
   btnNext.disabled = false;
 }
@@ -217,6 +314,10 @@ function initGame() {
   currentRound = 0;
   correctCount = 0;
 
+  // 初始化动画
+  initCloudAnimation();
+  initBirdAnimation();
+
   renderRound();
 }
 
@@ -232,8 +333,49 @@ optionButtons.forEach(btn => {
 btnNext.addEventListener("click", () => {
   playClick();
   currentRound++;
-  renderRound();
+  
+  // 检查是否完成了所有题目
+  if (currentRound >= windPoems.length) {
+    // 显示游戏完成总结模态框
+    showGameCompletionSummary();
+  } else {
+    renderRound();
+  }
 });
+
+// 显示游戏完成总结
+function showGameCompletionSummary() {
+  const totalQuestions = windPoems.length;
+  const wrongAnswers = totalQuestions - correctCount;
+  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  
+  // 更新模态框中的统计数据
+  totalQuestionsEl.textContent = totalQuestions;
+  correctAnswersEl.textContent = correctCount;
+  wrongAnswersEl.textContent = wrongAnswers;
+  accuracyRateEl.textContent = `${accuracy}%`;
+  
+  // 显示模态框
+  gameCompletionModalEl.style.display = "flex";
+}
+
+// 重新开始游戏
+function restartGame() {
+  playClick();
+  
+  // 隐藏模态框
+  gameCompletionModalEl.style.display = "none";
+  
+  // 重置游戏状态
+  currentRound = 0;
+  correctCount = 0;
+  
+  // 重新洗牌
+  orderIndices = shuffle(orderIndices);
+  
+  // 重新渲染第一题
+  renderRound();
+}
 
 // 返回主页面
 btnBack.addEventListener("click", () => {
@@ -247,6 +389,15 @@ btnBack.addEventListener("click", () => {
   } catch (_) {
     window.location.href = "../../index.html";
   }
+});
+
+// 重新开始游戏按钮事件
+btnRestartGameEl.addEventListener("click", restartGame);
+
+// 返回主页面按钮事件
+btnReturnHomeEl.addEventListener("click", () => {
+  playClick();
+  window.location.href = "../../index.html";
 });
 
 document.addEventListener("DOMContentLoaded", initGame);

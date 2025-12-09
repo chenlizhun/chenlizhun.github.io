@@ -19,6 +19,10 @@
             <div class="info-item" id="scoreInfo">已答对：0 题</div>
         </section>
 
+        <section class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </section>
+
         <section class="question-card">
             <div class="question-label">
                 请看看这句诗，想一想“□”里应该填哪个字：
@@ -45,6 +49,39 @@
         <span class="tag tag-purple">答错</span>：会把这句诗标记为
         <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
     </footer>
+</div>
+
+<!-- 游戏总结模态框 -->
+<div id="gameCompletionModal" class="game-completion-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>游戏完成！</h2>
+        </div>
+        <div class="modal-body">
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">总题目数：</span>
+                    <span class="stat-value" id="totalQuestions">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">答对题目：</span>
+                    <span class="stat-value correct" id="correctAnswers">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">答错题目：</span>
+                    <span class="stat-value wrong" id="wrongAnswers">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">正确率：</span>
+                    <span class="stat-value accuracy" id="accuracyRate">0%</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn" id="btnRestartGame">重新开始游戏</button>
+            <button class="modal-btn" id="btnReturnHome">返回主页面</button>
+        </div>
+    </div>
 </div>
 
 <script src="../../data.js"></script>

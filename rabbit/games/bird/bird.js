@@ -12,6 +12,16 @@ const feedbackEl = document.getElementById("feedback");
 const optionsAreaEl = document.getElementById("optionsArea");
 const btnNext = document.getElementById("btnNext");
 const btnBack = document.getElementById("btnBack");
+const progressBarEl = document.getElementById("progressBar");
+
+// 游戏总结模态框引用
+const gameCompletionModalEl = document.getElementById("gameCompletionModal");
+const totalQuestionsEl = document.getElementById("totalQuestions");
+const correctAnswersEl = document.getElementById("correctAnswers");
+const wrongAnswersEl = document.getElementById("wrongAnswers");
+const accuracyRateEl = document.getElementById("accuracyRate");
+const btnRestartGameEl = document.getElementById("btnRestartGame");
+const btnReturnHomeEl = document.getElementById("btnReturnHome");
 
 let audioCtx = null;
 function playClick() {
@@ -48,6 +58,11 @@ let correctCount = 0;
 
 let currentPoemIndex = -1;
 let originalSentence = "";
+
+// 鸟动画常量
+const BIRD_CLASSES = ['small', 'medium', 'large'];
+const MAX_BIRDS = 3;
+const MAX_FEATHERS = 5;
 
 // 与主 App 共用的记忆状态
 let statusMap = {};
@@ -141,6 +156,9 @@ function renderRound() {
     feedbackEl.textContent = "请返回主页面。";
     optionsAreaEl.innerHTML = "";
     btnNext.disabled = true;
+    if (progressBarEl) {
+      progressBarEl.style.width = "0%";
+    }
     return;
   }
 
@@ -157,6 +175,12 @@ function renderRound() {
 
   roundInfoEl.textContent = `第 ${currentRound + 1} / ${total} 题`;
   scoreInfoEl.textContent = `已答对：${correctCount} 题`;
+  
+  // 更新进度条
+  if (progressBarEl && total > 0) {
+    const progress = (currentRound / total) * 100;
+    progressBarEl.style.width = `${progress}%`;
+  }
 
   const blankSentence = makeBlankSentence(sentence);
   sentenceTextEl.innerHTML = renderBlankStyled(blankSentence);
@@ -226,6 +250,86 @@ function handleAnswer(btn) {
   btnNext.disabled = false;
 }
 
+// 鸟动画函数
+function createBird() {
+  const birdContainer = document.createElement('div');
+  birdContainer.className = 'bird-container';
+  document.body.appendChild(birdContainer);
+
+  const bird = document.createElement('div');
+  const birdClass = BIRD_CLASSES[Math.floor(Math.random() * BIRD_CLASSES.length)];
+  bird.className = `bird ${birdClass}`;
+  
+  // 设置随机位置和动画延迟
+  const delay = Math.random() * 10;
+  const startY = Math.random() * 30 + 10; // 10%-40%
+  bird.style.animationDelay = `${delay}s`;
+  bird.style.animationDuration = `${15 + Math.random() * 10}s`;
+  
+  birdContainer.appendChild(bird);
+}
+
+function createFeather() {
+  const feather = document.createElement('div');
+  feather.className = 'feather';
+  
+  // 设置随机位置和动画延迟
+  const delay = Math.random() * 10;
+  const startY = Math.random() * 30 + 10; // 10%-40%
+  feather.style.animationDelay = `${delay}s`;
+  feather.style.animationDuration = `${10 + Math.random() * 10}s`;
+  
+  document.body.appendChild(feather);
+}
+
+function initBirdAnimation() {
+  // 创建飞鸟
+  for (let i = 0; i < MAX_BIRDS; i++) {
+    createBird();
+  }
+  
+  // 创建羽毛
+  for (let i = 0; i < MAX_FEATHERS; i++) {
+    createFeather();
+  }
+}
+
+// 显示游戏总结
+function showGameCompletionSummary() {
+  const totalQuestions = birdPoems.length;
+  const correctAnswers = correctCount;
+  const wrongAnswers = totalQuestions - correctAnswers;
+  const accuracyRate = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  
+  // 更新统计信息
+  totalQuestionsEl.textContent = totalQuestions;
+  correctAnswersEl.textContent = correctAnswers;
+  wrongAnswersEl.textContent = wrongAnswers;
+  accuracyRateEl.textContent = `${accuracyRate}%`;
+  
+  // 显示模态框
+  gameCompletionModalEl.classList.add("active");
+}
+
+// 重新开始游戏
+function restartGame() {
+  // 隐藏模态框
+  gameCompletionModalEl.classList.remove("active");
+  
+  // 重置游戏状态
+  currentRound = 0;
+  correctCount = 0;
+  orderIndices = shuffle(orderIndices);
+  
+  // 重置进度条
+  if (progressBarEl) {
+    progressBarEl.style.width = "0%";
+  }
+  
+  // 重新渲染第一题
+  renderRound();
+}
+
 // ====== 初始化 ======
 function initGame() {
   if (!window.POEMS || !Array.isArray(POEMS.bird)) {
@@ -246,14 +350,38 @@ function initGame() {
   currentRound = 0;
   correctCount = 0;
 
+  // 初始化鸟动画
+  initBirdAnimation();
+  
   renderRound();
+  
+  // 为游戏总结模态框的按钮添加事件监听
+  btnRestartGameEl.addEventListener("click", () => {
+    playClick();
+    restartGame();
+  });
+  
+  btnReturnHomeEl.addEventListener("click", () => {
+    playClick();
+    window.location.href = "../../index.html";
+  });
 }
 
 // 事件绑定
 btnNext.addEventListener("click", () => {
   playClick();
   currentRound++;
-  renderRound();
+  
+  if (currentRound < birdPoems.length) {
+    renderRound();
+  } else {
+    // 完成所有题目
+    if (progressBarEl) {
+      progressBarEl.style.width = "100%";
+    }
+    // 显示游戏总结
+    showGameCompletionSummary();
+  }
 });
 
 btnBack.addEventListener("click", () => {
