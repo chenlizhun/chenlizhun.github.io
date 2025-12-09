@@ -1,225 +1,618 @@
+/* 全局样式 */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #2c3e50;
+    --accent-color: #ff7e5f;
+    --light-bg: rgba(247, 249, 245, 0.9);
+    --dark-bg: #0a1128;
+    --text-color: #333;
+    --border-color: rgba(221, 221, 221, 0.8);
+    --success-color: #27ae60;
+    --error-color: #e74c3c;
+    --neutral-color: #6c757d;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s ease;
+    --mountain-gradient: linear-gradient(to right, #4a90e2, #357abd);
+}
+
 * {
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: linear-gradient(135deg, #fdf6ec, #fefefe);
-  color: #333;
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(to bottom, #0a1128 0%, #1e3a8a 50%, #3b82f6 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
 }
 
+/* 山背景 - 使用贝塞尔曲线绘制 */
+body::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65vh;
+    z-index: -1;
+    
+    /* 远山 */
+    background: 
+        radial-gradient(ellipse at 50% 100%, rgba(0, 0, 0, 0.9) 0%, transparent 70%),
+        radial-gradient(ellipse at 20% 100%, rgba(0, 0, 0, 0.8) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+    
+    /* 近山 */
+    clip-path: polygon(
+        0% 100%,
+        0% 70%,
+        15% 55%,
+        30% 65%,
+        45% 50%,
+        60% 60%,
+        75% 45%,
+        90% 55%,
+        100% 70%,
+        100% 100%
+    );
+    background-color: rgba(0, 0, 0, 0.95);
+}
+
+/* 游戏页面布局 */
 .game-page {
-  min-height: 100vh;
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 10px 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: transparent;
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+    position: relative;
 }
 
-/* 头部 */
+/* 流星容器 */
+.game-page::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
 
+/* 流星 */
+.meteor {
+    position: absolute;
+    width: 2px;
+    height: 100px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+    border-radius: 50%;
+    animation: shootingStar 3s linear infinite;
+    opacity: 0;
+}
+
+.meteor:nth-child(1) {
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.meteor:nth-child(2) {
+    top: 20%;
+    left: -5%;
+    animation-delay: 1.5s;
+}
+
+.meteor:nth-child(3) {
+    top: 30%;
+    left: -8%;
+    animation-delay: 3s;
+}
+
+/* 星星效果 */
+.game-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, white, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 90px 40px, white, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 130px 80px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 30px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 190px 70px, white, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 210px 40px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 240px 80px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 260px 30px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 290px 70px, white, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 310px 40px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 340px 80px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 370px 30px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 400px 70px, white, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 420px 40px, white, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 450px 80px, white, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 500px 500px;
+    opacity: 0.8;
+    z-index: -1;
+    animation: twinkle 5s infinite;
+}
+
+/* 星星闪烁动画 */
+@keyframes twinkle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.3; }
+}
+
+/* 流星动画 */
+@keyframes shootingStar {
+    0% {
+        transform: rotate(45deg) translateX(-100vw) translateY(-100vh);
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(45deg) translateX(100vw) translateY(100vh);
+        opacity: 0;
+    }
+}
+
+/* 游戏头部 */
 .game-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+    background-color: rgba(10, 14, 39, 0.8);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(5px);
+    height: auto;
 }
 
 .back-btn {
-  border: none;
-  outline: none;
-  border-radius: 999px;
-  padding: 6px 12px;
-  cursor: pointer;
-  background: #ffe0c2;
-  color: #333;
-  font-size: 13px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  -webkit-tap-highlight-color: transparent;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
 }
 
-.back-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+.back-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(-5px);
 }
 
 .game-title {
-  font-size: 18px;
-  font-weight: 600;
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* 主体 */
-
+/* 游戏主内容 */
 .game-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    flex: 1;
+    padding: 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-y: auto;
 }
 
+/* 信息栏 */
 .info-bar {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #555;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    backdrop-filter: blur(5px);
 }
 
 .info-item {
-  white-space: nowrap;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--primary-color);
 }
 
-/* 题干卡片 */
+/* 进度部分 */
+.progress-section {
+    margin-bottom: 1rem;
+    text-align: center;
+}
 
+.progress-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.progress-container {
+    width: 100%;
+    height: 12px;
+    background-color: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--mountain-gradient);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progress-count {
+    font-size: 0.9rem;
+    color: var(--neutral-color);
+}
+
+/* 问题卡片 */
 .question-card {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 14px 14px 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.04);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--primary-color);
+    backdrop-filter: blur(5px);
 }
 
 .question-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 6px;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
 }
 
 .question-meta {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 4px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+    text-align: center;
+    padding: 0.75rem;
+    background-color: rgba(74, 144, 226, 0.1);
+    border-radius: 8px;
 }
 
 .question-hint {
-  font-size: 13px;
-  color: #999;
+    font-size: 0.9rem;
+    color: var(--neutral-color);
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-color);
 }
 
 .feedback {
-  margin-top: 8px;
-  font-size: 14px;
-  text-align: center;
-  min-height: 22px;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+}
+
+.feedback.correct {
+    background-color: rgba(39, 174, 96, 0.3);
+    color: var(--success-color);
+    display: block;
+}
+
+.feedback.incorrect {
+    background-color: rgba(231, 76, 60, 0.3);
+    color: var(--error-color);
+    display: block;
 }
 
 /* 选项区域 */
-
 .options-area {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .option-btn {
-  border: none;
-  outline: none;
-  border-radius: 16px;
-  padding: 10px 12px;
-  font-size: 18px;
-  cursor: pointer;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  text-align: left;
-  line-height: 1.6;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 60px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid var(--border-color);
+    padding: 1.25rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-color);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(5px);
 }
 
-.option-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+.option-btn:hover {
+    border-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
-.option-btn.disabled {
-  opacity: 0.6;
-  cursor: default;
+.option-btn.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(74, 144, 226, 0.7);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+    color: white;
 }
 
 .option-btn.correct {
-  background: #55efc4;
-  box-shadow: 0 0 0 2px #00b894 inset;
-  color: #064b37;
+    border-color: var(--success-color);
+    background-color: rgba(39, 174, 96, 0.7);
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.3);
+    color: white;
 }
 
-.option-btn.wrong {
-  background: #fab1a0;
-  box-shadow: 0 0 0 2px #d63031 inset;
-  color: #b33939;
+.option-btn.incorrect {
+    border-color: var(--error-color);
+    background-color: rgba(231, 76, 60, 0.7);
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+    color: white;
 }
 
-/* 控制按钮 */
-
+/* 控制栏 */
 .control-bar {
-  display: flex;
-  justify-content: center;
-  margin-top: 4px;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 .control-btn {
-  border: none;
-  outline: none;
-  border-radius: 999px;
-  padding: 7px 18px;
-  font-size: 13px;
-  cursor: pointer;
-  background: #74b9ff;
-  color: #fff;
-  -webkit-tap-highlight-color: transparent;
+    background: linear-gradient(135deg, #4a90e2 0%, #2c3e50 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+}
+
+.control-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .control-btn:disabled {
-  background: #ddd;
-  color: #999;
-  cursor: default;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-/* 底部说明 */
-
+/* 游戏底部 */
 .game-footer {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #777;
-  background: rgba(255,255,255,0.8);
-  border-radius: 12px;
-  padding: 8px 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    color: var(--neutral-color);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border-color);
+    backdrop-filter: blur(5px);
+    display: none; /* 暂时隐藏页脚以节省空间 */
 }
 
 .tag {
-  padding: 2px 6px;
-  border-radius: 999px;
-  font-size: 11px;
-  color: #fff;
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin: 0 0.2rem;
 }
 
 .tag-green {
-  background: #27ae60;
+    background-color: rgba(44, 95, 45, 0.2);
+    color: var(--success-color);
 }
 
 .tag-pink {
-  background: #e84393;
+    background-color: rgba(255, 107, 107, 0.2);
+    color: var(--accent-color);
 }
 
 .tag-purple {
-  background: #8e44ad;
+    background-color: rgba(128, 0, 128, 0.2);
+    color: purple;
 }
 
-/* 自适应 */
+/* 模态框 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
 
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    border-top: 4px solid var(--primary-color);
+    backdrop-filter: blur(5px);
+}
+
+.modal-header h2 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.modal-header p {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value.stat-correct {
+    color: var(--success-color);
+}
+
+.stat-value.stat-accuracy {
+    color: var(--accent-color);
+}
+
+.stat-value.stat-height {
+    color: var(--secondary-color);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--neutral-color);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.control-btn.primary {
+    background: linear-gradient(135deg, #2c3e50 0%, #4a90e2 100%);
+    font-size: 1.1rem;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .game-page {
-    padding: 10px 8px 16px;
-  }
+    .game-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
 
-  .option-btn {
-    font-size: 16px;
-    min-height: 56px;
-  }
+    .game-main {
+        padding: 1rem;
+    }
+
+    .info-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .question-card {
+        padding: 1.5rem;
+    }
+
+    .options-area {
+        grid-template-columns: 1fr;
+    }
+
+    .option-btn {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 769px) {
+    .options-area {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 特效 */
+.option-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: rgba(74, 144, 226, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.option-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.option-btn span {
+    position: relative;
+    z-index: 1;
 }

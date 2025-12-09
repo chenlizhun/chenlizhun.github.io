@@ -6,12 +6,25 @@ const STORAGE_KEY = "poemMemoryStatus_v1";
 // DOM 引用
 const roundInfoEl = document.getElementById("roundInfo");
 const scoreInfoEl = document.getElementById("scoreInfo");
+const dropCountEl = document.getElementById("dropCount");
+const dropInfoEl = document.querySelector(".water-drop");
 const headLineEl = document.getElementById("headLine");
 const poemMetaEl = document.getElementById("poemMeta");
 const feedbackEl = document.getElementById("feedback");
 const optionButtons = document.querySelectorAll(".option-btn");
 const btnNext = document.getElementById("btnNext");
 const btnBack = document.getElementById("btnBack");
+const progressFillEl = document.getElementById("progressFill");
+const progressCountEl = document.getElementById("progressCount");
+
+// 游戏完成模态框元素
+const gameCompletionModal = document.getElementById("gameCompletionModal");
+const totalQuestionsEl = document.getElementById("totalQuestions");
+const correctQuestionsEl = document.getElementById("correctQuestions");
+const accuracyEl = document.getElementById("accuracy");
+const modalDropCountEl = document.getElementById("modalDropCount");
+const restartGameBtn = document.getElementById("restartGame");
+const returnHomeBtn = document.getElementById("returnHome");
 
 let audioCtx = null;
 function playClick() {
@@ -45,6 +58,7 @@ let waterPoems = [];
 let orderIndices = [];
 let currentRound = 0;
 let correctCount = 0;
+let dropCount = 0;
 
 let currentPoemIndex = -1;
 let currentHead = "";
@@ -61,14 +75,20 @@ function loadStatus() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     statusMap = raw ? JSON.parse(raw) || {} : {};
+    
+    // 加载水滴数量
+    dropCount = parseInt(localStorage.getItem('water_drop_count')) || 0;
+    dropCountEl.textContent = dropCount;
   } catch (_) {
     statusMap = {};
+    dropCount = 0;
   }
 }
 
 function saveStatus() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
+    localStorage.setItem('water_drop_count', dropCount.toString());
   } catch (_) {}
 }
 
@@ -172,24 +192,57 @@ function renderRound() {
 
   roundInfoEl.textContent = `第 ${currentRound + 1} / ${total} 题`;
   scoreInfoEl.textContent = `已答对：${correctCount} 题`;
-  headLineEl.textContent = head;
-  poemMetaEl.textContent = `${poem.dynasty || ""}·${poem.author || ""}《${poem.title || ""}》`;
-  feedbackEl.textContent = "";
-
-  const [d1, d2] = pickTwoDistractors(currentTail);
-  const options = shuffle([
-    { text: currentTail, isCorrect: true },
-    { text: d1, isCorrect: false },
-    { text: d2, isCorrect: false }
-  ]);
-
-  optionButtons.forEach((btn, idx) => {
-    const opt = options[idx];
-    btn.textContent = opt.text || "——";
-    btn.dataset.correct = opt.isCorrect ? "1" : "0";
-    btn.disabled = false;
-    btn.classList.remove("disabled", "correct", "wrong");
-  });
+  
+  // 更新进度条
+  updateProgress();
+  
+  // 添加进度变化动画
+  roundInfoEl.style.transform = 'scale(1.1)';
+  roundInfoEl.style.transition = 'transform 0.3s ease';
+  setTimeout(() => {
+    roundInfoEl.style.transform = 'scale(1)';
+  }, 300);
+  
+  // 添加题目切换过渡效果
+  const questionCard = document.querySelector('.question-card');
+  questionCard.style.opacity = '0';
+  questionCard.style.transform = 'translateY(10px)';
+  questionCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  
+  setTimeout(() => {
+    headLineEl.textContent = head;
+    poemMetaEl.textContent = `${poem.dynasty || ""}·${poem.author || ""}《${poem.title || ""}》`;
+    feedbackEl.textContent = "";
+    
+    const [d1, d2] = pickTwoDistractors(currentTail);
+    const options = shuffle([
+      { text: currentTail, isCorrect: true },
+      { text: d1, isCorrect: false },
+      { text: d2, isCorrect: false }
+    ]);
+    
+    // 显示题目卡片
+    questionCard.style.opacity = '1';
+    questionCard.style.transform = 'translateY(0)';
+    
+    // 顺序显示选项
+    optionButtons.forEach((btn, idx) => {
+      const opt = options[idx];
+      setTimeout(() => {
+        btn.textContent = opt.text || "——";
+        btn.dataset.correct = opt.isCorrect ? "1" : "0";
+        btn.disabled = false;
+        btn.classList.remove("disabled", "correct", "wrong");
+        btn.style.opacity = '0';
+        btn.style.transform = 'translateY(10px)';
+        btn.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        setTimeout(() => {
+          btn.style.opacity = '1';
+          btn.style.transform = 'translateY(0)';
+        }, 50);
+      }, idx * 100);
+    });
+  }, 300);
 
   btnNext.disabled = true;
 }
@@ -212,6 +265,23 @@ function handleAnswer(btn) {
   if (isCorrect) {
     feedbackEl.textContent = "✅ 回答正确！完整句子你已经记住啦～";
     correctCount++;
+    
+    // 增加水滴收集
+    dropCount++;
+    dropCountEl.textContent = dropCount;
+    
+    // 添加水滴收集动画
+    dropInfoEl.classList.add('animate');
+    setTimeout(() => {
+      dropInfoEl.classList.remove('animate');
+    }, 500);
+
+    // 添加分数变化动画
+    scoreInfoEl.style.transform = 'scale(1.2)';
+    scoreInfoEl.style.transition = 'transform 0.3s ease';
+    setTimeout(() => {
+      scoreInfoEl.style.transform = 'scale(1)';
+    }, 300);
 
     const old = getStatus(THEME_ID, poemIndex);
     let next = old;
@@ -233,6 +303,7 @@ function handleAnswer(btn) {
   scoreInfoEl.textContent = `已答对：${correctCount} 题`;
   btnNext.disabled = false;
 }
+
 
 // ====== 初始化 ======
 function initGame() {
@@ -272,27 +343,133 @@ function initGame() {
   currentRound = 0;
   correctCount = 0;
 
-  renderRound();
+  // 页面加载动画
+  const gamePage = document.querySelector('.game-page');
+  gamePage.style.opacity = '0';
+  gamePage.style.transform = 'translateY(20px)';
+  gamePage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  
+  setTimeout(() => {
+    gamePage.style.opacity = '1';
+    gamePage.style.transform = 'translateY(0)';
+    // 初始化进度条
+    updateProgress();
+    // 渲染第一回合
+    renderRound();
+  }, 100);
+}
+
+// 创建水波扩散效果
+function createWaterWave(x, y) {
+  const wave = document.createElement('div');
+  wave.style.position = 'absolute';
+  wave.style.left = `${x}px`;
+  wave.style.top = `${y}px`;
+  wave.style.width = '10px';
+  wave.style.height = '10px';
+  wave.style.borderRadius = '50%';
+  wave.style.backgroundColor = 'rgba(116, 185, 255, 0.3)';
+  wave.style.transform = 'translate(-50%, -50%) scale(0)';
+  wave.style.pointerEvents = 'none';
+  wave.style.zIndex = '9999';
+  wave.style.boxShadow = '0 0 20px rgba(116, 185, 255, 0.6)';
+  document.body.appendChild(wave);
+  
+  // 应用动画
+  wave.style.animation = 'waterWaveExpand 0.6s ease-out forwards';
+  
+  // 动画结束后移除
+  setTimeout(() => {
+    if (wave.parentNode) {
+      wave.parentNode.removeChild(wave);
+    }
+  }, 600);
+}
+
+// 更新进度条
+function updateProgress() {
+  const totalRounds = orderIndices.length;
+  const currentProgress = currentRound + 1;
+  const progressPercentage = Math.round((currentProgress / totalRounds) * 100);
+  
+  progressFillEl.style.width = `${progressPercentage}%`;
+  progressCountEl.textContent = `${progressPercentage}% 完成`;
+  
+  // 检查游戏是否完成
+  checkGameCompletion();
+}
+
+// ====== 检查游戏是否完成 ======
+function checkGameCompletion() {
+  const totalRounds = orderIndices.length;
+  if (totalRounds === 0) return;
+  
+  const progressPercentage = Math.round(((currentRound + 1) / totalRounds) * 100);
+  if (progressPercentage >= 100) {
+    setTimeout(() => {
+      showGameCompletionSummary();
+    }, 1000);
+  }
+}
+
+// ====== 显示游戏完成总结 ======
+function showGameCompletionSummary() {
+  const total = orderIndices.length;
+  const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  
+  // 更新模态框内容
+  totalQuestionsEl.textContent = total;
+  correctQuestionsEl.textContent = correctCount;
+  accuracyEl.textContent = `${accuracy}%`;
+  modalDropCountEl.textContent = dropCount;
+  
+  // 显示模态框
+  gameCompletionModal.classList.add("show");
+}
+
+// ====== 隐藏游戏完成总结 ======
+function hideGameCompletionSummary() {
+  gameCompletionModal.classList.remove("show");
 }
 
 // 事件绑定
 optionButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
     if (btn.disabled) return;
     playClick();
+    
+    // 获取点击位置并创建水波效果
+    const x = e.clientX;
+    const y = e.clientY;
+    createWaterWave(x, y);
+    
     handleAnswer(btn);
   });
 });
 
-btnNext.addEventListener("click", () => {
+btnNext.addEventListener("click", (e) => {
   playClick();
+  
+  // 获取点击位置并创建水波效果
+  const rect = btnNext.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  createWaterWave(x, y);
+  
   currentRound++;
   renderRound();
 });
 
 // 返回主页面
-btnBack.addEventListener("click", () => {
+btnBack.addEventListener("click", (e) => {
   playClick();
+  
+  // 获取点击位置并创建水波效果
+  const rect = btnBack.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  createWaterWave(x, y);
+  
   try {
     if (window.history.length > 1) {
       window.history.back();
@@ -302,6 +479,20 @@ btnBack.addEventListener("click", () => {
   } catch (_) {
     window.location.href = "../../index.html";
   }
+});
+
+// 游戏完成模态框事件监听器
+restartGameBtn.addEventListener("click", () => {
+  playClick();
+  hideGameCompletionSummary();
+  // 重新开始游戏
+  initGame();
+});
+
+returnHomeBtn.addEventListener("click", () => {
+  playClick();
+  // 回到诗词库
+  window.location.href = "../../index.html";
 });
 
 document.addEventListener("DOMContentLoaded", initGame);

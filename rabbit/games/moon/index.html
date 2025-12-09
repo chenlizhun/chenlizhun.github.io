@@ -19,6 +19,16 @@
             <div class="info-item" id="scoreInfo">已答对：0 题</div>
         </section>
 
+        <section class="progress-section">
+            <div class="progress-title">游戏进度</div>
+            <div class="progress-container">
+                <div class="progress-count">0/<span id="totalProgress">0</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </section>
+
         <section class="sentence-card">
             <div class="sentence-label">
                 请在下面的诗句中，点出所有的「月」字：
@@ -48,6 +58,43 @@
         <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
     </footer>
 </div>
+
+    <!-- 游戏结束汇总模态框 -->
+    <div id="gameCompletionModal" class="game-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 游戏完成！</h2>
+            </div>
+            <div class="modal-body">
+                <div class="completion-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">总共学习诗句：</span>
+                        <span class="summary-value" id="summaryTotal">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">完全记住（炸弹）：</span>
+                        <span class="summary-value summary-pink" id="summaryPink">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">差不多记住（子弹）：</span>
+                        <span class="summary-value summary-green" id="summaryGreen">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">非常不熟悉（紫色）：</span>
+                        <span class="summary-value summary-purple" id="summaryPurple">0</span>
+                    </div>
+                    <div class="summary-message">
+                        <p>太棒了！你已经完成了所有"月"主题诗句的记忆练习。</p>
+                        <p>记得定期复习，巩固记忆效果哦！</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnReturnHome">返回诗词库</button>
+                <button class="btn btn-secondary" id="btnRestartGame">重新开始</button>
+            </div>
+        </div>
+    </div>
 
 <script src="../../data.js"></script>
 <script src="moon.js"></script>

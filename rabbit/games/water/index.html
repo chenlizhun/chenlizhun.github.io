@@ -17,6 +17,17 @@
         <section class="info-bar">
             <div class="info-item" id="roundInfo">第 0 / 0 题</div>
             <div class="info-item" id="scoreInfo">已答对：0 题</div>
+            <div class="info-item water-drop">
+                <span id="dropCount">0</span> 💧
+            </div>
+        </section>
+
+        <section class="progress-section">
+            <div class="progress-title">答题进度</div>
+            <div class="progress-container">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-count" id="progressCount">0% 完成</div>
         </section>
 
         <section class="question-card">
@@ -40,13 +51,52 @@
     </main>
 
     <footer class="game-footer">
-        提示：题目来自主题“水”的诗词。<br />
-        <span class="tag tag-green">答对</span>：会让这句诗在主诗词库中至少变成
-        <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
-        <span class="tag tag-pink">炸弹（粉色）</span>；<br />
-        <span class="tag tag-purple">答错</span>：会把这句诗标记为
-        <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
+        <div class="drop-stats">
+            <strong>水滴收集</strong>：每答对1题可收集1颗水滴，积累水滴解锁特殊效果
+        </div>
+        <div class="game-tips">
+            提示：题目来自主题“水”的诗词。<br />
+            <span class="tag tag-green">答对</span>：会让这句诗在主诗词库中至少变成
+            <span class="tag tag-green">子弹（绿色）</span>，多次答对有机会升级为
+            <span class="tag tag-pink">炸弹（粉色）</span>；<br />
+            <span class="tag tag-purple">答错</span>：会把这句诗标记为
+            <span class="tag tag-purple">非常不熟悉（紫色）</span>，方便之后重点练习。
+        </div>
     </footer>
+
+    <!-- 游戏完成模态框 -->
+    <div id="gameCompletionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💧 挑战完成！</h2>
+                <p>恭喜您完成了所有与水相关的诗词题目！</p>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value stat-total" id="totalQuestions">0</div>
+                        <div class="stat-label">总题数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value stat-correct" id="correctQuestions">0</div>
+                        <div class="stat-label">答对题数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value stat-accuracy" id="accuracy">0%</div>
+                        <div class="stat-label">正确率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value stat-drops" id="modalDropCount">0</div>
+                        <div class="stat-label">水滴数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="control-btn" id="restartGame">重新开始</button>
+                <button class="control-btn primary" id="returnHome">返回首页</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="../../data.js"></script>
