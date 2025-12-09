@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Tab Functionality</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js"></script>
+    <style>
+        .tab-button {
+            cursor: pointer;
+            padding: 10px;
+            background: #f3f4f6;
+            border: 1px solid #ddd;
+            margin: 5px;
+        }
+        .tab-button.active {
+            background: #3b82f6;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .mermaid {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Tab Functionality</h1>
+    
+    <!-- Test tabs for problem 0 -->
+    <div id="problem-0-tabs" class="tabs">
+        <button class="tab-button active" data-tab="description" data-problem="0">问题描述</button>
+        <button class="tab-button" data-tab="flowchart" data-problem="0">流程图</button>
+        <button class="tab-button" data-tab="code" data-problem="0">代码实现</button>
+        <button class="tab-button" data-tab="steps" data-problem="0">步骤说明</button>
+    </div>
+    
+    <!-- Tab contents -->
+    <div id="description-0" class="tab-content active">
+        <h2>问题描述测试</h2>
+        <p>这是问题描述的测试内容。</p>
+    </div>
+    
+    <div id="flowchart-0" class="tab-content">
+        <h2>流程图测试</h2>
+        <div class="mermaid">
+            graph TD
+            A[开始] --> B[初始化哈希表]
+            B --> C[遍历数组]
+            C --> D{找到补数?}
+            D -->|是| E[返回结果]
+            D -->|否| C
+            E --> F[结束]
+        </div>
+    </div>
+    
+    <div id="code-0" class="tab-content">
+        <h2>代码实现测试</h2>
+        <pre><code>function twoSum(nums, target) {
+    const map = {};
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        if (complement in map) {
+            return [map[complement], i];
+        }
+        map[nums[i]] = i;
+    }
+    return [];
+}</code></pre>
+    </div>
+    
+    <div id="steps-0" class="tab-content">
+        <h2>步骤说明测试</h2>
+        <ol>
+            <li>初始化哈希表</li>
+            <li>遍历数组元素</li>
+            <li>计算补数并检查哈希表</li>
+            <li>返回结果或继续遍历</li>
+        </ol>
+    </div>
+    
+    <!-- Copy of the initializeProblemTabs function from main.js -->
+    <script>
+        // Initialize mermaid only once
+        function initializeMermaid() {
+            // Check if mermaid is already initialized
+            if (!window.mermaidInitialized) {
+                // Initialize mermaid for flowcharts with proper configuration
+                mermaid.initialize({
+                    startOnLoad: false, // Disable auto-loading, we'll run it manually
+                    theme: 'default',
+                    securityLevel: 'loose', // Allow more complex diagrams
+                    logLevel: 1 // Only show errors
+                });
+                window.mermaidInitialized = true;
+                console.log('Mermaid initialized');
+            } else {
+                console.log('Mermaid already initialized, skipping');
+            }
+        }
+        
+        // Initialize tab functionality
+        function initializeProblemTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.getAttribute('data-tab');
+                    const problemIndex = button.getAttribute('data-problem');
+                    
+                    // Remove active class from all buttons in the same problem
+                    const problemButtons = button.parentElement.querySelectorAll('.tab-button');
+                    problemButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Hide all tab contents for this problem
+                    const allProblemContents = document.querySelectorAll(`[id$="-${problemIndex}"]`);
+                    allProblemContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show selected tab content
+                    const selectedContent = document.getElementById(`${tab}-${problemIndex}`);
+                    if (selectedContent) {
+                        selectedContent.classList.add('active');
+                        
+                        // If it's a flowchart, run mermaid
+                        if (tab === 'flowchart') {
+                            // Make sure mermaid is initialized
+                            initializeMermaid();
+                            
+                            // Clean the mermaid content first
+                            const mermaidElements = document.querySelectorAll(`#flowchart-${problemIndex} .mermaid`);
+                            console.log('Found', mermaidElements.length, 'mermaid elements in flowchart tab');
+                            
+                            mermaidElements.forEach((elem, index) => {
+                                // Clean the content - remove any HTML tags and ensure proper newlines
+                                const cleanContent = elem.textContent.replace(/<br>/g, '\n').trim();
+                                elem.textContent = cleanContent;
+                                console.log(`Mermaid element ${index} cleaned content after tab change:`, cleanContent);
+                            });
+                            
+                            // Run mermaid with error handling
+                            try {
+                                mermaid.run().then(() => {
+                                    console.log('Mermaid diagrams rendered successfully on tab switch');
+                                }).catch(error => {
+                                    console.error('Error rendering mermaid diagrams on tab switch:', error);
+                                });
+                            } catch (error) {
+                                console.error('Exception in mermaid.run() on tab switch:', error);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Initialize tabs when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeProblemTabs();
+        });
+    </script>
+</body>
+</html>

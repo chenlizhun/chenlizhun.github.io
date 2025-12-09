@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试第2课流程图修复</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .mermaid {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>测试第2课流程图修复</h1>
+    
+    <h2>第2课 - 删除有序数组中的重复项</h2>
+    <div class="mermaid">
+        graph TD
+        A[开始]
+        B[初始化慢指针slow=0]
+        C[遍历数组, 快指针fast从1开始]
+        D{fast < 数组长度?}
+        E{数组[fast] !== 数组[slow]?}
+        F[slow = slow + 1]
+        G[数组[slow] = 数组[fast]]
+        H[fast = fast + 1]
+        I[返回slow + 1]
+        
+        A --> B
+        B --> C
+        C --> D
+        D -- 是 --> E
+        D -- 否 --> I
+        E -- 是 --> F
+        E -- 否 --> H
+        F --> G
+        G --> H
+        H --> D
+    </div>
+    
+    <h2>第2课 - 移除元素</h2>
+    <div class="mermaid">
+        graph TD
+        A[开始]
+        B[初始化慢指针slow=0]
+        C[遍历数组, 快指针fast从0开始]
+        D{fast < 数组长度?}
+        E{数组[fast] !== val?}
+        F[数组[slow] = 数组[fast]]
+        G[slow = slow + 1]
+        H[fast = fast + 1]
+        I[返回slow]
+        
+        A --> B
+        B --> C
+        C --> D
+        D -- 是 --> E
+        D -- 否 --> I
+        E -- 是 --> F
+        E -- 否 --> H
+        F --> G
+        G --> H
+        H --> D
+    </div>
+
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            logLevel: 1 // 0: debug, 1: info, 2: warn, 3: error
+        });
+        
+        // 页面加载完成后渲染所有Mermaid图表
+        window.addEventListener('load', function() {
+            console.log('页面加载完成，开始渲染Mermaid图表');
+            
+            // 获取所有Mermaid元素
+            const mermaidElements = document.querySelectorAll('.mermaid');
+            
+            // 逐个渲染图表
+            mermaidElements.forEach((element, index) => {
+                try {
+                    console.log(`开始渲染图表 ${index}:`);
+                    console.log(element.textContent);
+                    
+                    // 使用Mermaid API渲染图表
+                    mermaid.render(`mermaid-${index}`, element.textContent, (svgCode, bindFunctions) => {
+                        console.log(`图表 ${index} 渲染成功`);
+                        // 将SVG代码插入到DOM中
+                        element.innerHTML = svgCode;
+                        if (bindFunctions) {
+                            bindFunctions(element);
+                        }
+                    });
+                } catch (error) {
+                    console.error(`渲染图表 ${index} 失败:`, error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

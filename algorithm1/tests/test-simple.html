@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>简单测试页面</h1>
+    
+    <!-- 测试Mermaid渲染 -->
+    <h2>测试流程图渲染</h2>
+    <div class="mermaid">
+        graph TD
+        A[开始] --> B{数组为空}
+        B -->|是| C[返回0]
+        B -->|否| D[初始化慢指针slow=1]
+        D --> E[初始化快指针fast=1]
+        E --> F{fast < 数组长度}
+        F -->|否| G[返回slow]
+        F -->|是| H{nums[fast] != nums[slow-1]}
+        H -->|是| I[nums[slow] = nums[fast]]
+        I --> J[slow++]
+        J --> K[fast++]
+        H -->|否| K
+        K --> F
+        C --> L[结束]
+        G --> L
+    </div>
+    
+    <!-- 测试JavaScript加载 -->
+    <h2>测试JavaScript加载</h2>
+    <div id="js-test"></div>
+    
+    <script>
+        // 测试JavaScript是否正常工作
+        document.getElementById('js-test').innerHTML = '<p>JavaScript加载正常！</p>';
+        
+        // 测试algorithms数据是否能加载
+        fetch('src/data/algorithms.js')
+            .then(response => response.text())
+            .then(text => {
+                console.log('algorithms.js文件加载成功');
+            })
+            .catch(error => {
+                console.error('algorithms.js文件加载失败:', error);
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Debug Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .mermaid { background: #f9fafb; padding: 20px; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        pre { background: #f3f4f6; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Debug Test</h1>
+    
+    <div class="test-container">
+        <h2>Test 1: Basic Flowchart</h2>
+        <div class="mermaid" id="test1">
+            graph TD
+            A[开始] --> B[初始化哈希表]
+            B --> C[遍历数组]
+            C --> D{找到补数?}
+            D -->|是| E[返回结果]
+            D -->|否| C
+            E --> F[结束]
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test 2: From algorithms.js (Problem 1)</h2>
+        <div class="mermaid" id="test2">
+            graph TD
+            A[开始] --> B[初始化哈希表]
+            B --> C[遍历数组]
+            C --> D{找到补数?}
+            D -->|是| E[返回结果]
+            D -->|否| C
+            E --> F[结束]
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Debug Output</h2>
+        <div id="debug-output"></div>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('debug-output');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+        
+        function debugMermaid() {
+            log('<h3>Mermaid Debug Information</h3>');
+            
+            // Check if mermaid is loaded
+            if (typeof mermaid === 'undefined') {
+                log('❌ Mermaid is NOT loaded', 'error');
+                return;
+            }
+            
+            log('✅ Mermaid is loaded', 'success');
+            log(`Mermaid version: ${mermaid.version}`);
+            
+            // Check configuration
+            try {
+                const config = mermaid.mermaidAPI.getConfig();
+                log('Mermaid config:', 'success');
+                log(`<pre>${JSON.stringify(config, null, 2)}</pre>`);
+            } catch (error) {
+                log(`Error getting config: ${error}`, 'error');
+            }
+            
+            // Test direct rendering
+            log('<h3>Direct Render Test</h3>');
+            const testContent = `graph TD
+A[开始] --> B[初始化哈希表]
+B --> C[遍历数组]
+C --> D{找到补数?}
+D -->|是| E[返回结果]
+D -->|否| C
+E --> F[结束]`;
+            
+            try {
+                mermaid.render('test-diagram', testContent).then(result => {
+                    log('✅ Direct rendering successful', 'success');
+                    log('Rendered SVG:', 'success');
+                    log(`<pre>${result.svg.substring(0, 200)}...</pre>`);
+                }).catch(error => {
+                    log(`❌ Direct rendering failed: ${error}`, 'error');
+                });
+            } catch (error) {
+                log(`❌ Exception during direct rendering: ${error}`, 'error');
+            }
+            
+            // Test all mermaid elements
+            log('<h3>DOM Elements Test</h3>');
+            const mermaidElements = document.querySelectorAll('.mermaid');
+            log(`Found ${mermaidElements.length} mermaid elements`);
+            
+            mermaidElements.forEach((elem, index) => {
+                log(`<h4>Element ${index} (${elem.id})</h4>`);
+                log(`Content: <pre>${elem.textContent}</pre>`);
+                log(`Display: ${window.getComputedStyle(elem).display}`);
+                log(`Offset height: ${elem.offsetHeight}`);
+                
+                // Try to render each element
+                const content = elem.textContent.trim();
+                try {
+                    mermaid.render(`test-${index}`, content).then(result => {
+                        log(`✅ Element ${index} rendered successfully`, 'success');
+                        // Replace the element with the rendered SVG
+                        const svgContainer = document.createElement('div');
+                        svgContainer.innerHTML = result.svg;
+                        svgContainer.className = 'mermaid-svg';
+                        elem.parentNode.replaceChild(svgContainer, elem);
+                    }).catch(error => {
+                        log(`❌ Element ${index} rendering failed: ${error}`, 'error');
+                    });
+                } catch (error) {
+                    log(`❌ Exception rendering element ${index}: ${error}`, 'error');
+                }
+            });
+        }
+        
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+        
+        // Run debug when page loads
+        window.addEventListener('load', debugMermaid);
+    </script>
+</body>
+</html>

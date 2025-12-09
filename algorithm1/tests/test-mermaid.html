@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js"></script>
+    <style>
+        .mermaid {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>测试Mermaid流程图</h1>
+    <div class="mermaid">
+        graph TD
+        A[开始] --> B[初始化哈希表]
+        B --> C[遍历数组]
+        C --> D{找到补数?}
+        D -->|是| E[返回结果]
+        D -->|否| C
+        E --> F[结束]
+    </div>
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            logLevel: 1,
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'monotoneX'
+            },
+            fontFamily: '"trebuchet ms", verdana, arial, sans-serif',
+            fontSize: 16
+        });
+        
+        // 直接运行Mermaid
+        mermaid.run().then(() => {
+            console.log('Mermaid diagram rendered successfully');
+        }).catch(error => {
+            console.error('Error rendering Mermaid diagram:', error);
+        });
+    </script>
+</body>
+</html>

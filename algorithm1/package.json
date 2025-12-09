@@ -1,0 +1,22 @@
+{
+  "name": "algorithm1-course-examples",
+  "version": "1.0.0",
+  "description": "《算法1》课程案例大全 - 交互式算法学习平台",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "algorithm",
+    "visualization",
+    "education",
+    "algorithm1",
+    "course"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

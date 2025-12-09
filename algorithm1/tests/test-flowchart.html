@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Flowchart Test</title>
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <h1>第2课算法流程图测试</h1>
+    
+    <h2>1. 删除有序数组中的重复项</h2>
+    <div class="mermaid">
+        graph TD
+        A[开始] --> B{数组为空}
+B -->|是| C[返回0]
+B -->|否| D[初始化慢指针slow=1]
+D --> E[初始化快指针fast=1]
+E --> F{fast < 数组长度}
+F -->|否| G[返回slow]
+F -->|是| H{nums[fast] != nums[slow-1]}
+H -->|是| I[nums[slow] = nums[fast]]
+I --> J[slow++]
+H -->|否| K[fast++]
+J --> K
+K --> F
+C --> L[结束]
+G --> L
+    </div>
+    
+    <h2>2. 移除元素</h2>
+    <div class="mermaid">
+        graph TD
+        A[开始] --> B{数组为空}
+B -->|是| C[返回0]
+B -->|否| D[初始化慢指针slow=0]
+D --> E[初始化快指针fast=0]
+E --> F{fast < 数组长度}
+F -->|否| G[返回slow]
+F -->|是| H{nums[fast] != val}
+H -->|是| I[nums[slow] = nums[fast]]
+I --> J[slow++]
+H -->|否| K[fast++]
+J --> K
+K --> F
+C --> L[结束]
+G --> L
+    </div>
+    
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'monotoneX'
+            }
+        });
+    </script>
+</body>
+</html>
