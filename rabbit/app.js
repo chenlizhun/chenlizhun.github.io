@@ -50,6 +50,11 @@ const modalTitleEl = document.getElementById("modalTitle");
 const modalSentenceEl = document.getElementById("modalSentence");
 const modalMetaEl = document.getElementById("modalMeta");
 const modalCloseBtn = document.getElementById("modalCloseBtn");
+const modalSoundBtn = document.getElementById("modalSoundBtn");
+
+// 存储当前显示的诗词内容
+let currentModalPoem = null;
+let currentModalSentence = null;
 
 // 萝卜收集系统DOM
 const carrotCountEl = document.getElementById("carrotCount");
@@ -510,10 +515,73 @@ function openModal(poem, sentence) {
   modalSentenceEl.innerHTML = highlightSentence(sentence || "");
   modalMetaEl.textContent = theme ? `主题：${theme}` : "";
   modalOverlay.classList.add("active");
+  
+  // 添加诗人头像
+  addPoetAvatar(author);
+  
+  // 掉落更多萝卜
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      showCarrotAnimation();
+    }, i * 100);
+  }
+  
+  // 存储当前显示的诗词内容
+  currentModalPoem = poem;
+  currentModalSentence = sentence;
+}
+
+// 为模态窗口添加诗人头像
+function addPoetAvatar(author) {
+  // 这里可以根据诗人名字添加不同的头像
+  // 暂时使用默认头像，后续可以扩展为根据诗人名字加载不同头像
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(author)}&background=random&color=fff&size=128`;
+  
+  // 检查是否已有头像，如果有则更新，没有则添加
+  let avatarEl = modalDialog.querySelector('.modal-avatar');
+  if (!avatarEl) {
+    avatarEl = document.createElement('div');
+    avatarEl.className = 'modal-avatar';
+    avatarEl.style.position = 'relative';
+    avatarEl.style.margin = '0 auto 20px';
+    avatarEl.style.width = '80px';
+    avatarEl.style.height = '80px';
+    avatarEl.style.borderRadius = '50%';
+    avatarEl.style.border = '3px solid white';
+    avatarEl.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+    avatarEl.style.zIndex = '1001';
+    
+    // 将头像插入到模态框内容的最前面
+    modalDialog.insertBefore(avatarEl, modalTitleEl);
+  }
+  
+  avatarEl.innerHTML = `<img src="${avatarUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+}
+
+// 朗读诗词函数
+function readPoem() {
+  if (!currentModalPoem) return;
+  
+  // 检查浏览器是否支持语音合成
+  if ('speechSynthesis' in window) {
+    // 先停止当前可能正在进行的朗读
+    speechSynthesis.cancel();
+    
+    // 创建语音合成对象
+    const utterance = new SpeechSynthesisUtterance(currentModalPoem.sentence);
+    utterance.lang = 'zh-CN'; // 设置为中文
+    utterance.rate = 0.9; // 设置语速
+    
+    // 开始朗读
+    speechSynthesis.speak(utterance);
+  }
 }
 
 function closeModal() {
   modalOverlay.classList.remove("active");
+  // 清空当前存储的诗词内容
+  currentModalPoem = null;
+  currentModalSentence = null;
 }
 
 modalCloseBtn.addEventListener("click", (e) => {
@@ -521,6 +589,15 @@ modalCloseBtn.addEventListener("click", (e) => {
   playClick();
   closeModal();
 });
+
+// 为声音按钮添加点击事件监听器
+if (modalSoundBtn) {
+  modalSoundBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    playClick();
+    readPoem();
+  });
+}
 
 modalOverlay.addEventListener("click", () => {
   playClick();
