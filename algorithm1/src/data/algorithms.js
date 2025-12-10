@@ -12,6 +12,7 @@ const algorithms = [
                 output: "两个整数的数组下标",
                 example: "输入: nums = [2, 7, 11, 15], target = 9\n输出: [0, 1]",
                 leetCodeUrl: "https://leetcode.cn/problems/two-sum/",
+                essence: ["哈希表入门", "一次遍历", "补数查找"],
                 code: `class Solution { 
   List<int> twoSum(List<int> nums, int target) { 
     for (int i = 0; i < nums.length; i++) { 
@@ -54,6 +55,7 @@ const algorithms = [
                 output: "布尔值，表示是否存在重复元素",
                 example: "输入: nums = [1, 2, 3, 1]\n输出: true",
                 leetCodeUrl: "https://leetcode.cn/problems/contains-duplicate/",
+                essence: ["集合去重", "线性扫描", "空间换时间"],
                 code: `bool containsDuplicate(List<int> nums) {
     Set<int> seen = {};
     for (int num in nums) {
@@ -110,6 +112,7 @@ const algorithms = [
                 output: "删除重复元素后的新长度",
                 example: "输入: nums = [1, 1, 2]\n输出: 2, nums = [1, 2]",
                 leetCodeUrl: "https://leetcode.cn/problems/remove-duplicates-from-sorted-array/",
+                essence: ["双指针入门", "原地修改", "有序数组性质"],
                 code: `int removeDuplicates(List<int> nums) {
     if (nums.isEmpty) {
         return 0;
@@ -155,6 +158,7 @@ const algorithms = [
                 output: "移除指定元素后的新长度",
                 example: "输入: nums = [3, 2, 2, 3], val = 3\n输出: 2, nums = [2, 2]",
                 leetCodeUrl: "https://leetcode.cn/problems/remove-element/",
+                essence: ["双指针入门", "原地覆盖", "条件筛选"],
                 code: `int removeElement(List<int> nums, int val) {
     int slow = 0;
     for (int fast = 0; fast < nums.length; fast++) {
@@ -212,6 +216,10 @@ const algorithms = [
                 output: "目标值的索引或插入位置",
                 example: "输入: nums = [1, 3, 5, 6], target = 5\n输出: 2",
                 leetCodeUrl: "https://leetcode.cn/problems/search-insert-position/",
+                essence: ["二分查找", "有序数组", "边界返回"],
+                prerequisites: [
+                    { title: "二分查找 (LeetCode 704)", url: "https://leetcode.cn/problems/binary-search/" }
+                ],
                 code: `int searchInsert(List<int> nums, int target) {
     int left = 0;
     int right = nums.length - 1;
@@ -260,6 +268,7 @@ const algorithms = [
                 output: "加一后的整数数组",
                 example: "输入: digits = [1, 2, 3]\n输出: [1, 2, 4]",
                 leetCodeUrl: "https://leetcode.cn/problems/plus-one/",
+                essence: ["模拟", "进位处理", "逆序遍历"],
                 code: `List<int> plusOne(List<int> digits) {
     int n = digits.length;
     
@@ -301,6 +310,7 @@ const algorithms = [
                 output: "合并后的有序数组 nums1",
                 example: "输入: nums1 = [1, 2, 3, 0, 0, 0], m = 3, nums2 = [2, 5, 6], n = 3\n输出: [1, 2, 2, 3, 5, 6]",
                 leetCodeUrl: "https://leetcode.cn/problems/merge-sorted-array/",
+                essence: ["倒序合并", "双指针", "原地修改"],
                 code: `void merge(List<int> nums1, int m, List<int> nums2, int n) {
     int i = m - 1; // nums1 有效部分末尾
     int j = n - 1; // nums2 末尾
@@ -354,6 +364,7 @@ const algorithms = [
                 output: "移动零后的数组",
                 example: "输入: nums = [0, 1, 0, 3, 12]\n输出: [1, 3, 12, 0, 0]",
                 leetCodeUrl: "https://leetcode.cn/problems/move-zeroes/",
+                essence: ["数组遍历", "原地修改", "双指针入门"],
                 code: `void moveZeroes(List<int> nums) {
     int slow = 0;
     

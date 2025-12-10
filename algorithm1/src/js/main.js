@@ -159,7 +159,7 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
     return `
         <div class="algorithm-section">
             <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                题目${problemIndex + 1}: ${problem.title}
+                题目${problemIndex}: ${problem.title}
                 ${leetCodeUrl ? `<a href="${leetCodeUrl}" target="_blank" class="leetcode-link ml-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                     LeetCode
@@ -207,6 +207,22 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
                                 <div class="input-output">
                                     <h4>输出:</h4>
                                     <pre>${problem.output}</pre>
+                                </div>
+                            ` : ''}
+                            ${problem.essence && problem.essence.length ? `
+                                <div class="input-output">
+                                    <h4>本质</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${problem.essence.map(e => `<span class=\"pc-badge\">${e}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${problem.prerequisites && problem.prerequisites.length ? `
+                                <div class="input-output">
+                                    <h4>关联算法题</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${problem.prerequisites.map(p => `<a href="${p.url}" target="_blank" class="leetcode-link">${p.title}</a>`).join('')}
+                                    </div>
                                 </div>
                             ` : ''}
                             <div class="example-code">
