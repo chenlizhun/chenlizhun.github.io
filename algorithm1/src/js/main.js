@@ -29,33 +29,43 @@ function loadChapters() {
     // Clear existing content
     chaptersList.innerHTML = '';
     
+    // Create a grid container for chapter cards
+    const gridContainer = document.createElement('div');
+    gridContainer.className = 'chapters-grid';
+    
     // Create chapter cards
     if (algorithms && algorithms.length > 0) {
         algorithms.forEach((chapter, index) => {
             const chapterCard = createChapterCard(chapter, index);
-            chaptersList.appendChild(chapterCard);
+            gridContainer.appendChild(chapterCard);
         });
     } else {
         console.error('algorithms is undefined or empty');
-        chaptersList.innerHTML = '<div class="text-red-500">Error: No chapters found</div>';
+        gridContainer.innerHTML = '<div class="text-red-500">Error: No chapters found</div>';
     }
+    
+    // Append the grid container to the chapters list
+    chaptersList.appendChild(gridContainer);
 }
 
 // Create a chapter card element
 function createChapterCard(chapter, chapterIndex) {
     const card = document.createElement('div');
-    card.className = 'chapter-card bg-white rounded-lg shadow-md p-6 cursor-pointer';
+    card.className = 'chapter-card cursor-pointer';
     card.innerHTML = `
-        <h3 class="text-lg font-semibold text-gray-800">第${chapterIndex + 1}课: ${chapter.title}</h3>
-        <p class="text-gray-600 mt-2">${chapter.description}</p>
-        <div class="mt-4 text-sm text-gray-500">
-            <span class="mr-4">📝 ${chapter.problems.length}道题目</span>
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold text-primary bg-blue-100 px-2 py-1 rounded">第${chapterIndex + 1}课</span>
+                <span class="text-xs font-medium text-gray-500">📝 ${chapter.problems.length}道题目</span>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">${chapter.title}</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">${chapter.description}</p>
         </div>
     `;
     
     // Add click event to show chapter details
     card.addEventListener('click', () => {
-        showChapterDetails(chapter, chapterIndex);
+        showChapterDetails(chapter.title); // 使用章节标题作为ID查找
     });
     
     return card;
@@ -64,41 +74,58 @@ function createChapterCard(chapter, chapterIndex) {
 // Global variable to track active chapter
 let activeChapterIndex = -1;
 
-// Show chapter details
-function showChapterDetails(chapter, chapterIndex) {
+// Show chapter details with loading state
+function showChapterDetails(chapterTitle) {
+    // 根据章节标题查找章节
+    const chapter = algorithms.find(c => c.title === chapterTitle);
+    if (!chapter) return;
+
     const chapterNav = document.getElementById('chapter-nav');
     const algorithmDetail = document.getElementById('algorithm-detail');
     const algorithmContent = document.getElementById('algorithm-content');
     
-    // Store active chapter index
-    activeChapterIndex = chapterIndex;
-    console.log('Active chapter index set to:', activeChapterIndex);
-    
-    // Hide chapter list, show algorithm detail
-    chapterNav.classList.add('hidden');
+    // Show algorithm detail immediately
     algorithmDetail.classList.remove('hidden');
     
-    // Generate chapter content
-    let content = `
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">第${chapterIndex + 1}课: ${chapter.title}</h2>
-        <p class="text-gray-600 mb-8">${chapter.description}</p>
+    // Generate HTML for the chapter details
+    let html = `
+        <div class="p-6">
+            <button id="back-btn" class="mb-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                返回课程列表
+            </button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">${chapter.title}</h2>
+        </div>
     `;
     
-    // Generate problems list
-    chapter.problems.forEach((problem, problemIndex) => {
-        content += createProblemHTML(problem, problemIndex);
+    // Add chapter description
+    html += `<p class="text-gray-600 mb-8 px-6">${chapter.description}</p>`;
+    
+    // Add problems
+    chapter.problems.forEach((problem, index) => {
+        html += createProblemHTML(problem, index + 1);
     });
     
-    algorithmContent.innerHTML = content;
+    // Update content
+    algorithmContent.innerHTML = html;
+    
+    // Hide chapter list
+    chapterNav.classList.add('hidden');
+    
+    // Initialize code highlighting and copy buttons
+    initializeCodeHighlighting();
+    initializeCopyCodeButtons();
+    
+    // Add event listener for back button
+    document.getElementById('back-btn').addEventListener('click', showChapterList);
     
     // Initialize tabs for each problem
     initializeProblemTabs();
     
     // Initialize step visualizations
     initializeStepVisualizations();
-    
-    // Initialize code highlighting
-    initializeCodeHighlighting()
 }
 
 // Create HTML for a problem
@@ -110,7 +137,10 @@ function createProblemHTML(problem, problemIndex) {
         <div class="algorithm-section">
             <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 题目${problemIndex + 1}: ${problem.title}
-                ${leetCodeUrl ? `<a href="${leetCodeUrl}" target="_blank" class="ml-2 text-sm bg-indigo-500 text-white px-3 py-1 rounded-full hover:bg-indigo-600">LeetCode</a>` : ''}
+                ${leetCodeUrl ? `<a href="${leetCodeUrl}" target="_blank" class="leetcode-link ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    LeetCode
+                </a>` : ''}
             </h3>
             
             <div class="mb-4">
@@ -122,11 +152,11 @@ function createProblemHTML(problem, problemIndex) {
                 <!-- Left column: tab content -->
                 <div class="flex-1">
                     <!-- Tab buttons -->
-                    <div class="flex flex-row border-b border-gray-200 w-full mb-4">
-                        <button class="tab-button active py-3 px-6 font-medium text-center" data-tab="description" data-problem="${problemIndex}">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" data-tab="description" data-problem="${problemIndex}">
                             题目描述
                         </button>
-                        <button class="tab-button py-3 px-6 font-medium text-gray-600 text-center" data-tab="steps" data-problem="${problemIndex}">
+                        <button class="tab-button" data-tab="steps" data-problem="${problemIndex}">
                             步骤说明
                         </button>
                     </div>
@@ -135,13 +165,23 @@ function createProblemHTML(problem, problemIndex) {
                     <div class="tab-content-wrapper">
                         <div class="tab-content active" id="description-${problemIndex}">
                             <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="font-medium mb-2">输入：</h4>
-                                <p class="ml-4">${problem.input}</p>
-                                <h4 class="font-medium mt-4 mb-2">输出：</h4>
-                                <p class="ml-4">${problem.output}</p>
-                                <h4 class="font-medium mt-4 mb-2">示例：</h4>
-                                <pre class="ml-4 bg-white p-2 rounded"><code>${problem.example}</code></pre>
-                            </div>
+                            ${problem.input ? `
+                                <div class="input-output">
+                                    <h4>输入:</h4>
+                                    <pre>${problem.input}</pre>
+                                </div>
+                            ` : ''}
+                            ${problem.output ? `
+                                <div class="input-output">
+                                    <h4>输出:</h4>
+                                    <pre>${problem.output}</pre>
+                                </div>
+                            ` : ''}
+                            <div class="example-code">
+    <h4>示例：</h4>
+    <pre><code>${problem.example}</code></pre>
+</div>
+                        </div>
                         </div>
                         
                         <div class="tab-content" id="steps-${problemIndex}">
@@ -153,12 +193,13 @@ function createProblemHTML(problem, problemIndex) {
                 </div>
                 
                 <!-- Right column: code area -->
-                <div class="flex-1 max-w-2xl sticky top-4 self-start">
-                    <div class="bg-white rounded-lg shadow-md border border-gray-200">
-                        <div class="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                            <h4 class="font-medium">代码实现</h4>
-                        </div>
-                        <div class="p-4 code-container">
+                <div class="flex-1 max-w-2xl sticky top-4 self-start overflow-visible">
+                    <div class="rounded-lg shadow-md border border-gray-200">
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Dart 代码</span>
+                                <button class="copy-btn">复制代码</button>
+                            </div>
                             <pre><code class="language-dart line-numbers">${problem.code}</code></pre>
                         </div>
                     </div>
@@ -256,6 +297,34 @@ function initializeCodeHighlighting() {
         // Apply syntax highlighting
         Prism.highlightAll();
     }
+}
+
+// Initialize copy code buttons
+function initializeCopyCodeButtons() {
+    // Add event listeners to all copy buttons
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const codeBlock = this.closest('.code-container').querySelector('code');
+            const codeText = codeBlock.textContent;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(codeText).then(() => {
+                // Show feedback
+                const originalText = this.textContent;
+                this.textContent = '已复制!';
+                this.style.backgroundColor = '#10b981';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.backgroundColor = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy code: ', err);
+            });
+        });
+    });
 }
 
 // Show chapter list
