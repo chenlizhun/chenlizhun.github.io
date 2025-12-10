@@ -1095,6 +1095,22 @@ function initEventListeners() {
   }
 
   // 移除萝卜区域的显式点击入口，保留长按隐身入口
+  const carrotTitle = document.querySelector('.carrot-title');
+  if (carrotTitle) {
+    carrotTitle.style.cursor = 'pointer';
+    carrotTitle.addEventListener('click', () => {
+      playClick();
+      openSpecialModal(rabbitParkModal);
+    });
+  }
+  if (carrotCountEl && carrotCountEl.parentElement) {
+    const carrotCountBox = carrotCountEl.parentElement;
+    carrotCountBox.style.cursor = 'pointer';
+    carrotCountBox.addEventListener('click', () => {
+      playClick();
+      openSpecialModal(rabbitParkModal);
+    });
+  }
     
   // 点击模态框外部关闭
   if (gameCenterModal) {
