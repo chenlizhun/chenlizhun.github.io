@@ -914,10 +914,8 @@ function openModal(poem, sentence) {
   // 添加诗人头像
   addPoetAvatar(author);
   if (modalDialog) {
-    const bg = `https://ui-avatars.com/api/?name=${encodeURIComponent(author)}&background=random&color=fff&size=300`;
-    modalDialog.style.backgroundImage = `url(${bg})`;
-    modalDialog.style.backgroundSize = "cover";
-    modalDialog.style.backgroundPosition = "center";
+    modalDialog.style.backgroundImage = "";
+    modalDialog.style.background = "";
   }
   
   // 掉落更多萝卜
@@ -1009,22 +1007,7 @@ function closeModal() {
 
 // ====== 事件监听器 ======
 function initEventListeners() {
-  // 小游戏中心按钮
-  if (gameCenterBtn) {
-    gameCenterBtn.addEventListener("click", () => {
-      playClick();
-      renderGameCenter();
-      openSpecialModal(gameCenterModal);
-    });
-  }
-
-  if (gameCenterTopBtn) {
-    gameCenterTopBtn.addEventListener("click", () => {
-      playClick();
-      renderGameCenter();
-      openSpecialModal(gameCenterModal);
-    });
-  }
+  // 小游戏中心按钮（已删除显式入口）
 
   // 小游戏中心关闭按钮
   if (gameCenterCloseBtn) {
@@ -1034,13 +1017,7 @@ function initEventListeners() {
     });
   }
 
-  // 兔子乐园按钮
-  if (rabbitParkBtn) {
-    rabbitParkBtn.addEventListener("click", () => {
-      playClick();
-      openSpecialModal(rabbitParkModal);
-    });
-  }
+  // 兔子乐园按钮（已删除显式入口）
 
   // 兔子乐园关闭按钮
   if (rabbitParkCloseBtn) {
@@ -1117,22 +1094,7 @@ function initEventListeners() {
     rabbitLogo.addEventListener("touchend", cancelLP);
   }
 
-  const carrotTitle = document.querySelector('.carrot-title');
-  if (carrotTitle) {
-    carrotTitle.style.cursor = 'pointer';
-    carrotTitle.addEventListener('click', () => {
-      playClick();
-      openSpecialModal(rabbitParkModal);
-    });
-  }
-  if (carrotCountEl && carrotCountEl.parentElement) {
-    const carrotCountBox = carrotCountEl.parentElement;
-    carrotCountBox.style.cursor = 'pointer';
-    carrotCountBox.addEventListener('click', () => {
-      playClick();
-      openSpecialModal(rabbitParkModal);
-    });
-  }
+  // 移除萝卜区域的显式点击入口，保留长按隐身入口
     
   // 点击模态框外部关闭
   if (gameCenterModal) {

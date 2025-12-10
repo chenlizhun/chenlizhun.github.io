@@ -18,17 +18,7 @@
             </div>
             
             <!-- 特殊功能菜单 -->
-            <div class="special-menu">
-                <button class="special-menu-btn" id="gameCenterBtn">
-                    <span class="menu-icon">🎮</span>
-                    <span class="menu-text">小游戏中心</span>
-                </button>
-                <button class="special-menu-btn" id="rabbitParkBtn" onclick="document.getElementById('rabbitParkModal').classList.add('active'); document.body.style.overflow = 'hidden';">
-                <span class="menu-icon">🐰</span>
-                <span class="menu-text">兔子乐园</span>
-                <span class="hidden-egg">彩蛋在这里！</span>
-            </button>
-            </div>
+            <div class="special-menu"></div>
             
             <!-- 侧边主题按钮通过 JS 填充 -->
         </aside>
@@ -47,11 +37,6 @@
             <div class="header">
                 <div class="header-top">
                     <div class="header-title" id="currentThemeTitle">主题：花</div>
-
-                    <!-- 顶部入口：小游戏中心 -->
-                    <button class="theme-game-btn" id="gameCenterTopBtn" title="小游戏中心">
-                        🎮 小游戏中心
-                    </button>
 
                     <!-- 只在当前主题为“花”时显示，由 JS 控制 -->
                     <button class="theme-game-btn" id="flowerGameBtn" style="display:none;">
