@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>多样式抽签程序（18种模式）</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+    <div class="main-container">
+        <!-- 左侧边栏（包含标题和学生名单管理） -->
+        <div class="sidebar">
+            <!-- 标题区域 -->
+            <div class="sidebar-header">
+                <h1>多样式抽签程序（18种模式）</h1>
+                <div class="sub">从学生名单中随机抽出 1 名，可切换不同抽签玩法</div>
+            </div>
+            
+            <!-- 学生名单管理 -->
+            <div class="panel" id="managePanel">
+                <h2><span class="emoji">👥</span>学生名单管理</h2>
+                <div class="panel-tip">使用顿号「、」、逗号或空格分隔姓名，点击“更新名单”后生效。</div>
+                <textarea id="studentInput" rows="6" class="student-textarea"></textarea>
+                <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <button id="btnResetNames" type="button" class="btn-primary" style="background:#b2bec3;">恢复默认名单</button>
+                    <button id="btnUpdateNames" type="button" class="btn-primary">更新名单</button>
+                </div>
+            </div>
+
+            <!-- 已抽中人员名单 -->
+            <div class="panel" id="selectedPanel">
+                <h2><span class="emoji">🏆</span>已抽中人员名单</h2>
+                <div class="panel-tip">显示已抽中的人员，可独立移除。</div>
+                <div id="selectedList" class="selected-list">
+                    <!-- 已抽中人员将在这里动态显示 -->
+                </div>
+                <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+                    <button id="btnClearSelected" type="button" class="btn-primary" style="background:#b2bec3;">清空已抽中</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区（右侧） -->
+        <div class="main-content">
+            <!-- 工具栏和随机模式容器 -->
+            <div class="mode-layout">
+                <!-- 工具栏 -->
+                <div class="toolbar-column">
+                    <div class="toolbar">
+                        <!-- <button data-target="wheelPanel">🎯 转盘</button> -->
+                        <button data-target="slotPanel">🎰 水果机</button>
+                        <button data-target="rollerPanel">🎡 滚轮</button>
+                        <button data-target="cardPanel">🃏 卡片</button>
+                        <button data-target="gridPanel">🔲 网格</button>
+                        <button data-target="listPanel">📃 列表</button>
+                        <button data-target="ballPanel">⚽ 彩球</button>
+                        <button data-target="racePanel">🏃 赛跑</button>
+                        <button data-target="balloonPanel">🎈 气球</button>
+                        <button data-target="giftPanel">🎁 礼物</button>
+                        <button data-target="spinPanel">🔄 旋转</button>
+                        <button data-target="lotteryPanel">🎫 抽奖</button>
+                        <button data-target="numberPanel">🔢 数字</button>
+                        <button data-target="matrixPanel">💫 矩阵</button>
+                        <button data-target="lightPanel">💡 光点</button>
+                        <button data-target="rainbowPanel">🌈 彩虹</button>
+                        <button data-target="typePanel">⌨️ 打字</button>
+                        <button data-target="starPanel">⭐ 星星</button>
+                    </div>
+                </div>
+                
+                <!-- 随机抽签大按钮 -->
+                <div class="random-mode-column">
+                    <div class="random-mode-container">
+                        <button id="btnRandomMode" class="btn-random-mode">🎲 随机抽签</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. 转盘（已隐藏） -->
+    <!-- <div id="wheelPanel" class="panel">
+        <h2><span class="emoji">🎯</span>转盘抽奖</h2>
+        <div class="panel-tip">点击开始旋转，指针指向的学生即为抽中者。</div>
+        <button id="btnWheel" class="btn-primary">开始抽奖</button>
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="wheel" id="wheel"></div>
+            <div class="wheel-center">开始</div>
+        </div>
+        <div class="result" id="wheelResult"></div>
+    </div> -->
+
+    <!-- 2. 水果机 -->
+    <div id="slotPanel" class="panel">
+        <h2><span class="emoji">🎰</span>水果机</h2>
+        <div class="panel-tip">经典的三滚轮水果机，停在同一学生时即为抽中。</div>
+        <button id="btnSlot" class="btn-primary">开始抽奖</button>
+        <div class="slot-container">
+            <div class="slot-reel" id="slotCol1"></div>
+            <div class="slot-reel" id="slotCol2"></div>
+            <div class="slot-reel" id="slotCol3"></div>
+        </div>
+        <div class="result" id="slotResult"></div>
+    </div>
+
+    <!-- 3. 数字滚轮 -->
+    <div id="rollerPanel" class="panel">
+        <h2><span class="emoji">🎡</span>数字滚轮</h2>
+        <div class="panel-tip">数字快速滚动，最终停在的数字对应的学生即为抽中者。</div>
+        <button id="btnRoller" class="btn-primary">开始抽奖</button>
+        <div class="roller-container">
+            <div class="roller-number" id="rollerInner"></div>
+        </div>
+        <div class="result" id="rollerResult"></div>
+    </div>
+
+    <!-- 4. 卡片 -->
+    <div id="cardPanel" class="panel">
+        <h2><span class="emoji">🃏</span>卡片翻牌</h2>
+        <div class="panel-tip">卡片快速翻转，最终停在的卡片对应的学生即为抽中者。</div>
+        <button id="btnCard" class="btn-primary">开始抽奖</button>
+        <div class="card-container" id="cardContainer"></div>
+        <div class="result" id="cardResult"></div>
+    </div>
+
+    <!-- 5. 网格 -->
+    <div id="gridPanel" class="panel">
+        <h2><span class="emoji">🔲</span>网格闪烁</h2>
+        <div class="panel-tip">学生姓名在网格中快速闪烁，最终停在的学生即为抽中者。</div>
+        <button id="btnGrid" class="btn-primary">开始抽奖</button>
+        <div class="grid-container" id="gridContainer"></div>
+        <div class="result" id="gridResult"></div>
+    </div>
+
+    <!-- 6. 列表 -->
+    <div id="listPanel" class="panel">
+        <h2><span class="emoji">📃</span>列表滚动</h2>
+        <div class="panel-tip">学生姓名在列表中快速滚动，最终停在的学生即为抽中者。</div>
+        <button id="btnList" class="btn-primary">开始抽奖</button>
+        <div class="list-container" id="listContainer"></div>
+        <div class="result" id="listResult"></div>
+    </div>
+
+    <!-- 7. 彩球 -->
+    <div id="ballPanel" class="panel">
+        <h2><span class="emoji">⚽</span>彩球抽奖</h2>
+        <div class="panel-tip">彩球在容器中跳动，最终停在的彩球对应的学生即为抽中者。</div>
+        <button id="btnBall" class="btn-primary">开始抽奖</button>
+        <div class="ball-container" id="ballContainer"></div>
+        <div class="result" id="ballResult"></div>
+    </div>
+
+    <!-- 8. 赛跑 -->
+    <div id="racePanel" class="panel">
+        <h2><span class="emoji">🏃</span>赛跑比赛</h2>
+        <div class="panel-tip">学生姓名代表的选手进行赛跑，最先到达终点的学生即为抽中者。</div>
+        <button id="btnRace" class="btn-primary">开始比赛</button>
+        <div class="race-container" id="raceContainer"></div>
+        <div class="result" id="raceResult"></div>
+    </div>
+
+    <!-- 9. 气球 -->
+    <div id="balloonPanel" class="panel">
+        <h2><span class="emoji">🎈</span>气球爆炸</h2>
+        <div class="panel-tip">气球在屏幕上漂浮，最终爆炸的气球对应的学生即为抽中者。</div>
+        <button id="btnBalloon" class="btn-primary">开始抽奖</button>
+        <div class="balloon-container" id="balloonContainer"></div>
+        <div class="result" id="balloonResult"></div>
+    </div>
+
+    <!-- 10. 礼物 -->
+    <div id="giftPanel" class="panel">
+        <h2><span class="emoji">🎁</span>礼物盒</h2>
+        <div class="panel-tip">点击打开礼物盒，礼物盒中对应的学生即为抽中者。</div>
+        <button id="btnGift" class="btn-primary">打开礼物</button>
+        <div class="gift-container" id="giftContainer"></div>
+        <div class="result" id="giftResult"></div>
+    </div>
+
+    <!-- 11. 旋转 -->
+    <div id="spinPanel" class="panel">
+        <h2><span class="emoji">🔄</span>旋转抽奖</h2>
+        <div class="panel-tip">学生姓名快速旋转，最终停在中心的学生即为抽中者。</div>
+        <button id="btnSpin" class="btn-primary">开始抽奖</button>
+        <div class="spin-container" id="spinContainer"></div>
+        <div class="result" id="spinResult"></div>
+    </div>
+
+    <!-- 12. 抽奖 -->
+    <div id="lotteryPanel" class="panel">
+        <h2><span class="emoji">🎫</span>抽奖箱</h2>
+        <div class="panel-tip">从抽奖箱中随机抽取一名学生。</div>
+        <button id="btnLottery" class="btn-primary">抽取奖品</button>
+        <div class="lottery-container">
+            <div class="lottery-box" id="lotteryBox"></div>
+        </div>
+        <div class="result" id="lotteryResult"></div>
+    </div>
+
+    <!-- 13. 数字 -->
+    <div id="numberPanel" class="panel">
+        <h2><span class="emoji">🔢</span>数字抽奖</h2>
+        <div class="panel-tip">数字从1开始快速增加，最终停在的数字对应的学生即为抽中者。</div>
+        <button id="btnNumber" class="btn-primary">开始抽奖</button>
+        <div class="number-container">
+            <div class="number-display" id="numberDisplay"></div>
+        </div>
+        <div class="result" id="numberResult"></div>
+    </div>
+
+    <!-- 14. 矩阵 -->
+    <div id="matrixPanel" class="panel">
+        <h2><span class="emoji">💫</span>矩阵闪烁</h2>
+        <div class="panel-tip">学生姓名在矩阵中以数字雨的形式闪烁，最终停在的学生即为抽中者。</div>
+        <button id="btnMatrix" class="btn-primary">开始抽奖</button>
+        <div class="matrix-container" id="matrixContainer"></div>
+        <div class="result" id="matrixResult"></div>
+    </div>
+
+    <!-- 15. 光点 -->
+    <div id="lightPanel" class="panel">
+        <h2><span class="emoji">💡</span>光点闪烁</h2>
+        <div class="panel-tip">光点在屏幕上快速移动，最终停在的光点对应的学生即为抽中者。</div>
+        <button id="btnLight" class="btn-primary">开始抽奖</button>
+        <div class="light-container" id="lightContainer"></div>
+        <div class="result" id="lightResult"></div>
+    </div>
+
+    <!-- 16. 彩虹 -->
+    <div id="rainbowPanel" class="panel">
+        <h2><span class="emoji">🌈</span>彩虹抽奖</h2>
+        <div class="panel-tip">彩虹色的学生姓名快速切换，最终停在的学生即为抽中者。</div>
+        <button id="btnRainbow" class="btn-primary">开始抽奖</button>
+        <div class="rainbow-container" id="rainbowContainer"></div>
+        <div class="result" id="rainbowResult"></div>
+    </div>
+
+    <!-- 17. 打字 -->
+    <div id="typePanel" class="panel">
+        <h2><span class="emoji">⌨️</span>打字抽奖</h2>
+        <div class="panel-tip">学生姓名以打字机的方式显示，最终停在的学生即为抽中者。</div>
+        <button id="btnType" class="btn-primary">开始打字</button>
+        <div class="type-container">
+            <div class="type-display" id="typeDisplay"></div>
+        </div>
+        <div class="result" id="typeResult"></div>
+    </div>
+
+    <!-- 18. 星星 -->
+    <div id="starPanel" class="panel">
+        <h2><span class="emoji">⭐</span>星星抽签</h2>
+        <div class="panel-tip">每位学生是一颗星星，随机闪烁，最终某一颗变成“幸运星”。</div>
+        <button id="btnStar" class="btn-primary">点亮幸运星</button>
+        <div class="stars" id="stars"></div>
+        <div class="result" id="starResult"></div>
+    </div>
+</div>
+
+<!-- 外部JavaScript脚本 -->
+<script src="utils.js"></script>
+<script src="students.js"></script>
+<script src="ui.js"></script>
+<!-- 转盘已隐藏，移除脚本引用 -->
+<!-- <script src="games/wheel.js"></script> -->
+<script src="games/slot.js"></script>
+<script src="games/roller.js"></script>
+<script src="games/ball.js"></script>
+<script src="games/card.js"></script>
+<script src="games/gift.js"></script>
+<script src="games/grid.js"></script>
+<script src="games/light.js"></script>
+<script src="games/list.js"></script>
+<script src="games/lottery.js"></script>
+<script src="games/matrix.js"></script>
+<script src="games/number.js"></script>
+<script src="games/race.js"></script>
+<script src="games/rainbow.js"></script>
+<script src="games/star.js"></script>
+<script src="games/spin.js"></script>
+<script src="games/type.js"></script>
+            </div><!-- 主内容区结束 -->
+        </div><!-- 主容器结束 -->
+
+<script src="games/balloon.js"></script>
+<script src="games.js"></script>
+<script src="randomMode.js"></script>
+<script src="main.js"></script>
+<!-- 庆祝模态窗口 -->
+<div id="celebrationModal" class="modal">
+    <div class="modal-content">
+        <div class="confetti-container" id="confettiContainer"></div>
+        <h1 class="celebration-title">🎉 恭喜 🎉</h1>
+        <h2 class="celebration-winner" id="celebrationWinner"></h2>
+        <p class="celebration-message">成为本次抽奖的幸运儿！</p>
+        <button id="closeModal" class="btn-primary">关闭</button>
+    </div>
+</div>
+
+</body>
+</html>

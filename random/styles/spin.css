@@ -1,0 +1,31 @@
+/* 旋转抽奖样式 */
+.spin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  max-width: 260px;
+}
+.spin-item {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dfe6e9;
+  margin-bottom: 4px;
+  font-size: 13px;
+  position: relative;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  width: 100%;
+  text-align: center;
+}
+.spin-item.active {
+  background: #ffeaa7;
+  transform: translateX(6px);
+  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+}
+.spin-item.winner {
+  background: #00b894;
+  color: #fff;
+  transform: translateX(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.28);
+}

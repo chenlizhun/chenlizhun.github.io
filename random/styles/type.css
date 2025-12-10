@@ -1,0 +1,29 @@
+/* 打字抽奖样式 */
+.type-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-display {
+  overflow: hidden;
+  border-right: 0.15em solid #e17055;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: 0.15em;
+  font-size: 24px;
+  font-weight: 700;
+  animation: 
+    blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: #e17055; }
+}

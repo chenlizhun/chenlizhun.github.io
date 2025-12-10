@@ -1,0 +1,31 @@
+/* 星星抽签样式 */
+.stars {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.star-item {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #ffeaa7;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform .15s, box-shadow .15s, background .15s;
+}
+.star-item .icon {
+  font-size: 16px;
+}
+.star-item.active {
+  transform: translateY(-2px);
+  background: #fdcb6e;
+  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+}
+.star-item.winner {
+  transform: translateY(-3px) scale(1.05);
+  background: #fd79a8;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}

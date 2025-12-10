@@ -1,0 +1,513 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+    "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background: linear-gradient(135deg,#fdf6ec,#fefefe);
+  color: #333;
+}
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 12px 40px;
+}
+
+/* 主容器布局 */
+.main-container {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* 左侧边栏 */
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+/* 侧边栏标题样式 */
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+
+.sidebar-header h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #333;
+}
+
+.sidebar-header .sub {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 0;
+}
+
+/* 右侧主内容区 */
+.main-content {
+  flex: 1;
+  min-width: 0; /* 防止内容溢出 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+  }
+}
+h1 {
+  text-align: center;
+  margin: 8px 0 4px;
+  font-size: 24px;
+}
+.sub {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 12px;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.toolbar button {
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: #ffe4c4;
+  transition: transform .1s, box-shadow .1s, background .1s;
+}
+.toolbar button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+  background: #ffd1a0;
+}
+.toolbar button.active {
+  background: #ff9f43;
+  color: #fff;
+}
+
+/* 左右布局容器 */
+.mode-layout {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.toolbar-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.random-mode-column {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+/* 调整随机模式容器的高度 */
+.random-mode-container {
+  margin-bottom: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .mode-layout {
+    flex-direction: column;
+  }
+  
+  .random-mode-column {
+    width: 100%;
+  }
+}
+
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  margin-bottom: 16px;
+}
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel h2 span.emoji {
+  font-size: 22px;
+}
+.panel-tip {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 10px;
+}
+.panel.hidden {
+  display: none;
+}
+.btn-primary {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  background: #ff9f43;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  transition: transform .1s, box-shadow .1s, background .1s;
+}
+.btn-primary:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  background: #ff8a1a;
+}
+
+/* 随机抽签模式样式 */
+.random-mode-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  margin-bottom: 20px;
+  text-align: center;
+  color: white;
+}
+
+.random-mode-info h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.random-mode-info h2 span.emoji {
+  font-size: 26px;
+}
+
+.random-mode-info p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-random-mode {
+  border: none;
+  padding: 16px 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #333;
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-random-mode:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+}
+
+.btn-random-mode:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.btn-random-mode:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.result {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e67e22;
+}
+.name-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #ffeaa7;
+  border: 1px solid #fdcb6e;
+  margin: 2px;
+  font-size: 12px;
+}
+.names-line {
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* 名单管理 */
+.student-textarea {
+  min-height: 120px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+/* 已抽中人员列表样式 */
+.selected-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  padding: 4px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.selected-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  font-size: 14px;
+}
+
+.selected-list-item:last-child {
+  margin-bottom: 0;
+}
+
+.remove-item-btn {
+  border: none;
+  background: #ff6b6b;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s;
+}
+
+.remove-item-btn:hover {
+  background: #ff5252;
+}
+
+/* 导入18种游戏模式的CSS文件 */
+@import "./styles/ball.css";
+@import "./styles/balloon.css";
+@import "./styles/card.css";
+@import "./styles/gift.css";
+@import "./styles/grid.css";
+@import "./styles/light.css";
+@import "./styles/list.css";
+@import "./styles/lottery.css";
+@import "./styles/matrix.css";
+@import "./styles/number.css";
+@import "./styles/race.css";
+@import "./styles/rainbow.css";
+@import "./styles/roller.css";
+@import "./styles/slot.css";
+@import "./styles/spin.css";
+@import "./styles/star.css";
+@import "./styles/type.css";
+@import "./styles/wheel.css";
+
+@media (max-width: 600px) {
+  .wheel { width: 220px; height: 220px; }
+  .roller-window { width: 220px; }
+  .slot-column { width: 70px; }
+  .race-name { width: 60px; }
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .app {
+        padding: 10px;
+    }
+    .toolbar {
+        flex-wrap: wrap;
+    }
+    .toolbar button {
+        margin: 4px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    .panel {
+        padding: 15px;
+    }
+    .btn-primary {
+        padding: 10px 16px;
+        font-size: 16px;
+    }
+}
+
+/* 庆祝模态窗口样式 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.3);
+    animation: modalSlideIn 0.5s ease, pulse 2s infinite;
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+}
+
+/* 五彩纸屑容器 */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    animation: confettiFall linear infinite;
+}
+
+.celebration-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #e74c3c;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: bounce 1s infinite alternate;
+    position: relative;
+    z-index: 2;
+}
+
+.celebration-winner {
+    font-size: 64px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-weight: bold;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+    animation: glow 2s infinite alternate;
+    position: relative;
+    z-index: 2;
+    word-break: break-all;
+}
+
+.celebration-message {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #34495e;
+    position: relative;
+    z-index: 2;
+}
+
+#closeModal {
+    font-size: 20px;
+    padding: 12px 30px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+#closeModal:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-100px) scale(0.5); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+    to { text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.8); }
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100%) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}

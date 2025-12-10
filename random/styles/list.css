@@ -1,0 +1,21 @@
+/* 列表高亮样式 */
+.list-container {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-width: 260px;
+}
+.list-item {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #dfe6e9;
+  margin-bottom: 6px;
+  font-size: 13px;
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+.list-item.active {
+  background: #00b894;
+  color: #fff;
+  transform: translateX(4px);
+  box-shadow: 0 3px 8px rgba(0,0,0,.25);
+}

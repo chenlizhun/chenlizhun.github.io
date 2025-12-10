@@ -1,0 +1,49 @@
+/* 抽卡片 / 翻牌样式 */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(60px,1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.card {
+  position: relative;
+  height: 80px;
+  perspective: 600px;
+  cursor: pointer;
+}
+.card-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  transform-style: preserve-3d;
+  transition: transform .5s;
+}
+.card-front,
+.card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.card-front {
+  background: #ff9f43;
+  color: #fff;
+}
+.card-back {
+  background: #ffeaa7;
+  color: #2d3436;
+  transform: rotateY(180deg);
+}
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+.card.winner .card-back {
+  background: #00b894;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+}

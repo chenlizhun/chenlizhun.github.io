@@ -1,0 +1,28 @@
+/* 矩阵闪烁样式 */
+.matrix-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.matrix-item {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dfe6e9;
+  font-size: 12px;
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+.matrix-item.level1 { font-size: 12px; }
+.matrix-item.level2 { font-size: 14px; }
+.matrix-item.level3 { font-size: 16px; }
+.matrix-item.active {
+  background: #ffeaa7;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+}
+.matrix-item.winner {
+  background: #e84393;
+  color: #fff;
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}

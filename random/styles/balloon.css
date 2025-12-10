@@ -1,0 +1,45 @@
+/* 气球抽签样式 */
+/* 这个模式的样式可能包含在其他通用样式中，或者需要根据实际实现添加 */
+.balloon-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.balloon {
+  width: 60px;
+  height: 80px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(135deg, #ff7675, #fd79a8);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.balloon::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 20px;
+  background: #2d3436;
+}
+
+.balloon:hover {
+  transform: translateY(-5px);
+}
+
+.balloon.pop {
+  animation: balloon-pop 0.3s ease forwards;
+}
+
+@keyframes balloon-pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
