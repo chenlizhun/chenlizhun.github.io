@@ -474,6 +474,33 @@ pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
 }
 
 /* Responsive adjustments */
+@media (max-width: 1100px) {
+    /* Stack tab container vertically to avoid squeezing */
+    .tab-container {
+        flex-direction: column;
+        gap: 1rem;
+        min-height: 300px;
+    }
+
+    /* Left column (tabs/content) goes full width */
+    .tab-container > div:first-child {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 1rem;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Right column (code area) becomes full width and non-sticky */
+    .tab-container > div:last-child {
+        width: 100%;
+        max-width: 100% !important;
+        position: static;
+        top: auto;
+        align-self: auto;
+        order: -1; /* show code first on small screens */
+    }
+}
 @media (max-width: 768px) {
     .step {
         flex-direction: column;
@@ -498,6 +525,15 @@ pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
         border-bottom: 1px solid #e5e7eb;
         margin-right: 0;
         margin-bottom: 1rem;
+    }
+
+    /* Ensure code area fills width on very small screens */
+    .tab-container > div:last-child {
+        width: 100%;
+        max-width: 100%;
+        position: static;
+        top: auto;
+        align-self: auto;
     }
     
     /* Adjust tab button styles on small screens */
