@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小游戏中心 · 花朵连连看</title>
+  <link rel="stylesheet" href="flower-match.css" />
+</head>
+<body>
+  <div class="fm-app">
+    <header class="fm-header">
+      <button class="fm-back" id="btnBack">⟵ 返回诗词库</button>
+      <div class="fm-title">花朵连连看</div>
+      <div class="fm-subtitle">翻牌找出相同的花朵，配对成功即可消除，完成所有配对赢得胜利。</div>
+    </header>
+
+    <main class="fm-main">
+      <section class="fm-status">
+        <div class="fm-status-item">步数：<span id="moveCount">0</span></div>
+        <div class="fm-status-item">时间：<span id="timeText">00:00</span></div>
+        <div class="fm-status-item">已配对：<span id="matchedCount">0</span>/<span id="totalPairs">0</span></div>
+      </section>
+
+      <section class="fm-controls">
+        <button class="fm-btn fm-primary" id="btnStart">▶ 开始游戏</button>
+        <button class="fm-btn fm-secondary" id="btnRestart" disabled>重新开始</button>
+      </section>
+
+      <section class="fm-board" id="board"></section>
+    </main>
+
+    <footer class="fm-footer">
+      提示：首次开始会短暂亮牌帮助记忆；尽量用更少步数完成所有配对。
+    </footer>
+  </div>
+
+  <div id="completeModal" class="fm-modal">
+    <div class="fm-modal-content">
+      <div class="fm-modal-header"><h2>🎉 恭喜完成！</h2></div>
+      <div class="fm-modal-body">
+        <div class="fm-summary">
+          <div class="fm-summary-item">总步数：<span id="sumMoves">0</span></div>
+          <div class="fm-summary-item">用时：<span id="sumTime">00:00</span></div>
+          <div class="fm-summary-item">配对成功：<span id="sumPairs">0</span></div>
+        </div>
+        <div class="fm-summary-msg">太棒了！要不要再来一局？</div>
+      </div>
+      <div class="fm-modal-footer">
+        <button class="fm-btn fm-primary" id="btnPlayAgain">再玩一次</button>
+        <button class="fm-btn fm-secondary" id="btnReturnHome">返回诗词库</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quizModal" class="fm-modal">
+    <div class="fm-modal-content">
+      <div class="fm-modal-header"><h2>🌸 花主题小测验</h2></div>
+      <div class="fm-modal-body">
+        <div class="fm-quiz-question" id="quizQuestion">——</div>
+        <div class="fm-quiz-options" id="quizOptions"></div>
+        <div class="fm-quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="fm-modal-footer">
+        <button class="fm-btn fm-secondary" id="btnQuizBack">返回诗词库</button>
+      </div>
+    </div>
+  </div>
+  <script src="../../data.js"></script>
+  <script src="flower-match.js"></script>
+</body>
+</html>

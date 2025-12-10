@@ -194,8 +194,8 @@ function saveHighlightMode() {
 
 // 游戏信息配置
 const GAME_INFO = {
-  "flower": { name: "花朵连连看", icon: "🌸", available: true, description: "找出相同的花朵" },
-  "spring": { name: "春天猜谜", icon: "🌱", available: true, description: "猜春天的诗句" },
+  "flower": { name: "花朵连连看", icon: "🌸", available: true, description: "找出相同的花朵", path: "gamecenter/flower-match/index.html" },
+  "spring": { name: "春天农耕", icon: "🌱", available: true, description: "井字棋人机对战", path: "gamecenter/spring-farming/index.html" },
   "autumn": { name: "秋天拼图", icon: "🍂", available: false, description: "秋天诗句拼图" },
   "moon": { name: "月亮找朋友", icon: "🌙", available: false, description: "月亮主题游戏" },
   "mountain": { name: "山山水水", icon: "⛰️", available: false, description: "山水诗句游戏" },
@@ -203,7 +203,7 @@ const GAME_INFO = {
   "wind": { name: "和风送诗", icon: "💨", available: false, description: "风系诗句游戏" },
   "bird": { name: "小鸟找家", icon: "🐦", available: false, description: "鸟类诗句游戏" },
   "number": { name: "数字诗词", icon: "🔢", available: false, description: "数字诗句游戏" },
-  "color": { name: "颜色大挑战", icon: "🎨", available: true, description: "颜色识别游戏" }
+  "color": { name: "颜色大挑战", icon: "🎨", available: false, description: "颜色识别游戏" }
 };
  
 
@@ -304,15 +304,20 @@ function renderGameCenter() {
   GAME_THEMES.forEach(theme => {
     const game = GAME_INFO[theme];
     const gameEl = document.createElement("button");
-    gameEl.className = "game-item coming-soon";
+    const isAvailable = !!(game && game.available && game.path);
+    gameEl.className = `game-item ${isAvailable ? "available" : "coming-soon"}`;
     gameEl.innerHTML = `
       <span class="game-item-icon">${game.icon}</span>
       <div class="game-item-name">${game.name}</div>
-      <div class="game-item-status">� 正在开放中</div>
+      <div class="game-item-status">${isAvailable ? "立即体验" : "即将开放"}</div>
     `;
     gameEl.addEventListener("click", () => {
       playClick();
-      alert(`"${game.name}" 正在开放中，稍后即可体验！🎉`);
+      if (isAvailable) {
+        window.location.href = game.path;
+      } else {
+        alert(`"${game.name}" 正在开放中，稍后即可体验！🎉`);
+      }
     });
     gameGridEl.appendChild(gameEl);
   });

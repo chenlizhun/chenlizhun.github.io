@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小游戏中心 · 春天农耕</title>
+  <link rel="stylesheet" href="spring-farming.css" />
+</head>
+<body>
+  <div class="sf-app">
+    <header class="sf-header">
+      <button class="sf-back" id="btnBack">⟵ 返回诗词库</button>
+      <div class="sf-title">春天农耕 · 井字棋</div>
+      <div class="sf-subtitle">3×3 九宫格，人机对战。随机决定先手。</div>
+    </header>
+    <main class="sf-main">
+      <section class="sf-status">
+        <div class="sf-status-item">当前回合：<span id="turnText">——</span></div>
+        <div class="sf-status-item">步数：<span id="moveText">0</span></div>
+        <div class="sf-status-item">棋子图标：玩家 🌱 / 电脑 🚜</div>
+      </section>
+      <section class="sf-controls">
+        <button class="sf-btn sf-primary" id="btnStart">▶ 开始对局</button>
+        <button class="sf-btn sf-secondary" id="btnRestart" disabled>重新开始</button>
+        <button class="sf-btn sf-secondary" id="btnUndo" disabled>悔棋</button>
+      </section>
+      <section class="sf-board" id="board"></section>
+    </main>
+    <footer class="sf-footer">
+      规则：轮流落子，先连成任意横、竖或斜的三个为胜。悔棋需答对一道“春”主题诗词问题。胜利将触发特别鼓励与奖励动画。
+    </footer>
+  </div>
+
+  <div id="winModal" class="sf-modal">
+    <div class="sf-modal-content">
+      <div class="sf-modal-header"><h2>🎉 胜利！</h2></div>
+      <div class="sf-modal-body">
+        <div class="sf-win-summary">
+          <div>总步数：<span id="winMoves">0</span></div>
+          <div>用时：<span id="winTime">00:00</span></div>
+        </div>
+        <div class="sf-win-msg">春日耕耘，收获满满！</div>
+      </div>
+      <div class="sf-modal-footer">
+        <button class="sf-btn sf-primary" id="btnPlayAgain">再战一局</button>
+        <button class="sf-btn sf-secondary" id="btnReturnHome">返回诗词库</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quizModal" class="sf-modal">
+    <div class="sf-modal-content">
+      <div class="sf-modal-header"><h2>🌱 春主题小测验</h2></div>
+      <div class="sf-modal-body">
+        <div class="sf-quiz-countdown" id="quizCountdown" aria-live="polite">请先读题（3）</div>
+        <div class="sf-quiz-question" id="quizQuestion">——</div>
+        <div class="sf-quiz-options" id="quizOptions"></div>
+        <div class="sf-quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="sf-modal-footer">
+        <button class="sf-btn sf-secondary" id="btnQuizCancel">取消悔棋</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../data.js"></script>
+  <script src="spring-farming.js"></script>
+</body>
+</html>
