@@ -13,18 +13,45 @@
         <!-- 左侧侧边栏 -->
         <aside class="sidebar">
             <div class="sidebar-title">
-                <div class="sidebar-rabbit">🐰</div>
+                <div class="sidebar-rabbit" id="rabbitLogo">🐰</div>
                 <div class="sidebar-text">Rabbit的诗词库</div>
             </div>
+            
+            <!-- 特殊功能菜单 -->
+            <div class="special-menu">
+                <button class="special-menu-btn" id="gameCenterBtn">
+                    <span class="menu-icon">🎮</span>
+                    <span class="menu-text">小游戏中心</span>
+                </button>
+                <button class="special-menu-btn" id="rabbitParkBtn" onclick="document.getElementById('rabbitParkModal').classList.add('active'); document.body.style.overflow = 'hidden';">
+                <span class="menu-icon">🐰</span>
+                <span class="menu-text">兔子乐园</span>
+                <span class="hidden-egg">彩蛋在这里！</span>
+            </button>
+            </div>
+            
             <!-- 侧边主题按钮通过 JS 填充 -->
         </aside>
 
         <!-- 右侧内容区 -->
         <main class="content">
+            <!-- 彩蛋引导按钮 -->
+            <div class="egg-guide-banner">
+                <button class="egg-guide-btn" onclick="document.getElementById('rabbitParkBtn').click()">
+                    <span class="guide-icon">🎁</span>
+                    <span class="guide-text">点击这里直接进入彩蛋入口！</span>
+                </button>
+            </div>
+            
             <!-- 顶部标题 + 花主题小游戏按钮 -->
             <div class="header">
                 <div class="header-top">
                     <div class="header-title" id="currentThemeTitle">主题：花</div>
+
+                    <!-- 顶部入口：小游戏中心 -->
+                    <button class="theme-game-btn" id="gameCenterTopBtn" title="小游戏中心">
+                        🎮 小游戏中心
+                    </button>
 
                     <!-- 只在当前主题为“花”时显示，由 JS 控制 -->
                     <button class="theme-game-btn" id="flowerGameBtn" style="display:none;">
@@ -125,6 +152,51 @@
             <div class="modal-title" id="modalTitle"></div>
             <div class="modal-sentence" id="modalSentence"></div>
             <div class="modal-meta" id="modalMeta"></div>
+            
+        </div>
+    </div>
+    
+    <!-- 小游戏中心模态框 -->
+    <div class="modal-overlay" id="gameCenterModal">
+        <div class="modal-dialog game-center-dialog">
+            <button class="modal-close" id="gameCenterCloseBtn" aria-label="关闭">×</button>
+            <div class="modal-title">🎮 小游戏中心</div>
+            <div class="game-center-content">
+                <div class="game-grid" id="gameGrid">
+                    <!-- 游戏列表通过 JS 渲染 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 兔子乐园模态框 -->
+    <div class="modal-overlay" id="rabbitParkModal">
+        <div class="modal-dialog rabbit-park-dialog">
+            <button class="modal-close" id="rabbitParkCloseBtn" aria-label="关闭" onclick="document.getElementById('rabbitParkModal').classList.remove('active'); document.body.style.overflow = 'auto';">×</button>
+            <div class="modal-title">🐇 兔子乐园</div>
+            <div class="rabbit-park-content">
+                <div class="rabbit-park-main">
+                    
+                    <div class="park-message" id="parkMessage">点击按钮和兔兔一起玩！</div>
+                    <div class="park-game-area">
+                        <div class="park-game-header">🥕 收获小游戏</div>
+                        <div class="park-game-controls">
+                            <button class="park-action-btn" id="startHarvestBtn"><span>▶️</span> 开始收获</button>
+                            <div class="park-score">分数：<span id="harvestScore">0</span></div>
+                        </div>
+                        <div class="harvest-area" id="harvestArea"></div>
+                    </div>
+                    <div class="park-game-area">
+                        <div class="park-game-header">🧠 记忆小游戏</div>
+                        <div class="memory-controls">
+                            <button class="park-action-btn" id="memoryStartBtn"><span>▶️</span> 开始记忆</button>
+                            <div class="memory-status" id="memoryStatus">准备好了吗？</div>
+                        </div>
+                        <div class="memory-seq" id="memorySeq"></div>
+                        <div class="memory-options" id="memoryOptions"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
