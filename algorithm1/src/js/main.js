@@ -352,9 +352,8 @@ function initializeDemoLinks(chapterTitle) {
     const links = document.querySelectorAll('.demo-link[data-demo-id]');
     links.forEach(a => {
         const id = a.getAttribute('data-demo-id');
-        const href = `src/data/demo/${id}.html`;
-        const fullHref = new URL(href, location.href).href;
-        a.setAttribute('href', fullHref);
+        const href = `./src/data/demo/${id}.html`;
+        a.setAttribute('href', href);
         const show = () => a.classList.remove('hidden');
         const hide = () => a.classList.add('hidden');
         const isHttp = /^https?:$/.test(location.protocol);
@@ -362,14 +361,14 @@ function initializeDemoLinks(chapterTitle) {
             hide();
             return;
         }
-        fetch(fullHref, { method: 'HEAD', cache: 'no-store' }).then(res => {
+        fetch(href, { method: 'HEAD', cache: 'no-store' }).then(res => {
             if (res && res.ok) show(); else {
-                fetch(fullHref, { method: 'GET', cache: 'no-store' }).then(r2 => {
+                fetch(href, { method: 'GET', cache: 'no-store' }).then(r2 => {
                     if (r2 && r2.ok) show(); else hide();
                 }).catch(hide);
             }
         }).catch(() => {
-            fetch(fullHref, { method: 'GET', cache: 'no-store' }).then(r2 => {
+            fetch(href, { method: 'GET', cache: 'no-store' }).then(r2 => {
                 if (r2 && r2.ok) show(); else hide();
             }).catch(hide);
         });
