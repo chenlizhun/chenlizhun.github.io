@@ -155,6 +155,7 @@ function showChapterDetails(chapterTitle) {
     initializeStepVisualizations();
     initializeStatusControls(chapter.title);
     setHeaderSticky(false);
+    initializeDemoLinks(chapter.title);
 
     
 }
@@ -175,6 +176,7 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                     LeetCode
                 </a>` : ''}
+                <a href="#" target="_blank" rel="noopener" class="leetcode-link ml-2 demo-link hidden" data-demo-id="${lessonIndex}-${problemIndex}">算法推演</a>
                 <span class="ml-2 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">第${lessonIndex}课</span>
             </h3>
             <div class="flex items-center justify-between mb-3">
@@ -344,6 +346,34 @@ function initializeProblemTabs() {
 // Initialize step visualizations
 function initializeStepVisualizations() {
     // Additional step visualization logic can be added here
+}
+
+function initializeDemoLinks(chapterTitle) {
+    const links = document.querySelectorAll('.demo-link[data-demo-id]');
+    links.forEach(a => {
+        const id = a.getAttribute('data-demo-id');
+        const href = `src/data/demo/${id}.html`;
+        const fullHref = new URL(href, location.href).href;
+        a.setAttribute('href', fullHref);
+        const show = () => a.classList.remove('hidden');
+        const hide = () => a.classList.add('hidden');
+        const isHttp = /^https?:$/.test(location.protocol);
+        if (!isHttp) {
+            hide();
+            return;
+        }
+        fetch(fullHref, { method: 'HEAD', cache: 'no-store' }).then(res => {
+            if (res && res.ok) show(); else {
+                fetch(fullHref, { method: 'GET', cache: 'no-store' }).then(r2 => {
+                    if (r2 && r2.ok) show(); else hide();
+                }).catch(hide);
+            }
+        }).catch(() => {
+            fetch(fullHref, { method: 'GET', cache: 'no-store' }).then(r2 => {
+                if (r2 && r2.ok) show(); else hide();
+            }).catch(hide);
+        });
+    });
 }
 
 function normalizeText(t) {

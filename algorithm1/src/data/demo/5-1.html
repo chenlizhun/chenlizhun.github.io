@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>最长公共前缀算法推演</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft Yahei', monospace;
+        }
+
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            background-color: #f5f7fa;
+            overflow: hidden; /* 全局禁止滚动，内部区域独立滚动 */
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column; /* 先垂直布局标题+内容 */
+        }
+
+        /* 标题区域 - 全屏适配 */
+        .header {
+            width: 100%;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background-color: #fafbfc;
+            flex-shrink: 0; /* 不被挤压 */
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .algo-info {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+
+        /* 核心内容区 - 全屏左右布局 */
+        .content-wrapper {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 70px); /* 减去标题高度 */
+            flex: 1;
+        }
+
+        /* 左侧代码区 - 全屏优化：足够宽度+完整展示 */
+        .code-container {
+            width: 420px; /* 加宽代码区，确保代码不折行 */
+            min-width: 600px;
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            flex-shrink: 0; /* 禁止压缩，保证宽度 */
+        }
+
+        .code-title {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-title i {
+            width: 4px;
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 2px;
+        }
+
+        .code-section {
+            font-family: 'Consolas', 'Monaco', 'JetBrains Mono', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* 语法高亮样式 */
+        .code-keyword { color: #cc99cd; }
+        .code-type { color: #81a2be; }
+        .code-function { color: #66d9ef; }
+        .code-string { color: #a6e22e; }
+        .code-comment { color: #75715e; }
+        .code-operator { color: #f92672; }
+        .code-number { color: #ae81ff; }
+
+        .code-line {
+            margin: 4px 0;
+            position: relative;
+            padding-left: 40px;
+            white-space: pre; /* 保持代码格式，不折行 */
+        }
+
+        .code-line::before {
+            content: attr(data-line);
+            position: absolute;
+            left: 0;
+            color: #888;
+            width: 35px;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .code-line.breakpoint {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+            animation: blink 1.2s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { background-color: rgba(231, 76, 60, 0.2); }
+            to { background-color: rgba(231, 76, 60, 0.4); }
+        }
+
+        /* 右侧推演区 - 占满剩余空间 */
+        .demo-container {
+            flex: 1; /* 占满剩余所有宽度 */
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto; /* 独立滚动 */
+            min-width: 0; /* 解决flex子元素宽度溢出问题 */
+        }
+
+        /* 示例选择区 */
+        .example-section {
+            margin-bottom: 16px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .example-title {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-title::before {
+            content: "";
+            width: 3px;
+            height: 18px;
+            background-color: #3498db;
+        }
+
+        .example-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-item {
+            padding: 6px 14px;
+            background-color: #e8f4fd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            border: 1px solid transparent;
+        }
+
+        .example-item:hover {
+            background-color: #d1e7fd;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .example-item.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* 输入区 */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #strs-input {
+            padding: 10px 14px;
+            border: 2px solid #e0e6ed;
+            border-radius: 6px;
+            flex: 1; /* 占满输入区剩余宽度 */
+            min-width: 200px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        #strs-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        #start-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #start-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        #auto-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        #auto-btn:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+        }
+
+        /* 可视化区域 */
+        .visualization {
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 280px;
+            position: relative;
+            background-color: #f9fbfd;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .step-indicator {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e74c3c;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .step-indicator::before {
+            content: "🔍";
+            font-size: 16px;
+        }
+
+        /* 进度条 */
+        .step-progress {
+            width: 100%;
+            height: 6px;
+            background-color: #e0e6ed;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        /* 字符串展示 */
+        .strs-display {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .str-item {
+            padding: 14px 20px;
+            background-color: #fff;
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            font-size: 18px;
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .str-item.highlight {
+            border-color: #e74c3c;
+            background-color: #ffeaea;
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(231, 76, 60, 0.15);
+        }
+
+        /* 前缀展示 */
+        .prefix-display {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .prefix-label {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .prefix-text {
+            font-size: 22px;
+            font-weight: 600;
+            color: #27ae60;
+            padding: 10px 20px;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 150px;
+            background-color: #f0fdf4;
+            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.1);
+        }
+
+        /* 字符对比动画 */
+        .char-compare {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .char-box {
+            width: 42px;
+            height: 42px;
+            line-height: 42px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            background-color: white;
+            transition: all 0.3s;
+        }
+
+        .char-box.match {
+            border-color: #27ae60;
+            background-color: #eafaf1;
+            animation: pulse 0.6s ease;
+        }
+
+        .char-box.mismatch {
+            border-color: #e74c3c;
+            background-color: #ffeaea;
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* 步骤说明 */
+        .explanation {
+            background-color: #e8f4fd;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+        }
+
+        /* 控制按钮 */
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .ctrl-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        #prev-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        #prev-btn:hover:not(:disabled) {
+            background-color: #7f8c8d;
+        }
+
+        #next-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #next-btn:hover:not(:disabled) {
+            background-color: #2980b9;
+        }
+
+        #reset-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #reset-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .ctrl-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 滚动条优化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .code-container::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+        .code-container::-webkit-scrollbar-track {
+            background: #333;
+        }
+
+        /* 移动端适配（竖屏） */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .content-wrapper {
+                flex-direction: column;
+                height: calc(100vh - 70px);
+            }
+            .code-container {
+                width: 100%;
+                height: 40%;
+                min-height: 200px;
+            }
+            .demo-container {
+                height: 60%;
+                width: 100%;
+            }
+        }
+
+        /* 平板横屏适配 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .code-container {
+                width: 380px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <div class="header">
+            <h1>最长公共前缀 (Longest Common Prefix) 算法推演</h1>
+            <div class="algo-info">算法复杂度：时间 O(n*m) | 空间 O(1)（n为字符串数量，m为最短字符串长度）</div>
+        </div>
+
+        <!-- 核心内容区 -->
+        <div class="content-wrapper">
+            <!-- 左侧代码区 - 全屏宽度优化 -->
+            <div class="code-container">
+                <div class="code-title">
+                    <i></i>
+                    核心代码 (Dart)
+                </div>
+                <div class="code-section" id="code-section">
+                    <div class="code-line" data-line="1"><span class="code-keyword">class</span> <span class="code-type">Solution</span> {</div>
+                    <div class="code-line" data-line="2">  <span class="code-type">String</span> <span class="code-function">longestCommonPrefix</span>(<span class="code-type">List</span> strs) {</div>
+                    <div class="code-line" data-line="3">    <span class="code-keyword">if</span> (strs.isEmpty) <span class="code-keyword">return</span> <span class="code-string">""</span>;</div>
+                    <div class="code-line" data-line="4">    <span class="code-type">String</span> prefix = strs[0];</div>
+                    <div class="code-line" data-line="5">    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = 1; i &lt; strs.length; i++) {</div>
+                    <div class="code-line" data-line="6">      <span class="code-keyword">while</span> (!strs[i].startsWith(prefix)) {</div>
+                    <div class="code-line" data-line="7">        prefix = prefix.substring(0, prefix.length - 1);</div>
+                    <div class="code-line" data-line="8">        <span class="code-keyword">if</span> (prefix.isEmpty) <span class="code-keyword">return</span> <span class="code-string">""</span>;</div>
+                    <div class="code-line" data-line="9">      }</div>
+                    <div class="code-line" data-line="10">    }</div>
+                    <div class="code-line" data-line="11">    <span class="code-keyword">return</span> prefix;</div>
+                    <div class="code-line" data-line="12">  }</div>
+                    <div class="code-line" data-line="13">}</div>
+                </div>
+            </div>
+
+            <!-- 右侧推演区 - 占满剩余空间 -->
+            <div class="demo-container">
+                <!-- 示例选择区 -->
+                <div class="example-section">
+                    <div class="example-title">快速示例</div>
+                    <div class="example-list">
+                        <div class="example-item" data-strs='["flower","flow","flight"]'>["flower","flow","flight"]</div>
+                        <div class="example-item" data-strs='["dog","racecar","car"]'>["dog","racecar","car"]</div>
+                        <div class="example-item" data-strs='["apple","app","apricot"]'>["apple","app","apricot"]</div>
+                        <div class="example-item" data-strs='["a"]'>["a"]</div>
+                        <div class="example-item" data-strs='[]'>[]</div>
+                    </div>
+                </div>
+
+                <!-- 输入区 -->
+                <div class="input-area">
+                    <input type="text" id="strs-input" placeholder="请输入字符串数组，例如：flower,flow,flight" value="flower,flow,flight">
+                    <button class="btn" id="start-btn">
+                        🚀 开始推演
+                    </button>
+                    <button class="btn" id="auto-btn">
+                        ⏩ 自动推演
+                    </button>
+                </div>
+
+                <!-- 可视化区域 -->
+                <div class="visualization">
+                    <div class="step-indicator">步骤：0/初始化</div>
+                    
+                    <!-- 进度条 -->
+                    <div class="step-progress">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <!-- 字符串展示 -->
+                    <div class="strs-display" id="strs-display"></div>
+                    
+                    <!-- 前缀展示 -->
+                    <div class="prefix-display">
+                        <div class="prefix-label">当前公共前缀：</div>
+                        <div class="prefix-text" id="prefix-text">""</div>
+                    </div>
+                    
+                    <!-- 字符对比动画 -->
+                    <div class="char-compare" id="char-compare"></div>
+                    
+                    <!-- 步骤说明 -->
+                    <div class="explanation" id="explanation">
+                        点击"开始推演"按钮，或选择快速示例，开始算法推演过程
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="control-buttons">
+                    <button class="ctrl-btn" id="prev-btn" disabled>
+                        ← 上一步
+                    </button>
+                    <button class="ctrl-btn" id="next-btn" disabled>
+                        下一步 →
+                    </button>
+                    <button class="ctrl-btn" id="reset-btn">
+                        🔄 重置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态
+        const state = {
+            strs: [],          // 输入的字符串数组
+            currentStep: 0,    // 当前步骤
+            prefix: "",        // 当前前缀
+            steps: [],         // 所有步骤
+            maxSteps: 0,       // 总步骤数
+            isRunning: false,  // 是否正在推演
+            autoPlay: false,   // 是否自动推演
+            autoPlayInterval: null // 自动推演定时器
+        };
+
+        // DOM元素
+        const strsInput = document.getElementById('strs-input');
+        const startBtn = document.getElementById('start-btn');
+        const autoBtn = document.getElementById('auto-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const strsDisplay = document.getElementById('strs-display');
+        const prefixText = document.getElementById('prefix-text');
+        const explanation = document.getElementById('explanation');
+        const stepIndicator = document.querySelector('.step-indicator');
+        const charCompare = document.getElementById('char-compare');
+        const progressBar = document.getElementById('progress-bar');
+        const exampleItems = document.querySelectorAll('.example-item');
+
+        // 初始化步骤生成
+        function generateSteps(strs) {
+            const steps = [];
+            if (!strs || strs.length === 0) {
+                // 空数组步骤
+                steps.push({
+                    type: "empty",
+                    codeLine: 3,
+                    prefix: "",
+                    explanation: "输入数组为空，直接返回空字符串作为公共前缀",
+                    highlightIndex: -1
+                });
+                return steps;
+            }
+
+            // 步骤1：初始化前缀为第一个字符串
+            let prefix = strs[0];
+            steps.push({
+                type: "init",
+                codeLine: 4,
+                prefix: prefix,
+                explanation: `初始化公共前缀为数组第一个元素："${prefix}"`,
+                highlightIndex: 0
+            });
+
+            // 遍历其他字符串
+            for (let i = 1; i < strs.length; i++) {
+                // 步骤2：开始对比第i个字符串
+                steps.push({
+                    type: "loop",
+                    codeLine: 5,
+                    prefix: prefix,
+                    explanation: `开始对比第${i+1}个字符串："${strs[i]}"，当前前缀为"${prefix}"`,
+                    highlightIndex: i
+                });
+
+                // 内层循环：缩短前缀直到匹配
+                while (!strs[i].startsWith(prefix)) {
+                    // 步骤3：前缀不匹配，缩短前缀
+                    steps.push({
+                        type: "while",
+                        codeLine: 6,
+                        prefix: prefix,
+                        explanation: `"${strs[i]}" 不以 "${prefix}" 开头，需要缩短前缀`,
+                        highlightIndex: i,
+                        compareChars: getCompareChars(prefix, strs[i])
+                    });
+
+                    // 缩短前缀
+                    const oldPrefix = prefix;
+                    prefix = prefix.substring(0, prefix.length - 1);
+                    steps.push({
+                        type: "shorten",
+                        codeLine: 7,
+                        prefix: prefix,
+                        explanation: `将前缀从 "${oldPrefix}" 缩短为 "${prefix || '空字符串'}"`,
+                        highlightIndex: i
+                    });
+
+                    // 如果前缀为空，直接返回
+                    if (prefix === "") {
+                        steps.push({
+                            type: "empty-prefix",
+                            codeLine: 8,
+                            prefix: "",
+                            explanation: "前缀已为空，说明没有公共前缀，直接返回空字符串",
+                            highlightIndex: i
+                        });
+                        return steps;
+                    }
+                }
+
+                // 步骤4：前缀匹配当前字符串
+                steps.push({
+                    type: "match",
+                    codeLine: 9,
+                    prefix: prefix,
+                    explanation: `"${strs[i]}" 以 "${prefix}" 开头，匹配成功，继续下一个字符串`,
+                    highlightIndex: i,
+                    compareChars: getCompareChars(prefix, strs[i])
+                });
+            }
+
+            // 步骤5：所有字符串匹配完成
+            steps.push({
+                type: "finish",
+                codeLine: 11,
+                prefix: prefix,
+                explanation: `所有字符串对比完成，最终公共前缀为："${prefix}"`,
+                highlightIndex: -1
+            });
+
+            return steps;
+        }
+
+        // 获取字符对比数据
+        function getCompareChars(prefix, str) {
+            const chars = [];
+            const maxLen = Math.min(prefix.length, str.length);
+            for (let j = 0; j < maxLen; j++) {
+                chars.push({
+                    char1: prefix[j] || "",
+                    char2: str[j] || "",
+                    match: prefix[j] === str[j]
+                });
+            }
+            // 补充长度差
+            if (prefix.length > str.length) {
+                for (let j = str.length; j < prefix.length; j++) {
+                    chars.push({
+                        char1: prefix[j] || "",
+                        char2: "",
+                        match: false
+                    });
+                }
+            }
+            return chars;
+        }
+
+        // 渲染当前步骤
+        function renderStep(step) {
+            // 更新步骤指示器
+            stepIndicator.textContent = `步骤：${state.currentStep+1}/${state.steps.length} · ${step.type}`;
+            
+            // 更新进度条
+            const progress = ((state.currentStep + 1) / state.steps.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // 更新代码断点
+            document.querySelectorAll('.code-line.breakpoint').forEach(line => {
+                line.classList.remove('breakpoint');
+            });
+            document.querySelector(`.code-line[data-line="${step.codeLine}"]`).classList.add('breakpoint');
+            
+            // 更新字符串展示
+            strsDisplay.innerHTML = "";
+            state.strs.forEach((str, index) => {
+                const strItem = document.createElement('div');
+                strItem.className = `str-item ${index === step.highlightIndex ? 'highlight' : ''}`;
+                strItem.textContent = str || '""';
+                strsDisplay.appendChild(strItem);
+            });
+            
+            // 更新前缀展示
+            prefixText.textContent = step.prefix || '""';
+            
+            // 更新字符对比动画
+            charCompare.innerHTML = "";
+            if (step.compareChars) {
+                step.compareChars.forEach((char, index) => {
+                    const charBox1 = document.createElement('div');
+                    charBox1.className = `char-box ${char.match ? 'match' : 'mismatch'}`;
+                    charBox1.textContent = char.char1 || "∅";
+                    
+                    const charBox2 = document.createElement('div');
+                    charBox2.className = `char-box ${char.match ? 'match' : 'mismatch'}`;
+                    charBox2.textContent = char.char2 || "∅";
+                    
+                    charCompare.appendChild(charBox1);
+                    charCompare.appendChild(charBox2);
+                    
+                    // 添加分隔线
+                    if (index < step.compareChars.length - 1) {
+                        const divider = document.createElement('div');
+                        divider.textContent = "|";
+                        divider.style.lineHeight = "42px";
+                        charCompare.appendChild(divider);
+                    }
+                });
+            }
+            
+            // 更新说明
+            explanation.textContent = step.explanation;
+            
+            // 更新按钮状态
+            prevBtn.disabled = state.currentStep === 0;
+            nextBtn.disabled = state.currentStep === state.steps.length - 1;
+            
+            // 自动推演逻辑
+            if (state.autoPlay && !nextBtn.disabled) {
+                clearTimeout(state.autoPlayInterval);
+                state.autoPlayInterval = setTimeout(() => {
+                    state.currentStep++;
+                    renderStep(state.steps[state.currentStep]);
+                }, 1500);
+            } else if (state.autoPlay && nextBtn.disabled) {
+                state.autoPlay = false;
+                autoBtn.textContent = "⏩ 自动推演";
+            }
+        }
+
+        // 初始化
+        function init() {
+            // 示例点击事件
+            exampleItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // 移除其他示例的激活状态
+                    exampleItems.forEach(i => i.classList.remove('active'));
+                    // 添加当前示例激活状态
+                    item.classList.add('active');
+                    
+                    const strs = JSON.parse(item.dataset.strs);
+                    strsInput.value = strs.join(',');
+                    startDeduction();
+                });
+            });
+
+            // 开始推演
+            startBtn.addEventListener('click', () => {
+                state.autoPlay = false;
+                clearTimeout(state.autoPlayInterval);
+                autoBtn.textContent = "⏩ 自动推演";
+                startDeduction();
+            });
+
+            // 自动推演
+            autoBtn.addEventListener('click', () => {
+                if (state.autoPlay) {
+                    state.autoPlay = false;
+                    clearTimeout(state.autoPlayInterval);
+                    autoBtn.textContent = "⏩ 自动推演";
+                } else {
+                    state.autoPlay = true;
+                    autoBtn.textContent = "⏹ 停止自动";
+                    // 如果当前是第一步，直接开始；否则继续
+                    if (state.currentStep < state.steps.length - 1) {
+                        clearTimeout(state.autoPlayInterval);
+                        state.autoPlayInterval = setTimeout(() => {
+                            state.currentStep++;
+                            renderStep(state.steps[state.currentStep]);
+                        }, 1000);
+                    }
+                }
+            });
+
+            // 上一步
+            prevBtn.addEventListener('click', () => {
+                if (state.currentStep > 0) {
+                    state.currentStep--;
+                    renderStep(state.steps[state.currentStep]);
+                }
+            });
+
+            // 下一步
+            nextBtn.addEventListener('click', () => {
+                if (state.currentStep < state.steps.length - 1) {
+                    state.currentStep++;
+                    renderStep(state.steps[state.currentStep]);
+                }
+            });
+
+            // 重置
+            resetBtn.addEventListener('click', () => {
+                state.autoPlay = false;
+                clearTimeout(state.autoPlayInterval);
+                autoBtn.textContent = "⏩ 自动推演";
+                state.currentStep = 0;
+                if (state.steps.length > 0) {
+                    renderStep(state.steps[0]);
+                }
+            });
+
+            // 初始加载第一个示例
+            exampleItems[0].classList.add('active');
+            startDeduction();
+        }
+
+        // 开始推演
+        function startDeduction() {
+            // 解析输入
+            const input = strsInput.value.trim();
+            let strs = [];
+            if (input) {
+                strs = input.split(',').map(s => s.trim());
+            }
+            
+            state.strs = strs;
+            state.steps = generateSteps(strs);
+            state.currentStep = 0;
+            state.maxSteps = state.steps.length;
+            
+            // 渲染第一步
+            renderStep(state.steps[0]);
+            
+            // 启用控制按钮
+            prevBtn.disabled = false;
+            nextBtn.disabled = state.steps.length <= 1;
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+        
+        // 窗口大小变化时重新渲染
+        window.addEventListener('resize', () => {
+            if (state.steps.length > 0) {
+                renderStep(state.steps[state.currentStep]);
+            }
+        });
+    </script>
+</body>
+</html>
