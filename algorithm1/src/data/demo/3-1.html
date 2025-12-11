@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>二分查找插入位置动画演示</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    .main-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+    /* 左侧代码区样式 */
+    #codePanel {
+      width: 60%;
+      height: 100%;
+      background-color: #1e1e1e;
+      color: #dcdcdc;
+      padding: 20px;
+      overflow: auto;
+      font-family: Consolas, monospace;
+      font-size: 16px;
+    }
+    #codePanel pre {
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .code-line-highlight {
+      background-color: #264F78 !important;
+      color: white !important;
+    }
+    /* 右侧动画区样式 */
+    #animationPanel {
+      width: 40%;
+      height: 100%;
+      background-color: #f5f5f5;
+      padding: 20px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .param-panel {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+    .param-panel input {
+      padding: 8px;
+      font-size: 14px;
+      width: 100%;
+    }
+    .param-panel button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .control-panel {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .control-panel button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2196F3;
+      color: white;
+      transition: background-color 0.2s;
+    }
+    .control-panel button:hover {
+      background-color: #1976D2;
+    }
+    #animationCanvas {
+      width: 100%;
+      flex: 1;
+      background-color: white;
+      border: 1px solid #ccc;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+    }
+    #debugPanel {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #e9e9e9;
+      border-radius: 5px;
+      width: 100%;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+    /* 动画元素样式 */
+    .array-element {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      line-height: 60px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .array-index {
+      position: absolute;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      width: 60px;
+    }
+    .pointer-label {
+      position: absolute;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      width: 60px;
+    }
+    .range-box {
+      position: absolute;
+      border: 2px dashed #2196F3;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 0;
+      transition: all 0.3s ease;
+    }
+    .insert-marker {
+      position: absolute;
+      width: 60px;
+      height: 40px;
+      background-color: #FFC107;
+      color: black;
+      text-align: center;
+      line-height: 40px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .target-label {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- 左侧代码区 -->
+    <div id="codePanel"></div>
+    
+    <!-- 右侧动画演示区 -->
+    <div id="animationPanel">
+      <!-- 参数设置区 -->
+      <div class="param-panel">
+        <div>有序数组（逗号分隔）：</div>
+        <input type="text" id="numsInput" value="1,3,5,6" placeholder="例如：1,3,5,6">
+        <div>目标值：</div>
+        <input type="text" id="targetInput" value="5" placeholder="例如：5">
+        <button id="applyBtn">应用参数</button>
+      </div>
+      
+      <!-- 控制按钮区 -->
+      <div class="control-panel">
+        <button id="stepBtn">单步执行</button>
+        <button id="autoBtn">自动播放</button>
+        <button id="resetBtn">重置</button>
+      </div>
+      
+      <!-- 动画画布 -->
+      <div id="animationCanvas"></div>
+      
+      <!-- 调试信息区 -->
+      <div id="debugPanel"></div>
+    </div>
+  </div>
+
+  <script>
+    // ========== 核心变量 ==========
+    let currentNums = [1, 3, 5, 6];
+    let currentTarget = 5;
+    let left = 0;
+    let right = currentNums.length - 1;
+    let mid = 0;
+    let currentStep = 0;
+    let isCompleted = false;
+    let autoTimer = null;
+    let executionSteps = [];
+
+    // ========== 页面初始化 ==========
+    window.onload = function() {
+      initCodePanel();
+      initAlgorithm(currentNums, currentTarget);
+      bindEvents();
+    };
+
+    // ========== 事件绑定 ==========
+    function bindEvents() {
+      // 应用参数
+      document.getElementById('applyBtn').addEventListener('click', function() {
+        try {
+          const numsStr = document.getElementById('numsInput').value.trim();
+          const targetStr = document.getElementById('targetInput').value.trim();
+          const newNums = numsStr.split(',').map(num => parseInt(num.trim()));
+          const newTarget = parseInt(targetStr);
+          
+          if (newNums.some(isNaN) || isNaN(newTarget)) {
+            alert('请输入有效的数字！');
+            return;
+          }
+          
+          // 检查数组是否有序
+          for (let i = 1; i < newNums.length; i++) {
+            if (newNums[i] < newNums[i-1]) {
+              alert('数组必须是升序排列的有序数组！');
+              return;
+            }
+          }
+          
+          initAlgorithm(newNums, newTarget);
+        } catch (e) {
+          alert('参数输入错误：' + e.message);
+        }
+      });
+
+      // 单步执行
+      document.getElementById('stepBtn').addEventListener('click', stepExecution);
+
+      // 自动播放/暂停
+      document.getElementById('autoBtn').addEventListener('click', function() {
+        if (autoTimer) {
+          clearInterval(autoTimer);
+          autoTimer = null;
+          this.textContent = '自动播放';
+          return;
+        }
+        
+        this.textContent = '暂停';
+        autoTimer = setInterval(function() {
+          if (currentStep >= executionSteps.length) {
+            clearInterval(autoTimer);
+            autoTimer = null;
+            document.getElementById('autoBtn').textContent = '自动播放';
+            isCompleted = true;
+            updateDebugInfo();
+            return;
+          }
+          stepExecution();
+        }, 1000);
+      });
+
+      // 重置
+      document.getElementById('resetBtn').addEventListener('click', function() {
+        initAlgorithm(currentNums, currentTarget);
+      });
+    }
+
+    // ========== 代码面板初始化 ==========
+    function initCodePanel() {
+      const codePanel = document.getElementById('codePanel');
+      // Dart 代码（带行号和语法高亮）
+      const codeLines = [
+        '1: class Solution {',
+        '2:   int searchInsert(List<int> nums, int target) {',
+        '3:     int left = 0, right = nums.length - 1;',
+        '4:     while (left <= right) {',
+        '5:       int mid = (left + right) ~/ 2;',
+        '6:       if (nums[mid] == target) {',
+        '7:         return mid;',
+        '8:       } else if (nums[mid] < target) {',
+        '9:         left = mid + 1;',
+        '10:      } else {',
+        '11:        right = mid - 1;',
+        '12:      }',
+        '13:    }',
+        '14:    return left;',
+        '15:  }',
+        '16:}'
+      ];
+
+      const pre = document.createElement('pre');
+      pre.style.whiteSpace = 'pre';
+      pre.style.lineHeight = '1.5';
+
+      codeLines.forEach(line => {
+        if (!line) return;
+        const lineDiv = document.createElement('div');
+        lineDiv.id = 'codeLine' + line.split(':')[0];
+        lineDiv.style.display = 'block';
+        
+        // 语法高亮处理
+        let lineContent = line.substring(line.indexOf(':') + 1);
+        // 关键字高亮
+        lineContent = lineContent
+          .replace('class', '<span style="color: #9CDCFE">class</span>')
+          .replace('int', '<span style="color: #9CDCFE">int</span>')
+          .replace('List', '<span style="color: #9CDCFE">List</span>')
+          .replace('while', '<span style="color: #C586C0">while</span>')
+          .replace('if', '<span style="color: #C586C0">if</span>')
+          .replace('else', '<span style="color: #C586C0">else</span>')
+          .replace('return', '<span style="color: #C586C0">return</span>');
+        
+        lineDiv.innerHTML = line.split(':')[0] + ':' + lineContent;
+        pre.appendChild(lineDiv);
+      });
+
+      codePanel.appendChild(pre);
+    }
+
+    // ========== 算法初始化 ==========
+    function initAlgorithm(nums, target) {
+      currentNums = [...nums];
+      currentTarget = target;
+      left = 0;
+      right = currentNums.length - 1;
+      mid = 0;
+      currentStep = 0;
+      isCompleted = false;
+      executionSteps = [];
+
+      // 清除自动播放
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        document.getElementById('autoBtn').textContent = '自动播放';
+      }
+
+      // 生成执行步骤
+      generateExecutionSteps();
+      // 更新视图
+      updateAnimation();
+      updateDebugInfo();
+      // 清除代码高亮
+      clearCodeHighlight();
+    }
+
+    // ========== 生成执行步骤 ==========
+    function generateExecutionSteps() {
+      const nums = [...currentNums];
+      const target = currentTarget;
+      let l = 0;
+      let r = nums.length - 1;
+      let step = 0;
+
+      // 步骤1：初始化变量
+      executionSteps.push({
+        step: step++,
+        line: 3,
+        action: `初始化 left = 0, right = ${nums.length - 1}`,
+        left: l,
+        right: r,
+        mid: -1,
+        comparison: '',
+        result: ''
+      });
+
+      while (l <= r) {
+        const m = Math.floor((l + r) / 2); // Dart 的 ~/ 等价于 Math.floor
+        
+        // 步骤2：计算mid
+        executionSteps.push({
+          step: step++,
+          line: 5,
+          action: `计算 mid = (left + right) ~/ 2 = ${m}`,
+          left: l,
+          right: r,
+          mid: m,
+          comparison: '',
+          result: ''
+        });
+
+        if (nums[m] === target) {
+          // 步骤3：找到目标值
+          executionSteps.push({
+            step: step++,
+            line: 6,
+            action: `nums[mid] == target (${nums[m]} == ${target})，返回mid = ${m}`,
+            left: l,
+            right: r,
+            mid: m,
+            comparison: `nums[${m}] == ${target}`,
+            result: `找到目标值，返回位置 ${m}`
+          });
+          break;
+        } else if (nums[m] < target) {
+          // 步骤4：目标值在右侧
+          executionSteps.push({
+            step: step++,
+            line: 8,
+            action: `nums[mid] < target (${nums[m]} < ${target})，left = mid + 1 = ${m + 1}`,
+            left: l,
+            right: r,
+            mid: m,
+            comparison: `nums[${m}] < ${target}`,
+            result: `目标值在右侧，更新left = ${m + 1}`
+          });
+          l = m + 1;
+        } else {
+          // 步骤5：目标值在左侧
+          executionSteps.push({
+            step: step++,
+            line: 10,
+            action: `nums[mid] > target (${nums[m]} > ${target})，right = mid - 1 = ${m - 1}`,
+            left: l,
+            right: r,
+            mid: m,
+            comparison: `nums[${m}] > ${target}`,
+            result: `目标值在左侧，更新right = ${m - 1}`
+          });
+          r = m - 1;
+        }
+
+        // 更新变量状态
+        executionSteps.push({
+          step: step++,
+          line: 4,
+          action: `继续循环，当前 left = ${l}, right = ${r}`,
+          left: l,
+          right: r,
+          mid: m,
+          comparison: '',
+          result: ''
+        });
+      }
+
+      // 步骤6：未找到目标值，返回插入位置
+      if (l > r) {
+        executionSteps.push({
+          step: step++,
+          line: 14,
+          action: `循环结束，未找到目标值，返回left = ${l}（插入位置）`,
+          left: l,
+          right: r,
+          mid: -1,
+          comparison: 'left > right',
+          result: `未找到目标值，插入位置为 ${l}`
+        });
+      }
+    }
+
+    // ========== 单步执行 ==========
+    function stepExecution() {
+      if (currentStep < executionSteps.length) {
+        currentStep++;
+        updateAnimation();
+        updateDebugInfo();
+        // 高亮当前代码行
+        highlightCodeLine(executionSteps[currentStep - 1].line);
+      }
+
+      if (currentStep >= executionSteps.length) {
+        isCompleted = true;
+        updateDebugInfo();
+      }
+    }
+
+    // ========== 更新动画视图 ==========
+    function updateAnimation() {
+      const canvas = document.getElementById('animationCanvas');
+      canvas.innerHTML = ''; // 清空画布
+
+      const canvasWidth = canvas.clientWidth;
+      const elementWidth = 60;
+      const gap = 20;
+      const totalWidth = (elementWidth + gap) * currentNums.length - gap;
+      const startX = (canvasWidth - totalWidth) / 2;
+      const startY = 100;
+
+      // 绘制目标值标签
+      const targetLabel = document.createElement('div');
+      targetLabel.className = 'target-label';
+      targetLabel.textContent = `目标值：${currentTarget}`;
+      canvas.appendChild(targetLabel);
+
+      // 绘制数组元素
+      currentNums.forEach((num, index) => {
+        const x = startX + index * (elementWidth + gap);
+
+        // 元素容器
+        const element = document.createElement('div');
+        element.className = 'array-element';
+        element.style.left = `${x}px`;
+        element.style.top = `${startY}px`;
+        element.textContent = num;
+
+        // 索引标签
+        const indexLabel = document.createElement('div');
+        indexLabel.className = 'array-index';
+        indexLabel.style.left = `${x}px`;
+        indexLabel.style.top = `${startY + 70}px`;
+        indexLabel.textContent = `[${index}]`;
+
+        // 高亮逻辑
+        if (currentStep > 0) {
+          const step = executionSteps[currentStep - 1];
+          // mid 高亮（橙色）
+          if (step.mid === index) {
+            element.style.backgroundColor = '#FF9800';
+            element.style.border = '3px solid #F57C00';
+          }
+          // 目标值高亮（浅绿色）
+          if (num === currentTarget) {
+            element.style.backgroundColor = '#8BC34A';
+            element.style.border = '3px solid #4CAF50';
+          }
+          // left 指针
+          if (step.left === index) {
+            const leftLabel = document.createElement('div');
+            leftLabel.className = 'pointer-label';
+            leftLabel.style.left = `${x}px`;
+            leftLabel.style.top = `${startY - 30}px`;
+            leftLabel.style.color = '#2196F3';
+            leftLabel.textContent = 'left';
+            canvas.appendChild(leftLabel);
+          }
+          // right 指针
+          if (step.right === index) {
+            const rightLabel = document.createElement('div');
+            rightLabel.className = 'pointer-label';
+            rightLabel.style.left = `${x}px`;
+            rightLabel.style.top = `${startY - 30}px`;
+            rightLabel.style.color = '#F44336';
+            rightLabel.textContent = 'right';
+            canvas.appendChild(rightLabel);
+          }
+        }
+
+        canvas.appendChild(element);
+        canvas.appendChild(indexLabel);
+      });
+
+      // 绘制查找范围
+      if (currentStep > 0) {
+        const step = executionSteps[currentStep - 1];
+        const l = step.left;
+        const r = step.right;
+
+        if (l <= r && l >= 0 && r < currentNums.length) {
+          const startXL = startX + l * (elementWidth + gap);
+          const endXR = startX + r * (elementWidth + gap) + elementWidth;
+
+          const rangeBox = document.createElement('div');
+          rangeBox.className = 'range-box';
+          rangeBox.style.left = `${startXL}px`;
+          rangeBox.style.top = `${startY - 10}px`;
+          rangeBox.style.width = `${endXR - startXL}px`;
+          rangeBox.style.height = '80px';
+          canvas.appendChild(rangeBox);
+        }
+      }
+
+      // 绘制插入位置（执行完成且未找到目标值）
+      if (isCompleted && executionSteps.length > 0) {
+        const lastStep = executionSteps[executionSteps.length - 1];
+        if (lastStep.result.includes('插入位置')) {
+          const insertPos = lastStep.left;
+          const x = startX + insertPos * (elementWidth + gap);
+
+          const insertMarker = document.createElement('div');
+          insertMarker.className = 'insert-marker';
+          insertMarker.style.left = `${x}px`;
+          insertMarker.style.top = `${startY + 90}px`;
+          insertMarker.textContent = '插入位置';
+          canvas.appendChild(insertMarker);
+        }
+      }
+    }
+
+    // ========== 更新调试信息 ==========
+    function updateDebugInfo() {
+      const debugPanel = document.getElementById('debugPanel');
+
+      if (currentStep === 0) {
+        debugPanel.textContent = `准备执行二分查找算法
+数组：${currentNums}
+目标值：${currentTarget}
+点击「单步执行」开始调试`;
+        return;
+      }
+
+      if (currentStep - 1 < executionSteps.length) {
+        const step = executionSteps[currentStep - 1];
+        let debugText = `步骤：${step.step + 1}/${executionSteps.length}
+执行行：第 ${step.line} 行
+操作：${step.action}
+当前状态：left = ${step.left}, right = ${step.right}, mid = ${step.mid === -1 ? '未定义' : step.mid}
+比较：${step.comparison || '无'}
+结果：${step.result || '无'}`;
+
+        if (isCompleted) {
+          debugText += `
+
+✅ 执行完成！最终结果：${executionSteps[executionSteps.length - 1].result}`;
+        }
+
+        debugPanel.textContent = debugText;
+      }
+    }
+
+    // ========== 代码高亮相关 ==========
+    function clearCodeHighlight() {
+      for (let i = 1; i <= 16; i++) {
+        const line = document.getElementById(`codeLine${i}`);
+        if (line) {
+          line.style.backgroundColor = 'transparent';
+          line.style.color = '#dcdcdc';
+        }
+      }
+    }
+
+    function highlightCodeLine(lineNum) {
+      clearCodeHighlight();
+      const line = document.getElementById(`codeLine${lineNum}`);
+      if (line) {
+        line.style.backgroundColor = '#264F78';
+        line.style.color = 'white';
+        // 滚动到可视区域
+        line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -156,6 +156,7 @@ function showChapterDetails(chapterTitle) {
     initializeStatusControls(chapter.title);
     setHeaderSticky(false);
     initializeDemoLinks(chapter.title);
+    initializeVideoLinks(chapter.title);
 
     
 }
@@ -177,6 +178,7 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
                     LeetCode
                 </a>` : ''}
                 <a href="#" target="_blank" rel="noopener" class="leetcode-link ml-2 demo-link hidden" data-demo-id="${lessonIndex}-${problemIndex}">算法推演</a>
+                <a href="#" target="_blank" rel="noopener" class="leetcode-link ml-2 video-link hidden" data-video-id="${lessonIndex}-${problemIndex}">算法视频</a>
                 <span class="ml-2 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">第${lessonIndex}课</span>
             </h3>
             <div class="flex items-center justify-between mb-3">
@@ -353,6 +355,33 @@ function initializeDemoLinks(chapterTitle) {
     links.forEach(a => {
         const id = a.getAttribute('data-demo-id');
         const href = `./src/data/demo/${id}.html`;
+        a.setAttribute('href', href);
+        const show = () => a.classList.remove('hidden');
+        const hide = () => a.classList.add('hidden');
+        const isHttp = /^https?:$/.test(location.protocol);
+        if (!isHttp) {
+            hide();
+            return;
+        }
+        fetch(href, { method: 'HEAD', cache: 'no-store' }).then(res => {
+            if (res && res.ok) show(); else {
+                fetch(href, { method: 'GET', cache: 'no-store' }).then(r2 => {
+                    if (r2 && r2.ok) show(); else hide();
+                }).catch(hide);
+            }
+        }).catch(() => {
+            fetch(href, { method: 'GET', cache: 'no-store' }).then(r2 => {
+                if (r2 && r2.ok) show(); else hide();
+            }).catch(hide);
+        });
+    });
+}
+
+function initializeVideoLinks(chapterTitle) {
+    const links = document.querySelectorAll('.video-link[data-video-id]');
+    links.forEach(a => {
+        const id = a.getAttribute('data-video-id');
+        const href = `./src/data/videos/${id}.mp4`;
         a.setAttribute('href', href);
         const show = () => a.classList.remove('hidden');
         const hide = () => a.classList.add('hidden');
