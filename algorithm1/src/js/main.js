@@ -115,24 +115,12 @@ function showChapterDetails(chapterTitle) {
     // Generate HTML for the chapter details
     let html = `
         <div class="detail-sticky">
-            <div class="flex items-center justify-between gap-2">
-                <button id="back-btn" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                    </svg>
-                    返回
-                </button>
-                <div class="filters-bar">
-                    <input id="detail-search" class="search-input" type="text" placeholder="在本章搜索" aria-label="在本章搜索" />
-                    <select id="detail-status-filter" class="select" aria-label="按掌握度筛选">
-                        <option value="">全部状态</option>
-                        <option value="完全掌握">完全掌握</option>
-                        <option value="在理解中">在理解中</option>
-                        <option value="完全不懂">完全不懂</option>
-                        <option value="未标注">未标注</option>
-                    </select>
-                </div>
-            </div>
+            <button id="back-btn" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                返回
+            </button>
         </div>
         <div class="p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">${chapter.title}</h2>
@@ -168,7 +156,7 @@ function showChapterDetails(chapterTitle) {
     initializeStatusControls(chapter.title);
     setHeaderSticky(false);
 
-    setupDetailFilters(chapter.title);
+    
 }
 
 // Create HTML for a problem
@@ -256,7 +244,15 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
                         </div>
                         
                         <div class="tab-content" id="steps-${problemIndex}">
-                            <div id="steps-container-${problemIndex}">
+                            ${problem.example ? `
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="example-code">
+                                        <h4>示例：</h4>
+                                        <pre><code>${problem.example}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <div id="steps-container-${problemIndex}" class="steps-grid">
                                 ${createStepsHTML(problem.steps)}
                             </div>
                         </div>
