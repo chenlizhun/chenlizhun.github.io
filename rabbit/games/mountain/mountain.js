@@ -1,4 +1,4 @@
-// 山主题小游戏 - 核心逻辑
+// 山主题小游戏 - 核心逻辑（旧版选择题 + 新版勇登高峰）
 
 // 常量定义
 const THEME_ID = 'mountain';
@@ -416,36 +416,113 @@ function initGame() {
 
 // 事件监听
 function setupEventListeners() {
-    // 下一题按钮
-    DOM.btnNext.addEventListener('click', nextRound);
-    
-    // 返回按钮
-    DOM.btnBack.addEventListener('click', () => {
-        window.location.href = '../../index.html';
-    });
-    
-    // 游戏完成模态框按钮
-    DOM.restartGame.addEventListener('click', () => {
-        DOM.gameCompletionModal.classList.remove('show');
-        initGame();
-    });
-    
-    DOM.returnHome.addEventListener('click', () => {
-        window.location.href = '../../index.html';
-    });
-    
-    // 点击模态框外部关闭
-    DOM.gameCompletionModal.addEventListener('click', (e) => {
-        if (e.target === DOM.gameCompletionModal) {
-            DOM.gameCompletionModal.classList.remove('show');
+    if (DOM.btnNext) {
+        DOM.btnNext.addEventListener('click', nextRound);
+    }
+    if (DOM.btnBack) {
+        DOM.btnBack.addEventListener('click', () => {
+            window.location.href = '../../index.html';
+        });
+    }
+    if (DOM.gameCompletionModal) {
+        if (DOM.restartGame) {
+            DOM.restartGame.addEventListener('click', () => {
+                DOM.gameCompletionModal.classList.remove('show');
+                initGame();
+            });
         }
-    });
+        if (DOM.returnHome) {
+            DOM.returnHome.addEventListener('click', () => {
+                window.location.href = '../../index.html';
+            });
+        }
+        DOM.gameCompletionModal.addEventListener('click', (e) => {
+            if (e.target === DOM.gameCompletionModal) {
+                DOM.gameCompletionModal.classList.remove('show');
+            }
+        });
+    }
 }
 
 // 页面加载完成后初始化游戏
+// ===== 新版：勇登高峰（倾斜山道滚落字，按顺序收集） =====
+const orderTextEl = document.getElementById('orderText');
+const slopeEl = document.getElementById('slope');
+const levelToastEl = document.getElementById('levelToast');
+const btnStart = document.getElementById('btnStart');
+const btnReset = document.getElementById('btnReset');
+
+let mtLevel = 1;
+let mtSpeed = 1.0;
+let mtPlaying = false;
+let mtRaf = null;
+let mtSpawnTimer = null;
+let mtExpectedIdx = 0;
+let mtChars = [];
+let mtBlocks = [];
+let mtH = 420;
+
+let audioCtx = null;
+function playWinSound(){
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!audioCtx) audioCtx=new AC(); if (audioCtx.state==='suspended') audioCtx.resume(); const o1=audioCtx.createOscillator(), o2=audioCtx.createOscillator(), g=audioCtx.createGain(); o1.type='sine'; o2.type='triangle'; o1.frequency.value=523.25; o2.frequency.value=659.25; o1.connect(g); o2.connect(g); g.connect(audioCtx.destination); const now=audioCtx.currentTime; g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.5); o1.start(now); o2.start(now); o1.stop(now+0.5); o2.stop(now+0.5);} catch(_){}
+}
+function playLoseSound(){
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!audioCtx) audioCtx=new AC(); if (audioCtx.state==='suspended') audioCtx.resume(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(440, audioCtx.currentTime); o.connect(g); g.connect(audioCtx.destination); const now=audioCtx.currentTime; g.gain.setValueAtTime(0.14, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.35); o.frequency.exponentialRampToValueAtTime(180, now+0.35); o.start(now); o.stop(now+0.35);} catch(_){}
+}
+
+let ss = typeof window !== 'undefined' ? window.speechSynthesis : null;
+let ssVoices = [];
+let zhVoice = null;
+function initVoices(){
+  if(!ss) return;
+  ssVoices = ss.getVoices();
+  zhVoice = ssVoices.find(v => (v.lang||'').toLowerCase().startsWith('zh')) || null;
+  if(!zhVoice){ ss.onvoiceschanged = function(){ ssVoices = ss.getVoices(); zhVoice = ssVoices.find(v => (v.lang||'').toLowerCase().startsWith('zh')) || null; }; }
+}
+function speakChar(ch){
+  if(!ss || !ch) return; const u=new SpeechSynthesisUtterance(ch); if(zhVoice) u.voice=zhVoice; u.lang='zh-CN'; u.rate=0.9; u.pitch=1.05; try{ ss.cancel(); }catch(_){} ss.speak(u);
+}
+
+const MT_PUNC = /[\s，。！？、；：“”‘’（）《》〈〉【】—\-…,.!?;:]/g;
+function makeChars(s){ return Array.from((s||'').replace(MT_PUNC,'')); }
+function renderOrder(chars){ const hs=(window.HIGHLIGHT_CHARS||[]); if(orderTextEl) orderTextEl.innerHTML = chars.map(ch=>hs.includes(ch)?`<span class="hl">${ch}</span>`:ch).join(''); }
+function pickPoem(){ const list=(window.POEMS&&Array.isArray(POEMS.mountain))?POEMS.mountain:[]; if(list.length===0) return null; return list[Math.floor(Math.random()*list.length)]; }
+function setTip(text,type){ if(!DOM.feedback) return; DOM.feedback.textContent=text||''; DOM.feedback.style.display='block'; DOM.feedback.style.color = type==='error'? '#e74c3c' : '#2c3e50'; }
+
+function resetLevel(){
+  stopAll();
+  mtBlocks.forEach(b=>b.el.remove()); mtBlocks=[]; mtExpectedIdx=0;
+  const poem = pickPoem();
+  if(!poem){ if (DOM.poemMeta) DOM.poemMeta.textContent='——'; setTip('暂无“山”主题诗词，请检查 data.js','error'); return; }
+  mtChars = makeChars(poem.sentence || poem.text || (poem.content? (poem.content[0]||'') : ''));
+  renderOrder(mtChars);
+  if (DOM.poemMeta) DOM.poemMeta.textContent = `${poem.dynasty||''}·${poem.author||''}《${poem.title||''}》`;
+  if (DOM.roundInfo) DOM.roundInfo.textContent = `关卡 ${mtLevel}`;
+  if (DOM.scoreInfo) DOM.scoreInfo.textContent = `收集 ${mtExpectedIdx}/${mtChars.length}`;
+  setTip('按顺序点击滚落的字，别让它们越过底线！');
+}
+
+function startLevel(){ if(!slopeEl) return; if(mtChars.length===0) resetLevel(); mtPlaying=true; mtH = slopeEl.getBoundingClientRect().height || 420; loop(); spawn(); }
+function stopAll(){ mtPlaying=false; if(mtRaf){cancelAnimationFrame(mtRaf); mtRaf=null} if(mtSpawnTimer){clearInterval(mtSpawnTimer); mtSpawnTimer=null} }
+function spawn(){ let idx=0; const base=900; const interval=Math.max(300, base/(1+(mtLevel-1)*0.12)); mtSpawnTimer=setInterval(()=>{ if(idx>=mtChars.length){clearInterval(mtSpawnTimer);return} const ch=mtChars[idx++]; addRock(ch); }, interval); }
+function addRock(char){ if(!slopeEl) return; const el=document.createElement('div'); el.className='rock'; el.textContent=char; slopeEl.appendChild(el); const rock={el, t:0, char, removed:false}; el.addEventListener('click',()=>onRockClick(rock)); mtBlocks.push(rock); positionRock(rock); }
+function positionRock(rock){ // 根据 t(0~1)沿倾斜线移动
+  const trail = slopeEl.querySelector('.trail'); if(!trail) return; const rect = slopeEl.getBoundingClientRect(); const tx = rect.width*0.1; const ty = rect.height*0.12; const ex = rect.width*0.9; const ey = rect.height*0.12 + Math.tan(18*Math.PI/180)*(ex-tx);
+  const x = tx + (ex-tx)*rock.t; const y = ty + (ey-ty)*rock.t; const rot = rock.t*360; rock.el.style.left = `${x-32}px`; rock.el.style.top = `${y-32}px`; rock.el.style.transform = `rotate(${rot}deg)`; }
+function onRockClick(rock){ if(!mtPlaying || rock.removed) return; speakChar(rock.char); const expected = mtChars[mtExpectedIdx]; if(rock.char!==expected){ rock.el.classList.add('wrong'); playLoseSound(); gameOver('点击顺序错误，挑战失败'); return; } rock.el.classList.add('right'); rock.removed=true; setTimeout(()=>{rock.el.remove()},120); mtBlocks = mtBlocks.filter(r=>r!==rock); mtExpectedIdx++; if (DOM.scoreInfo) DOM.scoreInfo.textContent = `收集 ${mtExpectedIdx}/${mtChars.length}`; if(mtExpectedIdx>=mtChars.length){ levelWin(); } }
+function loop(){ if(!mtPlaying) return; const v=(1+(mtLevel-1)*0.08)*(0.9+mtSpeed*0.1); mtBlocks.forEach(b=>{ b.t += v/800; if(b.t>1 && !b.removed){ playLoseSound(); gameOver('有字越过底线了'); } else { positionRock(b); } }); mtRaf = requestAnimationFrame(loop); }
+function gameOver(msg){ stopAll(); setTip(msg,'error'); mtBlocks.forEach(b=>b.el.classList.add('wrong')); }
+function levelWin(){ stopAll(); setTip('诗词收集完整，胜利！'); playWinSound(); if(levelToastEl){ levelToastEl.style.display='block'; setTimeout(()=>{levelToastEl.style.display='none'},1200);} mtLevel++; mtSpeed*=1.08; setTimeout(()=>{ resetLevel(); startLevel(); }, 1200); }
+
+function initSlopeGame(){ if(!slopeEl) return; if (btnStart) btnStart.addEventListener('click', ()=>{ resetLevel(); startLevel(); }); if (btnReset) btnReset.addEventListener('click', ()=>{ resetLevel(); }); if (DOM.btnBack) DOM.btnBack.addEventListener('click', ()=>{ window.location.href='../../index.html'; }); initVoices(); resetLevel(); }
+
 document.addEventListener('DOMContentLoaded', () => {
-    setupEventListeners();
-    initGame();
+    if (document.getElementById('slope')) {
+        initSlopeGame();
+    } else {
+        setupEventListeners();
+        initGame();
+    }
 });
 
 // 导出函数（用于调试）

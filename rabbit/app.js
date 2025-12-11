@@ -196,9 +196,9 @@ function saveHighlightMode() {
 const GAME_INFO = {
   "flower": { name: "花朵连连看", icon: "🌸", available: true, description: "找出相同的花朵", path: "gamecenter/flower-match/index.html" },
   "spring": { name: "春天农耕", icon: "🌱", available: true, description: "井字棋人机对战", path: "gamecenter/spring-farming/index.html" },
-  "autumn": { name: "秋天拼图", icon: "🍂", available: false, description: "秋天诗句拼图" },
-  "moon": { name: "月亮找朋友", icon: "🌙", available: false, description: "月亮主题游戏" },
-  "mountain": { name: "山山水水", icon: "⛰️", available: false, description: "山水诗句游戏" },
+  "autumn": { name: "秋天拼图", icon: "🍂", available: true, description: "秋天诗句拼图", path: "games/autumn-puzzle/index.html" },
+  "moon": { name: "月球赛道", icon: "🌙", available: true, description: "按顺序消灭方块", path: "games/moon/index.html" },
+  "mountain": { name: "勇登高峰", icon: "⛰️", available: true, description: "按顺序收集滚落的字", path: "games/mountain/index.html" },
   "water": { name: "水滴连线", icon: "💧", available: false, description: "水系诗句游戏" },
   "wind": { name: "和风送诗", icon: "💨", available: false, description: "风系诗句游戏" },
   "bird": { name: "小鸟找家", icon: "🐦", available: false, description: "鸟类诗句游戏" },

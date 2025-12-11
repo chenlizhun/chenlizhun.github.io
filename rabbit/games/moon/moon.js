@@ -52,6 +52,49 @@ function playClick() {
   } catch (_) {}
 }
 
+function playWinSound() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const o1 = audioCtx.createOscillator();
+    const o2 = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o1.type = 'sine';
+    o2.type = 'triangle';
+    o1.frequency.value = 523.25; // C5
+    o2.frequency.value = 659.25; // E5
+    o1.connect(g); o2.connect(g); g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    g.gain.setValueAtTime(0.12, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    o1.start(now); o2.start(now);
+    o1.stop(now + 0.5); o2.stop(now + 0.5);
+  } catch (_) {}
+}
+
+function playLoseSound() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(440, audioCtx.currentTime);
+    o.connect(g); g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    g.gain.setValueAtTime(0.14, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    // 下滑音效
+    o.frequency.exponentialRampToValueAtTime(180, now + 0.35);
+    o.start(now);
+    o.stop(now + 0.35);
+  } catch (_) {}
+}
+
 // 游戏内部数据
 let moonPoems = [];
 let orderIndices = [];
@@ -576,21 +619,27 @@ function showFeedback(message, type) {
 }
 
 // 事件绑定
-btnReset.addEventListener("click", () => {
-  playClick();
-  resetCurrentRound();
-});
+if (btnReset) {
+  btnReset.addEventListener("click", () => {
+    playClick();
+    resetCurrentRound();
+  });
+}
 
-btnCheck.addEventListener("click", () => {
-  playClick();
-  checkAnswer();
-});
+if (btnCheck) {
+  btnCheck.addEventListener("click", () => {
+    playClick();
+    checkAnswer();
+  });
+}
 
-btnNext.addEventListener("click", () => {
-  playClick();
-  currentRound++;
-  renderRound();
-});
+if (btnNext) {
+  btnNext.addEventListener("click", () => {
+    playClick();
+    currentRound++;
+    renderRound();
+  });
+}
 
 // 返回主页面
 btnBack.addEventListener("click", () => {
@@ -606,4 +655,175 @@ btnBack.addEventListener("click", () => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", initGame);
+// ===== 新版：月球赛道 =====
+const orderTextEl = document.getElementById("orderText");
+const runwayEl = document.getElementById("runway");
+const laneEls = runwayEl ? Array.from(document.querySelectorAll('.lane')) : [];
+const levelToastEl = document.getElementById('levelToast');
+
+let rwLevel = 1;
+let rwSpeed = 1.0;
+let rwPlaying = false;
+let rwRaf = null;
+let rwSpawnTimer = null;
+let rwExpectedIdx = 0;
+let rwChars = [];
+let rwBlocks = [];
+let rwHeight = 420;
+
+let ss = typeof window !== 'undefined' ? window.speechSynthesis : null;
+let ssVoices = [];
+let zhVoice = null;
+function initVoices(){
+  if(!ss) return;
+  ssVoices = ss.getVoices();
+  zhVoice = ssVoices.find(v => (v.lang||'').toLowerCase().startsWith('zh')) || null;
+  if(!zhVoice){
+    ss.onvoiceschanged = function(){
+      ssVoices = ss.getVoices();
+      zhVoice = ssVoices.find(v => (v.lang||'').toLowerCase().startsWith('zh')) || null;
+    };
+  }
+}
+function speakChar(ch){
+  if(!ss || !ch) return;
+  const u = new SpeechSynthesisUtterance(ch);
+  if(zhVoice) u.voice = zhVoice;
+  u.lang = 'zh-CN';
+  u.rate = 0.9;
+  u.pitch = 1.05;
+  try { ss.cancel(); } catch(_){}
+  ss.speak(u);
+}
+
+const RW_PUNC = /[\s，。！？、；：“”‘’（）《》〈〉【】—\-…,.!?;:]/g;
+function rwMakeChars(s){ return Array.from((s||"").replace(RW_PUNC,'')); }
+function rwRenderOrder(chars){
+  const hs=(window.HIGHLIGHT_CHARS||[]);
+  if (orderTextEl) orderTextEl.innerHTML = chars.map(ch=>hs.includes(ch)?`<span class="hl">${ch}</span>`:ch).join('');
+}
+function rwPickPoem(){
+  const list=(window.POEMS&&Array.isArray(POEMS.moon))?POEMS.moon:[];
+  if(list.length===0) return null;
+  return list[Math.floor(Math.random()*list.length)];
+}
+function rwSetTip(text,type){
+  if(!feedbackEl) return;
+  feedbackEl.textContent=text||'';
+  feedbackEl.style.color= type==='error'? '#ef476f' : '#e0e0e0';
+}
+function rwReset(){
+  rwStop();
+  rwBlocks.forEach(b=>b.el.remove());
+  rwBlocks=[];
+  rwExpectedIdx=0;
+  const poem=rwPickPoem();
+  if(!poem){
+    poemMetaEl.textContent='——';
+    rwSetTip('暂无“月”主题诗词，请检查 data.js','error');
+    return;
+  }
+  rwChars = rwMakeChars(poem.sentence || poem.text || '');
+  rwRenderOrder(rwChars);
+  if (poemMetaEl) poemMetaEl.textContent=`${poem.dynasty||''}·${poem.author||''}《${poem.title||''}》`;
+  if (roundInfoEl) roundInfoEl.textContent=`关卡 ${rwLevel}`;
+  if (scoreInfoEl) scoreInfoEl.textContent=`收集 ${rwExpectedIdx}/${rwChars.length}`;
+  rwSetTip('按顺序点击靠近底线的方块');
+}
+function rwStart(){
+  if(!runwayEl) return;
+  if(rwChars.length===0) rwReset();
+  rwPlaying=true;
+  rwHeight = runwayEl.getBoundingClientRect().height || 420;
+  rwLoop();
+  rwSpawn();
+}
+function rwStop(){
+  rwPlaying=false;
+  if(rwRaf){cancelAnimationFrame(rwRaf);rwRaf=null}
+  if(rwSpawnTimer){clearInterval(rwSpawnTimer);rwSpawnTimer=null}
+}
+function rwSpawn(){
+  let idx=0;
+  const base=900;
+  const interval=Math.max(300, base / (1+ (rwLevel-1)*0.12));
+  rwSpawnTimer=setInterval(()=>{
+    if(idx>=rwChars.length){clearInterval(rwSpawnTimer);return}
+    const ch=rwChars[idx++];
+    const lane=Math.floor(Math.random()*3);
+    rwAddBlock(lane,ch);
+  }, interval);
+}
+function rwAddBlock(lane,char){
+  if(!laneEls[lane]) return;
+  const el=document.createElement('div');
+  el.className='block';
+  el.textContent=char;
+  laneEls[lane].appendChild(el);
+  const blk={el,lane,y:-40,char,removed:false};
+  el.addEventListener('click',()=>rwClick(blk));
+  rwBlocks.push(blk);
+}
+function rwClick(blk){
+  if(!rwPlaying||blk.removed) return;
+  speakChar(blk.char);
+  const expected = rwChars[rwExpectedIdx];
+  if(blk.char!==expected){
+    blk.el.classList.add('wrong');
+    playLoseSound();
+    rwGameOver('点击顺序错误，挑战失败');
+    return;
+  }
+  blk.el.classList.add('right');
+  blk.removed=true;
+  setTimeout(()=>{blk.el.remove()},120);
+  rwBlocks=rwBlocks.filter(b=>b!==blk);
+  rwExpectedIdx++;
+  if (scoreInfoEl) scoreInfoEl.textContent=`收集 ${rwExpectedIdx}/${rwChars.length}`;
+  if(rwExpectedIdx>=rwChars.length){ rwWin(); }
+}
+function rwLoop(){
+  if(!rwPlaying) return;
+  const v = (1 + (rwLevel-1)*0.08) * (0.9 + rwSpeed*0.1);
+  rwBlocks.forEach(b=>{
+    b.y += v;
+    const s = Math.min(1.15, Math.max(0.6, b.y/rwHeight + 0.5));
+    b.el.style.transform = `translateX(-50%) translateY(${b.y}px) scale(${s})`;
+    if(!b.removed && b.y >= rwHeight - 28){ rwGameOver('有方块越过底线了'); }
+  });
+  rwRaf = requestAnimationFrame(rwLoop);
+}
+function rwGameOver(msg){
+  rwStop();
+  rwSetTip(msg,'error');
+  playLoseSound();
+  rwBlocks.forEach(b=>b.el.classList.add('wrong'));
+}
+function rwWin(){
+  rwStop();
+  rwSetTip('诗词方块收集完整，胜利！');
+  playWinSound();
+  if(levelToastEl){ levelToastEl.textContent='关卡完成！速度提升一点点～'; levelToastEl.style.display='block'; setTimeout(()=>{levelToastEl.style.display='none'},1200); }
+  rwLevel++;
+  rwSpeed *= 1.08;
+  setTimeout(()=>{ rwReset(); rwStart(); }, 1200);
+}
+
+function initRunwayGame(){
+  if (!runwayEl) return; // 非赛道版本
+  btnBack && btnBack.addEventListener('click',()=>{ window.location.href='../../index.html'; });
+  const startBtn = document.getElementById('btnStart');
+  const resetBtn = document.getElementById('btnReset');
+  startBtn && startBtn.addEventListener('click',()=>{ rwReset(); rwStart(); });
+  resetBtn && resetBtn.addEventListener('click',()=>{ rwReset(); });
+  initVoices();
+  rwReset();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById('runway')) {
+    initRunwayGame();
+  } else {
+    initGame();
+  }
+});

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>秋天拼图</title>
+  <link rel="stylesheet" href="puzzle.css">
+  <link rel="preload" href="puzzle.js" as="script">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div class="title">🍂 秋天拼图</div>
+      <div class="poem" id="poemText"></div>
+      <div class="meta" id="poemMeta"></div>
+    </header>
+
+    <main class="content">
+      <div class="board" id="board"></div>
+      <div class="hud">
+        <button class="btn" id="shuffleBtn">洗牌</button>
+        <button class="btn" id="hintBtn">提示</button>
+        <div class="stats">步数 <span id="moves">0</span> | 用时 <span id="time">0</span>s</div>
+      </div>
+      <div class="hint-grid" id="hintGrid"></div>
+    </main>
+
+    <footer class="bottom">
+      <a class="btn back" href="../../index.html">返回主页</a>
+    </footer>
+  </div>
+
+  <script src="../../data.js"></script>
+  <script src="puzzle.js"></script>
+</body>
+</html>
+

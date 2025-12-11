@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <title>Rabbit的诗词库 · 山的选择题小游戏</title>
+    <title>Rabbit的诗词库 · 勇登高峰</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="mountain.css" />
 </head>
@@ -14,7 +14,7 @@
     <div class="meteor"></div>
     <header class="game-header">
         <button class="back-btn" id="btnBack">⟵ 返回</button>
-        <div class="game-title">山的选择题</div>
+        <div class="game-title">勇登高峰</div>
     </header>
 
     <main class="game-main">
@@ -25,67 +25,32 @@
         </section>
 
         <section class="progress-section">
-            <div class="progress-title">登山进度</div>
-            <div class="progress-container">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-count" id="progressCount">0% 完成</div>
+            <div class="progress-title">目标顺序</div>
+            <div class="order-bar"><span id="orderText">——</span></div>
         </section>
 
         <section class="question-card">
-            <div class="question-label">
-                请根据下面的信息，从三个选项中选出<strong>出自这首诗</strong>的一句：
-            </div>
+            <div class="question-label">按诗句字序在倾斜山道上收集滚落的字（已剔除标点）。</div>
             <div class="question-meta" id="poemMeta">——</div>
             <div class="feedback" id="feedback"></div>
         </section>
 
-        <section class="options-area">
-            <button class="option-btn" data-index="0"></button>
-            <button class="option-btn" data-index="1"></button>
-            <button class="option-btn" data-index="2"></button>
+        <section class="slope-section">
+            <div class="slope" id="slope">
+                <div class="trail"></div>
+                <div class="baseline"></div>
+            </div>
         </section>
 
         <section class="control-bar">
-            <button class="control-btn next" id="btnNext" disabled>下一题 ▶</button>
+            <button class="control-btn" id="btnStart">开始 ✦</button>
+            <button class="control-btn" id="btnReset">重置关卡 🔄</button>
         </section>
     </main>
 
 
 
-    <!-- 游戏完成模态框 -->
-    <div id="gameCompletionModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🏔️ 登山成功！</h2>
-                <p>恭喜您完成了所有山主题的诗词挑战！</p>
-            </div>
-            <div class="modal-body">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalQuestions">0</div>
-                        <div class="stat-label">总题数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value stat-correct" id="correctQuestions">0</div>
-                        <div class="stat-label">答对题数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value stat-accuracy" id="accuracy">0%</div>
-                        <div class="stat-label">正确率</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value stat-height" id="modalMountainHeight">0m</div>
-                        <div class="stat-label">登山高度</div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="control-btn" id="restartGame">重新开始</button>
-                <button class="control-btn primary" id="returnHome">返回首页</button>
-            </div>
-        </div>
-    </div>
+    <div id="levelToast" class="level-toast" style="display:none;">关卡完成！速度提升一点点～</div>
 
 <script src="../../data.js"></script>
 <script src="mountain.js"></script>
