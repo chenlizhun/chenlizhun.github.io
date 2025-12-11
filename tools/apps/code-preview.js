@@ -1,0 +1,10 @@
+const lang=document.getElementById("lang")
+const preview=document.getElementById("preview")
+const clear=document.getElementById("clear")
+const copy=document.getElementById("copy")
+const codeInput=document.getElementById("codeInput")
+const codeOut=document.getElementById("codeOut")
+function render(){const l=lang.value;codeOut.className=l+" line-numbers";codeOut.textContent=codeInput.value||"";if(window.Prism&&Prism.highlightAll)Prism.highlightAll()}
+preview.addEventListener("click",render)
+clear.addEventListener("click",()=>{codeInput.value="";codeOut.textContent=""})
+copy.addEventListener("click",()=>{const t=codeInput.value||codeOut.textContent||"";navigator.clipboard.writeText(t).then(()=>{}).catch(()=>{})})

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>单位换算</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">单位换算</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div class="row">
+        <select id="cat" class="select">
+          <option value="length">长度</option>
+          <option value="temp">温度</option>
+          <option value="weight">重量</option>
+          <option value="speed">速度</option>
+          <option value="area">面积</option>
+          <option value="volume">体积</option>
+          <option value="pressure">压力</option>
+          <option value="energy">能量</option>
+        </select>
+        <input id="val" class="input" type="number" placeholder="数值" />
+        <select id="from" class="select"></select>
+        <select id="to" class="select"></select>
+        <label class="small"><input id="showAll" type="checkbox" /> 显示全部目标单位</label>
+        <button id="convert" class="btn">换算</button>
+      </div>
+      <div class="section">
+        <div class="row"><span class="small">自定义单位</span></div>
+        <div class="row">
+          <input id="custName" class="input" placeholder="单位名称" />
+          <input id="custFactor" class="input" type="number" step="0.000001" placeholder="相对基准的倍数" />
+          <button id="addUnit" class="btn secondary">添加</button>
+          <button id="exportCustom" class="btn secondary">导出自定义</button>
+          <input id="importCustomFile" type="file" accept="application/json" />
+        </div>
+        <div id="unitList" class="row"></div>
+      </div>
+      <div class="row"><div id="out" class="mono"></div></div>
+    </div>
+  </div>
+  <script src="unit-converter.js"></script>
+</body>
+</html>

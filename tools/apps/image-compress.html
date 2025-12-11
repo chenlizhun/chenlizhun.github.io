@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>图片压缩</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">图片压缩</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div id="dropZone" class="section" style="border:2px dashed #ddd;text-align:center;padding:20px;margin-bottom:12px">拖拽图片到此区域</div>
+      <div class="row">
+        <input id="file" type="file" accept="image/*" multiple />
+        <select id="format" class="select">
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+        <input id="quality" class="input" type="range" min="0.1" max="1" step="0.05" value="0.8" />
+        <input id="maxW" class="input" type="number" min="1" value="1280" />
+        <input id="maxH" class="input" type="number" min="1" value="1280" />
+        <label class="small"><input type="checkbox" id="useExif" /> 遵循EXIF方向</label>
+        <button id="convert" class="btn">压缩</button>
+        <button id="downloadZip" class="btn secondary">下载ZIP</button>
+        <label class="small">并发<input id="concurrency" class="input" type="number" min="1" value="3" style="width:64px" /></label>
+        <label class="small">ZIP分包(MB)<input id="zipMax" class="input" type="number" min="0" value="0" style="width:80px" /></label>
+        <label class="small">ZIP压缩级别<input id="zipLevel" class="input" type="number" min="0" max="9" value="6" style="width:64px" /></label>
+        <label class="small"><input type="checkbox" id="avifOpt" /> 另存AVIF</label>
+        <input id="avifQuality" class="input" type="range" min="0.1" max="1" step="0.05" value="0.8" />
+        <button id="pause" class="btn secondary">暂停</button>
+        <button id="resume" class="btn secondary">继续</button>
+        <button id="cancel" class="btn secondary">取消</button>
+      </div>
+      <div class="split">
+        <div>
+          <div class="row"><span class="small">原图</span></div>
+          <div id="origList"></div>
+        </div>
+        <div>
+          <div class="row"><span class="small">压缩后</span></div>
+          <div id="outList"></div>
+          <div id="progress" class="small"></div>
+          <div id="zipProgress" class="small"></div>
+          <div id="errors" class="error" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="image-compress.js"></script>
+</body>
+</html>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>

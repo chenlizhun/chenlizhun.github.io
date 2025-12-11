@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>日期时间</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">日期时间</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section split">
+      <div>
+        <div class="row"><span class="small">间隔计算</span></div>
+        <div class="row">
+          <input id="d1" class="input" type="datetime-local" />
+          <input id="d2" class="input" type="datetime-local" />
+          <button id="calc" class="btn">计算</button>
+        </div>
+        <div id="diff" class="mono small"></div>
+      </div>
+      <div>
+        <div class="row"><span class="small">格式化</span></div>
+        <div class="row">
+          <input id="fmtInput" class="input" type="datetime-local" />
+          <button id="fmtRun" class="btn">格式化</button>
+        </div>
+        <div id="fmtOut" class="mono small"></div>
+        <div class="row"><span class="small">时区换算</span></div>
+        <div class="row">
+          <input id="tzInput" class="input" type="datetime-local" />
+          <select id="tzFrom" class="select">
+            <option value="0">UTC</option>
+            <option value="8">UTC+8</option>
+            <option value="-5">UTC-5</option>
+            <option value="1">UTC+1</option>
+            <option value="9">UTC+9</option>
+            <option value="-8">UTC-8</option>
+            <option value="5.5">UTC+5:30</option>
+          </select>
+          <select id="tzTo" class="select">
+            <option value="0">UTC</option>
+            <option value="8">UTC+8</option>
+            <option value="-5">UTC-5</option>
+            <option value="1">UTC+1</option>
+            <option value="9">UTC+9</option>
+            <option value="-8">UTC-8</option>
+            <option value="5.5">UTC+5:30</option>
+          </select>
+          <button id="tzRun" class="btn">换算</button>
+        </div>
+        <div id="tzOut" class="mono small"></div>
+        <div class="row"><span class="small">自然语言解析与周数</span></div>
+        <div class="row">
+          <input id="nlp" class="input" placeholder="如：2025-02-10、next friday、下周三 18:00、本周五、明天上午8点" />
+          <button id="nlpRun" class="btn">解析</button>
+        </div>
+        <div id="nlpOut" class="mono small"></div>
+        <div class="row"><span class="small">节假日/工作日配置</span></div>
+        <div class="row">
+          <input id="holidayFile" class="input" type="file" accept="application/json" />
+        </div>
+        <div id="holidayInfo" class="mono small"></div>
+      </div>
+    </div>
+  </div>
+  <script src="datetime-tools.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>文本处理</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">文本处理</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div class="toolbar">
+        <button id="toUpper" class="btn">大写</button>
+        <button id="toLower" class="btn">小写</button>
+        <button id="toTitle" class="btn">Title Case</button>
+        <button id="trimLines" class="btn secondary">去除行首尾空格</button>
+        <button id="compactSpaces" class="btn secondary">合并多空格</button>
+        <button id="removeEmpty" class="btn secondary">移除空行</button>
+        <button id="dedupLines" class="btn secondary">行去重</button>
+        <button id="sortAsc" class="btn secondary">升序</button>
+        <button id="sortDesc" class="btn secondary">降序</button>
+        <button id="copyOut" class="btn secondary">复制结果</button>
+        <button id="clearAll" class="btn secondary">清空</button>
+      </div>
+      <div class="split">
+        <textarea id="textInput" class="input mono" rows="14" placeholder="在此粘贴或输入文本"></textarea>
+        <textarea id="textOutput" class="input mono" rows="14" placeholder="结果输出" readonly></textarea>
+      </div>
+      <div class="row">
+        <input id="find" class="input" placeholder="查找" />
+        <input id="replace" class="input" placeholder="替换为" />
+        <label class="small"><input type="checkbox" id="useRegex" /> 正则</label>
+        <label class="small"><input type="checkbox" id="caseInsensitive" /> 不区分大小写</label>
+        <button id="doReplace" class="btn secondary">替换</button>
+      </div>
+      <div class="row"><span id="stats" class="small"></span></div>
+      <div id="error" class="error" style="display:none"></div>
+    </div>
+  </div>
+  <script src="text-tools.js"></script>
+</body>
+</html>

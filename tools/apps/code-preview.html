@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>代码预览</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">代码预览</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div class="toolbar">
+        <select id="lang" class="select">
+          <option value="language-javascript">JavaScript</option>
+          <option value="language-html">HTML</option>
+          <option value="language-css">CSS</option>
+          <option value="language-json">JSON</option>
+          <option value="language-python">Python</option>
+          <option value="language-dart">Dart</option>
+        </select>
+        <button id="preview" class="btn">预览</button>
+        <button id="copy" class="btn secondary">复制代码</button>
+        <button id="clear" class="btn secondary">清空</button>
+      </div>
+      <div class="split">
+        <textarea id="codeInput" class="input mono" rows="14" placeholder="在此粘贴或输入代码"></textarea>
+        <div class="code" style="min-height:280px"><pre><code id="codeOut" class="language-javascript line-numbers"></code></pre></div>
+      </div>
+      <div class="row"><span class="hint">支持多语言高亮与行号显示。</span></div>
+    </div>
+  </div>
+  <script src="code-preview.js"></script>
+</body>
+</html>

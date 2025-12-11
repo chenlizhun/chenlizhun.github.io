@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>计时间工具</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">计时间工具</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section split">
+      <div>
+        <div class="row"><span class="small">秒表</span></div>
+        <div class="row">
+          <div id="swDisplay" class="title" style="font-size:40px">00:00.000</div>
+        </div>
+        <div class="row">
+          <button id="swStart" class="btn">开始</button>
+          <button id="swLap" class="btn secondary">圈次</button>
+          <button id="swStop" class="btn secondary">停止</button>
+          <button id="swReset" class="btn secondary">重置</button>
+        </div>
+        <div class="section" id="swLaps" class="mono small"></div>
+      </div>
+      <div>
+        <div class="row"><span class="small">倒计时</span></div>
+        <div class="row">
+          <input id="cdMinutes" class="input" type="number" min="1" value="10" />
+          <input id="cdSeconds" class="input" type="number" min="0" value="0" />
+        </div>
+        <div class="row"><div id="cdDisplay" class="title" style="font-size:40px">10:00</div></div>
+        <div class="row">
+          <button id="cdStart" class="btn">开始</button>
+          <button id="cdPause" class="btn secondary">暂停</button>
+          <button id="cdReset" class="btn secondary">重置</button>
+        </div>
+        <div class="row"><span id="cdInfo" class="small"></span></div>
+      </div>
+    </div>
+  </div>
+  <script src="timer.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>番茄钟</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">番茄钟</div>
+      <div class="flex">
+        <a class="btn secondary" href="../index.html">返回</a>
+      </div>
+    </div>
+    <div class="section split">
+      <div>
+        <div class="row">
+          <select id="mode" class="select">
+            <option value="work">工作</option>
+            <option value="short">短休息</option>
+            <option value="long">长休息</option>
+          </select>
+          <input id="minutes" class="input" type="number" min="1" value="25" />
+          <button id="start" class="btn">开始</button>
+          <button id="pause" class="btn secondary">暂停</button>
+          <button id="reset" class="btn secondary">重置</button>
+        </div>
+        <div class="row">
+          <span class="status" id="stage">准备中</span>
+        </div>
+        <div class="section">
+          <div class="title" style="font-size:40px;text-align:center" id="clock">25:00</div>
+        </div>
+        <div class="row">
+          <button id="skip" class="btn secondary">跳过当前阶段</button>
+        </div>
+      </div>
+      <div>
+        <div class="row"><span class="small">循环设置</span></div>
+        <div class="row">
+          <input id="workMin" class="input" type="number" min="1" value="25" />
+          <input id="shortMin" class="input" type="number" min="1" value="5" />
+          <input id="longMin" class="input" type="number" min="1" value="15" />
+          <input id="longGap" class="input" type="number" min="1" value="4" />
+        </div>
+        <div class="row">
+          <button id="save" class="btn secondary">保存设置</button>
+          <button id="mute" class="btn secondary">提示音开关</button>
+        </div>
+        <div class="row"><span class="small" id="info"></span></div>
+        <div class="section">
+          <div id="log" class="mono small"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="pomodoro.js"></script>
+</body>
+</html>

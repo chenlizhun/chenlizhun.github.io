@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JSON格式转换</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">JSON格式转换</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div class="toolbar">
+        <button id="format2" class="btn">格式化(2空格)</button>
+        <button id="format4" class="btn">格式化(4空格)</button>
+        <button id="minify" class="btn secondary">压缩</button>
+        <button id="sortKeys" class="btn secondary">键排序</button>
+        <button id="copyOut" class="btn secondary">复制结果</button>
+        <button id="clear" class="btn secondary">清空</button>
+      </div>
+      <div class="split">
+        <textarea id="input" class="input mono" rows="14" placeholder="在此粘贴或输入 JSON"></textarea>
+        <textarea id="output" class="input mono" rows="14" placeholder="结果输出" readonly></textarea>
+      </div>
+      <div id="error" class="error" style="display:none"></div>
+      <div class="row"><span class="hint">支持校验、格式化、压缩、键排序与复制。严格遵循 JSON 标准。</span></div>
+    </div>
+  </div>
+  <script src="json.js"></script>
+</body>
+</html>

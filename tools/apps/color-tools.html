@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>颜色工具</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">颜色工具</div>
+      <div class="flex"><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section split">
+      <div>
+        <div class="row">
+          <input id="picker" type="color" />
+          <input id="hex" class="input mono" placeholder="#RRGGBB" />
+          <button id="apply" class="btn">应用</button>
+        </div>
+        <div class="row"><span class="small">转换</span></div>
+        <div id="conv" class="mono small"></div>
+        <div class="row"><span class="small">可访问性对比度</span></div>
+        <div class="row">
+          <label class="small">前景<input id="fg" type="color" /></label>
+          <label class="small">背景<input id="bg" type="color" /></label>
+          <label class="small">目标对比度
+            <select id="targetRatio" class="select" style="width:90px">
+              <option value="4.5">AA</option>
+              <option value="7">AAA</option>
+              <option value="3">AA(大字)</option>
+            </select>
+          </label>
+          <button id="adjustAA" class="btn secondary">一键达标</button>
+        </div>
+        <div id="contrast" class="mono small"></div>
+      </div>
+      <div>
+        <div class="row"><span class="small">变化</span></div>
+        <div id="vars" class="row"></div>
+        <div class="row">
+          <button id="savePalette" class="btn secondary">保存到色板</button>
+          <button id="sharePalette" class="btn secondary">分享链接</button>
+          <button id="exportPalette" class="btn secondary">导出JSON</button>
+          <input id="importFile" type="file" accept="application/json" />
+          <input id="paletteSet" class="input" placeholder="色板名称(默认 default)" />
+          <select id="paletteSelect" class="select"></select>
+        </div>
+        <div id="palette" class="row"></div>
+      </div>
+    </div>
+  </div>
+  <script src="color-tools.js"></script>
+</body>
+</html>

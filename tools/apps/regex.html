@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>正则测试</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">正则测试</div>
+      <div class="flex"><span id="statusBar" class="small mono" style="margin-right:12px"></span><a class="btn secondary" href="../index.html">返回</a></div>
+    </div>
+    <div class="section">
+      <div class="toolbar">
+        <input id="pattern" class="input mono" placeholder="模式，例如：^foo|bar$" />
+        <input id="flags" class="input" placeholder="标志，例如：g, i, m" />
+        <button id="run" class="btn">测试</button>
+        <button id="clear" class="btn secondary">清空</button>
+        <label class="small"><input type="checkbox" id="autoPreview" /> 自动预览(防抖)</label>
+        <label class="small">延迟
+          <select id="autoDelay" class="select" style="width:80px">
+            <option value="150">150ms</option>
+            <option value="300" selected>300ms</option>
+            <option value="500">500ms</option>
+          </select>
+        </label>
+      </div>
+      <div class="split">
+        <textarea id="text" class="input mono" rows="14" placeholder="待测试文本"></textarea>
+        <div class="section">
+          <div class="row"><span class="small">匹配结果</span></div>
+          <div class="row"><button id="copyMatches" class="btn secondary">复制匹配</button></div>
+          <div id="result" class="mono small"></div>
+          <div class="row"><span class="small" id="matchCount"></span></div>
+          <div class="row"><span class="small">高亮</span></div>
+          <div id="highlight" class="section"></div>
+          <div class="row"><span class="small">替换预览</span></div>
+          <div class="row">
+            <input id="repl" class="input mono" placeholder="替换模板，例如：$1-$2 或 $&" />
+            <button id="previewRepl" class="btn secondary">预览替换</button>
+            <label class="small"><input type="checkbox" id="escapeInject" /> $<name> 注入转义</label>
+          </div>
+          <div class="row"><button id="copyRepl" class="btn secondary">复制替换结果</button></div>
+          <div id="replOut" class="mono small"></div>
+          <div class="row"><span class="small" id="replCount"></span></div>
+          <div class="row"><span class="small">标志说明</span></div>
+          <div id="flagInfo" class="mono small"></div>
+          <div class="row"><span class="small">常用片段库</span></div>
+          <div class="row">
+            <select id="snippetCat" class="select">
+              <option value="common">常用</option>
+              <option value="network">网络</option>
+              <option value="date">日期时间</option>
+            </select>
+            <button id="addFav" class="btn secondary">收藏当前模式</button>
+            <button id="exportFav" class="btn secondary">导出收藏</button>
+            <input id="importFavFile" type="file" accept="application/json" />
+            <button id="exportLib" class="btn secondary">导出片段库</button>
+            <input id="importLibFile" type="file" accept="application/json" />
+          </div>
+          <div id="snippets" class="row"></div>
+          <div class="row"><span class="small">收藏</span></div>
+          <div class="row"><input id="favSearch" class="input" placeholder="搜索收藏(名称/模式)" /></div>
+          <div id="favorites" class="row"></div>
+        </div>
+      </div>
+      <div id="error" class="error" style="display:none"></div>
+    </div>
+  </div>
+  <script src="regex.js"></script>
+</body>
+</html>
