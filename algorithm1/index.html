@@ -38,6 +38,16 @@
             <!-- Chapter Navigation -->
             <div id="chapter-nav" class="w-full bg-white p-6 rounded-xl shadow-lg">
                 <h2 class="text-xl font-semibold mb-4 text-gray-800">课程列表</h2>
+                <div class="chapters-filters">
+                    <input id="search-input" class="search-input" type="text" placeholder="搜索章节或题目" aria-label="搜索章节或题目" />
+                    <select id="status-filter" class="select" aria-label="按掌握度筛选">
+                        <option value="">全部状态</option>
+                        <option value="完全掌握">完全掌握</option>
+                        <option value="在理解中">在理解中</option>
+                        <option value="完全不懂">完全不懂</option>
+                        <option value="未标注">未标注</option>
+                    </select>
+                </div>
                 <ul id="chapters-list" class="space-y-3">
                     <!-- Chapters will be dynamically populated here -->
                 </ul>

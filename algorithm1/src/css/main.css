@@ -722,3 +722,37 @@ pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
     display: inline-block;
     box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
 }
+
+.chapters-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filters-bar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1 1 280px;
+    max-width: 420px;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #ffffff;
+    color: var(--dark-text);
+}
+
+.select {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #ffffff;
+    color: var(--dark-text);
+}

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load and display chapters first
     loadChapters();
+    setupChapterFilters();
 
     // Add event listener for back button
     const backBtn = document.getElementById('back-btn');
@@ -39,19 +40,27 @@ function loadChapters() {
     const gridContainer = document.createElement('div');
     gridContainer.className = 'chapters-grid';
     
-    // Create chapter cards
-    if (algorithms && algorithms.length > 0) {
-        algorithms.forEach((chapter, index) => {
+    const query = loadSearchQuery();
+    const statusFilter = loadFilterStatus();
+    const list = Array.isArray(algorithms) ? algorithms : [];
+    const filtered = list.filter(ch => chapterMatches(ch, query, statusFilter));
+    if (filtered.length > 0) {
+        filtered.forEach((chapter, index) => {
             const chapterCard = createChapterCard(chapter, index);
             gridContainer.appendChild(chapterCard);
         });
     } else {
         console.error('algorithms is undefined or empty');
-        gridContainer.innerHTML = '<div class="text-red-500">Error: No chapters found</div>';
+        gridContainer.innerHTML = '<div class="text-gray-500">未找到匹配的课程</div>';
     }
     
     // Append the grid container to the chapters list
     chaptersList.appendChild(gridContainer);
+
+    const s = document.getElementById('search-input');
+    const f = document.getElementById('status-filter');
+    if (s) s.value = query;
+    if (f) f.value = statusFilter;
 }
 
 // Create a chapter card element
@@ -106,12 +115,24 @@ function showChapterDetails(chapterTitle) {
     // Generate HTML for the chapter details
     let html = `
         <div class="detail-sticky">
-            <button id="back-btn" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                </svg>
-                返回
-            </button>
+            <div class="flex items-center justify-between gap-2">
+                <button id="back-btn" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                    </svg>
+                    返回
+                </button>
+                <div class="filters-bar">
+                    <input id="detail-search" class="search-input" type="text" placeholder="在本章搜索" aria-label="在本章搜索" />
+                    <select id="detail-status-filter" class="select" aria-label="按掌握度筛选">
+                        <option value="">全部状态</option>
+                        <option value="完全掌握">完全掌握</option>
+                        <option value="在理解中">在理解中</option>
+                        <option value="完全不懂">完全不懂</option>
+                        <option value="未标注">未标注</option>
+                    </select>
+                </div>
+            </div>
         </div>
         <div class="p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">${chapter.title}</h2>
@@ -146,6 +167,8 @@ function showChapterDetails(chapterTitle) {
     initializeStepVisualizations();
     initializeStatusControls(chapter.title);
     setHeaderSticky(false);
+
+    setupDetailFilters(chapter.title);
 }
 
 // Create HTML for a problem
@@ -325,6 +348,118 @@ function initializeProblemTabs() {
 // Initialize step visualizations
 function initializeStepVisualizations() {
     // Additional step visualization logic can be added here
+}
+
+function normalizeText(t) {
+    return String(t || '').toLowerCase();
+}
+
+function loadSearchQuery() {
+    try { return localStorage.getItem('algorithm1_search_query') || ''; } catch(_) { return ''; }
+}
+
+function saveSearchQuery(q) {
+    try { localStorage.setItem('algorithm1_search_query', String(q || '')); } catch(_) {}
+}
+
+function loadFilterStatus() {
+    try { return localStorage.getItem('algorithm1_filter_status') || ''; } catch(_) { return ''; }
+}
+
+function saveFilterStatus(s) {
+    try { localStorage.setItem('algorithm1_filter_status', String(s || '')); } catch(_) {}
+}
+
+function getProblemStatusOrEmpty(key) {
+    const v = getProblemStatus(key);
+    return v || '';
+}
+
+function chapterMatches(chapter, query, statusFilter) {
+    const q = normalizeText(query);
+    const hasQuery = !!q;
+    const status = String(statusFilter || '');
+    const chapterText = normalizeText(chapter.title + ' ' + chapter.description);
+    let okQuery = !hasQuery || chapterText.includes(q);
+    if (!okQuery && chapter.problems && chapter.problems.length) {
+        okQuery = chapter.problems.some(p => {
+            const txt = normalizeText(
+                p.title + ' ' + p.description + ' ' + (p.example || '') + ' ' + ((p.essence || []).join(' '))
+            );
+            return txt.includes(q);
+        });
+    }
+    let okStatus = !status;
+    if (!okStatus) {
+        okStatus = chapter.problems && chapter.problems.some(p => {
+            const key = `${chapter.title}::${p.title}`;
+            const ps = getProblemStatusOrEmpty(key);
+            if (status === '未标注') return !ps;
+            return ps === status;
+        });
+    }
+    return okQuery && okStatus;
+}
+
+function setupChapterFilters() {
+    const s = document.getElementById('search-input');
+    const f = document.getElementById('status-filter');
+    if (s) {
+        s.value = loadSearchQuery();
+        s.addEventListener('input', () => { saveSearchQuery(s.value || ''); loadChapters(); });
+    }
+    if (f) {
+        f.value = loadFilterStatus();
+        f.addEventListener('change', () => { saveFilterStatus(f.value || ''); loadChapters(); });
+    }
+}
+
+function setupDetailFilters(chapterTitle) {
+    const s = document.getElementById('detail-search');
+    const f = document.getElementById('detail-status-filter');
+    if (!s || !f) return;
+    const q = tryLoad(`algorithm1_detail_search_${chapterTitle}`) || '';
+    const st = tryLoad(`algorithm1_detail_status_${chapterTitle}`) || '';
+    s.value = q; f.value = st;
+    const apply = () => filterProblemsInDetail(chapterTitle, s.value || '', f.value || '');
+    s.addEventListener('input', apply);
+    f.addEventListener('change', apply);
+    apply();
+}
+
+function tryLoad(k) {
+    try { return localStorage.getItem(k) || ''; } catch(_) { return ''; }
+}
+
+function trySave(k, v) {
+    try { localStorage.setItem(k, String(v || '')); } catch(_) {}
+}
+
+function filterProblemsInDetail(chapterTitle, query, statusFilter) {
+    trySave(`algorithm1_detail_search_${chapterTitle}`, query || '');
+    trySave(`algorithm1_detail_status_${chapterTitle}`, statusFilter || '');
+    const q = normalizeText(query);
+    const status = String(statusFilter || '');
+    const sections = document.querySelectorAll('.algorithm-section');
+    sections.forEach(sec => {
+        const titleEl = sec.querySelector('h3');
+        const descEl = sec.querySelector('.mb-4 p');
+        const titleText = normalizeText(titleEl ? titleEl.textContent : '');
+        const descText = normalizeText(descEl ? descEl.textContent : '');
+        let okQuery = !q || titleText.includes(q) || descText.includes(q);
+        let okStatus = !status;
+        if (!okStatus) {
+            const displayEl = sec.querySelector('.status-display');
+            let key = displayEl ? displayEl.getAttribute('data-key') : '';
+            if (!key && titleEl) {
+                const title = (titleEl.textContent || '').replace(/^\s*题目\d+:\s*/, '').trim();
+                key = `${chapterTitle}::${title}`;
+            }
+            const ps = getProblemStatusOrEmpty(key);
+            if (status === '未标注') okStatus = !ps; else okStatus = ps === status;
+        }
+        sec.style.display = okQuery && okStatus ? '' : 'none';
+    });
 }
 
 function getProblemStatus(key) {
