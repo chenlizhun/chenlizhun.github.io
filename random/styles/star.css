@@ -1,31 +1,44 @@
 /* 星星抽签样式 */
 .stars {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+  justify-content: center;
 }
+
 .star-item {
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-radius: 999px;
-  background: #ffeaa7;
-  font-size: 13px;
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3436;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition: transform .15s, box-shadow .15s, background .15s;
+  gap: 6px;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
+
 .star-item .icon {
-  font-size: 16px;
+  font-size: 18px;
 }
-.star-item.active {
+
+.star-item:hover {
   transform: translateY(-2px);
-  background: #fdcb6e;
-  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
-.star-item.winner {
+
+.star-item.active {
+  background: linear-gradient(135deg, #fdcb6e, #e17055);
   transform: translateY(-3px) scale(1.05);
-  background: #fd79a8;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+}
+
+.star-item.winner {
+  background: linear-gradient(135deg, #fd79a8, #e84393);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 24px rgba(232,67,147,.3);
 }

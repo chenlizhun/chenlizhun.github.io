@@ -45,6 +45,12 @@ window.getSelectedStudents = function() {
     return [...selectedStudents];
 };
 
+window.getEligibleStudents = function() {
+    const all = window.getStudents();
+    const selected = selectedStudents;
+    return all.filter(name => !selected.includes(name));
+};
+
 /**
  * 更新已抽中人员列表显示
  */

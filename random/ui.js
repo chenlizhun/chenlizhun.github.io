@@ -9,7 +9,7 @@ let allPanels;
 let modal;
 
 /**
- * 切换到指定面板
+ * 切换到指定面板（垂直布局模式 - 显示选中模式的完整UI）
  * @param {string} targetPanelName - 目标面板名称
  */
 window.switchPanel = function(targetPanelName) {
@@ -25,18 +25,37 @@ window.switchPanel = function(targetPanelName) {
             }
         });
         
-        // 获取所有面板并更新显示状态
-        // 只处理主内容区的面板，不影响侧边栏的面板
-        const panels = document.querySelectorAll(".main-content .panel");
-        panels.forEach(panel => {
-            if (panel && panel.classList && panel.id) {
-                panel.classList.toggle("hidden", panel.id !== targetPanelName);
-            }
-        });
+        // 垂直布局模式：显示选中模式的完整UI
+        showModeDetails(targetPanelName);
+        console.log(`切换到面板: ${targetPanelName}（垂直布局模式）`);
     } catch (error) {
         console.error("切换面板时出错:", error);
     }
 };
+
+/**
+ * 显示选中模式的详细UI
+ * @param {string} modeName - 模式名称
+ */
+function showModeDetails(modeName) {
+    // 移除所有面板的active类
+    const allPanels = document.querySelectorAll('.vertical-modes-container .panel');
+    allPanels.forEach(panel => {
+        panel.classList.remove('active');
+    });
+    
+    // 添加active类到选中的面板
+    const targetPanel = document.getElementById(modeName);
+    if (targetPanel) {
+        targetPanel.classList.add('active');
+        if (modeName === 'simplePanel' && typeof window.updateSimple === 'function') {
+            window.updateSimple();
+        }
+        if (modeName === 'groupPanel' && typeof window.updateGroup === 'function') {
+            window.updateGroup();
+        }
+    }
+}
 
 /**
  * 初始化UI管理模块
@@ -63,11 +82,21 @@ window.initUI = function() {
             });
         });
         
-        // 默认显示第一个面板
+        // 垂直布局模式：显示所有面板，不隐藏任何面板
+        // 移除所有面板的hidden类
+        const panels = document.querySelectorAll(".main-content .panel");
+        panels.forEach(panel => {
+            if (panel && panel.classList) {
+                panel.classList.remove("hidden");
+            }
+        });
+        
+        // 默认激活第一个按钮并显示其详细内容
         const firstButton = toolbarButtons[0];
         if (firstButton) {
+            firstButton.classList.add("active");
             const firstPanel = firstButton.getAttribute("data-target");
-            window.switchPanel(firstPanel);
+            showModeDetails(firstPanel);
         }
         
         // 添加模态窗口关闭事件监听

@@ -53,6 +53,127 @@ body {
   min-width: 0; /* 防止内容溢出 */
 }
 
+/* 垂直列布局模式 */
+.vertical-modes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* 垂直布局中的面板样式 */
+.vertical-modes-container .panel {
+  margin-bottom: 0;
+  border-left: 4px solid #ff9f43;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  min-height: 60px;
+}
+
+/* 垂直布局中的左侧内容区 */
+.vertical-modes-container .panel-left {
+  flex: 1;
+  padding-right: 16px;
+}
+
+/* 垂直布局中的面板标题样式 */
+.vertical-modes-container .panel h2 {
+  font-size: 16px;
+  margin: 0 0 4px 0;
+  padding-left: 8px;
+  border-left: 3px solid #ff9f43;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 垂直布局中的说明文字 */
+.vertical-modes-container .panel .panel-tip {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 0;
+  padding-left: 8px;
+  line-height: 1.3;
+}
+
+/* 垂直布局中的按钮区域 */
+.vertical-modes-container .panel-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 垂直布局中的开始按钮 */
+.vertical-modes-container .btn-primary {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 16px;
+  min-width: 80px;
+  background: linear-gradient(135deg, #ff9f43, #ff8a1a);
+  box-shadow: 0 2px 8px rgba(255, 159, 67, 0.3);
+}
+
+.vertical-modes-container .btn-primary:hover {
+  background: linear-gradient(135deg, #ff8a1a, #ff7675);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 159, 67, 0.4);
+}
+
+/* 隐藏垂直布局中不需要的元素 */
+.vertical-modes-container .wheel-container,
+.vertical-modes-container .slot-container,
+.vertical-modes-container .roller-container,
+.vertical-modes-container .card-container,
+.vertical-modes-container .grid-container,
+.vertical-modes-container .list-container,
+.vertical-modes-container .ball-container,
+.vertical-modes-container .race-container,
+.vertical-modes-container .balloon-container,
+.vertical-modes-container .gift-container,
+.vertical-modes-container .spin-container,
+.vertical-modes-container .lottery-box,
+.vertical-modes-container .number-display,
+.vertical-modes-container .matrix-container,
+.vertical-modes-container .light-container,
+.vertical-modes-container .rainbow-container,
+.vertical-modes-container .type-display,
+.vertical-modes-container .stars,
+.vertical-modes-container .simple-display,
+.vertical-modes-container .group-container,
+.vertical-modes-container .result {
+  display: none;
+  margin-top: 16px;
+}
+
+/* 显示选中模式的详细内容 */
+.vertical-modes-container .panel.active .wheel-container,
+.vertical-modes-container .panel.active .slot-container,
+.vertical-modes-container .panel.active .roller-container,
+.vertical-modes-container .panel.active .card-container,
+.vertical-modes-container .panel.active .grid-container,
+.vertical-modes-container .panel.active .list-container,
+.vertical-modes-container .panel.active .ball-container,
+.vertical-modes-container .panel.active .race-container,
+.vertical-modes-container .panel.active .balloon-container,
+.vertical-modes-container .panel.active .gift-container,
+.vertical-modes-container .panel.active .spin-container,
+.vertical-modes-container .panel.active .lottery-box,
+.vertical-modes-container .panel.active .number-display,
+.vertical-modes-container .panel.active .matrix-container,
+.vertical-modes-container .panel.active .light-container,
+.vertical-modes-container .panel.active .rainbow-container,
+.vertical-modes-container .panel.active .type-display,
+.vertical-modes-container .panel.active .stars,
+.vertical-modes-container .panel.active .simple-display,
+.vertical-modes-container .panel.active .group-container,
+.vertical-modes-container .panel.active .result {
+  display: block !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main-container {
@@ -60,6 +181,22 @@ body {
   }
   
   .sidebar {
+    width: 100%;
+  }
+  
+  /* 垂直布局在小屏幕上的适配 */
+  .vertical-modes-container .panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .vertical-modes-container .panel-right {
+    align-self: flex-end;
+    width: 100%;
+  }
+  
+  .vertical-modes-container .btn-primary {
     width: 100%;
   }
 }

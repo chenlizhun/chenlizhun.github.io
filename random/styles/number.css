@@ -1,38 +1,51 @@
 /* 数字抽奖样式 */
 .number-container {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .number-display {
-  min-height: 60px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 700;
   color: #2d3436;
+  background: linear-gradient(135deg, #f5f7ff, #dfe6e9);
+  border-radius: 16px;
+  padding: 16px 32px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.08);
+  transition: all .2s ease;
 }
 
 .dice-area {
   display: flex;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 16px;
   align-items: center;
   justify-content: center;
 }
+
 .dice {
-  width: 60px;
-  height: 60px;
-  border-radius: 10px;
-  background: #fff;
-  border: 2px solid #2d3436;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff, #f5f7ff);
+  border: 2px solid #667eea;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  color: #2d3436;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.dice:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
 }

@@ -1,28 +1,36 @@
 /* 矩阵闪烁样式 */
 .matrix-container {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  justify-content: center;
 }
+
 .matrix-item {
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: #dfe6e9;
-  font-size: 12px;
-  transition: background .15s, transform .15s, box-shadow .15s;
+  background: linear-gradient(135deg, #dfe6e9, #b2bec3);
+  font-size: 13px;
+  font-weight: 500;
+  color: #2d3436;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
+
 .matrix-item.level1 { font-size: 12px; }
 .matrix-item.level2 { font-size: 14px; }
 .matrix-item.level3 { font-size: 16px; }
+
 .matrix-item.active {
-  background: #ffeaa7;
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
   transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
+
 .matrix-item.winner {
-  background: #e84393;
+  background: linear-gradient(135deg, #e84393, #d63031);
   color: #fff;
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(232,67,147,.25);
 }

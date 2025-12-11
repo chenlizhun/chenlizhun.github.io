@@ -1,50 +1,16 @@
 /**
  * 随机抽签模式模块
- * 实现从18种抽签方式中随机选择一种进行抽奖的功能
+ * 实现从两种抽签方式中随机选择一种进行抽奖的功能
  */
 
-// 所有游戏的启动函数映射
 const gameStartFunctions = {
-    wheel: window.startWheel,
-    slot: window.startSlotMachine,
-    roller: window.startRoller,
-    card: window.startCard,
-    grid: window.startGrid,
-    list: window.startList,
-    ball: window.startBall,
-    race: window.startRace,
-    balloon: window.startBalloon,
-    gift: window.startGift,
-    spin: window.startSpin,
-    lottery: window.startLottery,
-    number: window.startNumber,
-    matrix: window.startMatrix,
-    light: window.startLight,
-    rainbow: window.startRainbow,
-    type: window.startType,
-    star: window.startStar
+    simple: window.startSimple,
+    group: window.startGroup,
 };
 
-// 所有游戏的面板ID映射
 const gamePanels = {
-    wheel: 'wheelPanel',
-    slot: 'slotPanel',
-    roller: 'rollerPanel',
-    card: 'cardPanel',
-    grid: 'gridPanel',
-    list: 'listPanel',
-    ball: 'ballPanel',
-    race: 'racePanel',
-    balloon: 'balloonPanel',
-    gift: 'giftPanel',
-    spin: 'spinPanel',
-    lottery: 'lotteryPanel',
-    number: 'numberPanel',
-    matrix: 'matrixPanel',
-    light: 'lightPanel',
-    rainbow: 'rainbowPanel',
-    type: 'typePanel',
-    star: 'starPanel'
+    simple: 'simplePanel',
+    group: 'groupPanel',
 };
 
 /**
@@ -76,7 +42,7 @@ function handleRandomModeClick() {
     const panelId = gamePanels[randomGameType];
     
     // 切换到对应的游戏面板
-    switchPanel(panelId);
+    window.switchPanel(panelId);
     
     // 短暂延迟后启动游戏
     setTimeout(() => {
@@ -93,7 +59,7 @@ function handleRandomModeClick() {
             // 恢复按钮状态
             setTimeout(() => {
                 btnRandomMode.disabled = false;
-                btnRandomMode.textContent = '🎲 随机开始抽签';
+                btnRandomMode.textContent = '🎲 随机抽签';
             }, 1000);
         }
     }, 500);
@@ -103,32 +69,4 @@ function handleRandomModeClick() {
  * 切换到指定的游戏面板
  * @param {string} targetPanelId - 目标面板ID
  */
-function switchPanel(targetPanelId) {
-    // 移除所有面板的active类
-    const panels = window.getElements('.panel');
-    panels.forEach(panel => {
-        panel.classList.remove('active');
-    });
-    
-    // 隐藏所有主内容区的非学生管理面板，不影响侧边栏面板
-    const gamePanels = window.getElements('.main-content .panel:not(#managePanel)');
-    gamePanels.forEach(panel => {
-        panel.classList.add('hidden');
-    });
-    
-    // 显示目标面板并添加active类
-    const targetPanel = window.getElement(`#${targetPanelId}`);
-    if (targetPanel) {
-        targetPanel.classList.remove('hidden');
-        targetPanel.classList.add('active');
-    }
-    
-    // 更新工具栏按钮状态
-    const toolbarButtons = window.getElements('.toolbar button');
-    toolbarButtons.forEach(button => {
-        button.classList.remove('active');
-        if (button.dataset.target === targetPanelId) {
-            button.classList.add('active');
-        }
-    });
-}
+// 使用UI模块的切换逻辑，无需重复实现

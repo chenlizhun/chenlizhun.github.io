@@ -1,27 +1,38 @@
-/* 编号盒子抽签样式 */
+/* 礼物盒抽签样式 */
 .gift-container {
-  margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(70px,1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
 }
-.box-item {
-  padding: 10px 4px;
-  border-radius: 10px;
-  background: #dfe6e9;
+
+.gift {
+  padding: 14px 6px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dfe6e9, #b2bec3);
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3436;
   cursor: default;
-  transition: background .15s, transform .15s, box-shadow .15s;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
-.box-item.active {
-  background: #ffeaa7;
+
+.gift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
-.box-item.winner {
-  background: #00b894;
+
+.gift.active {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+}
+
+.gift.winner {
+  background: linear-gradient(135deg, #00b894, #00cec9);
   color: #fff;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 4px 12px rgba(0,0,0,.28);
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 24px rgba(0,184,148,.3);
 }
