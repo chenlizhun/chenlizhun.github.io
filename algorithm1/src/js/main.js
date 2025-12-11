@@ -172,14 +172,14 @@ function createProblemHTML(problem, problemIndex, chapterTitle) {
     return `
         <div class="algorithm-section">
             <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                题目${problemIndex}: ${problem.title}
-                ${leetCodeUrl ? `<a href="${leetCodeUrl}" target="_blank" class="leetcode-link ml-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    LeetCode
-                </a>` : ''}
-                <a href="#" target="_blank" rel="noopener" class="leetcode-link ml-2 demo-link hidden" data-demo-id="${lessonIndex}-${problemIndex}">算法推演</a>
-                <a href="#" target="_blank" rel="noopener" class="leetcode-link ml-2 video-link hidden" data-video-id="${lessonIndex}-${problemIndex}">算法视频</a>
-                <span class="ml-2 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">第${lessonIndex}课</span>
+                <span class="flex-1">题目${problemIndex}: ${problem.title}
+                    <span class="ml-2 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">第${lessonIndex}课</span>
+                </span>
+                <div class="ml-auto flex items-center gap-0.5">
+                    ${leetCodeUrl ? `<a href="${leetCodeUrl}" target="_blank" class="action-link">leetcode</a>` : ''}
+                    <a href="#" target="_blank" rel="noopener" class="action-link demo-link hidden" data-demo-id="${lessonIndex}-${problemIndex}">推演</a>
+                    <a href="#" target="_blank" rel="noopener" class="action-link video-link hidden" data-video-id="${lessonIndex}-${problemIndex}">视频</a>
+                </div>
             </h3>
             <div class="flex items-center justify-between mb-3">
                 <div class="status-control" data-key="${key}">
