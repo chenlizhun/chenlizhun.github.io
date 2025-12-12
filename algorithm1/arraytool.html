@@ -13,7 +13,7 @@
         }
 
         body {
-            padding: 1.5rem;
+            padding: 0.75rem;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
         }
@@ -22,21 +22,20 @@
             max-width: 1400px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         h1 {
             color: #0f3460;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.8rem;
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         /* 数组模式切换 */
@@ -74,6 +73,40 @@
             border-radius: 12px;
             border: 1px solid #e9ecef;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .array-config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+        .array-config-header .config-title {
+            font-weight: 700;
+            color: #0f3460;
+            font-size: 0.95rem;
+        }
+        .toggle-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #0f3460;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .toggle-pill svg {
+            width: 14px;
+            height: 14px;
+        }
+        .array-config.collapsed .array-config-body {
+            display: none;
+        }
+        .array-config-body {
+            padding-top: 0.8rem;
         }
 
         .array-input-group {
@@ -231,7 +264,7 @@
             min-height: 100px;
             display: none;
             position: relative;
-            padding: 15px 0;
+            padding: 18px 0;
             width: 100%;
         }
 
@@ -239,16 +272,7 @@
             display: flex;
         }
 
-        .array-label {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1rem;
-            color: #0f3460;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
+        .array-label { display: none !important; }
 
         /* 数组方块 - 白色背景 */
         .array-item {
@@ -278,21 +302,39 @@
             box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
         }
 
-        .array-item input {
-            width: 50px;
-            height: 40px;
-            text-align: center;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            background: white;
-            transition: border 0.3s;
+        /* 目标值高亮 */
+        .array-item.target-match {
+            background: #fff7ed; /* orange-50 */
+            border-color: #fb923c; /* orange-400 */
+            box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.25);
         }
 
-        .array-item input:focus {
-            outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 2px rgba(15, 52, 96, 0.1);
+        /* 两数之和=目标 高亮 */
+        .array-item.two-sum-match {
+            background: #f0fff4; /* green-50 */
+            border-color: #34d399; /* green-400 */
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+        }
+
+        /* 三数之和=目标 高亮 */
+        .array-item.three-sum-match {
+            background: #f5f3ff; /* violet-50 */
+            border-color: #a78bfa; /* violet-400 */
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
+        }
+
+        .array-value-text {
+            min-width: 50px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            background: transparent;
+            color: #111827;
         }
 
         .array-index {
@@ -487,7 +529,15 @@
         </div>
 
         <!-- 数组配置区域 -->
-        <div class="array-config">
+        <div class="array-config" id="array-config">
+            <div class="array-config-header">
+                <div class="config-title">功能按钮区</div>
+                <button class="toggle-pill" id="toggle-controls">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    折叠
+                </button>
+            </div>
+            <div class="array-config-body">
             <!-- 多数组控制 -->
             <div class="multi-array-controls">
                 <button class="btn btn-outline" id="add-array">添加新数组</button>
@@ -517,9 +567,47 @@
                 <div class="pointer-status" id="pointer-status">当前选中：无 | 位置：-</div>
             </div>
 
+            <!-- 目标值配置 -->
+            <div class="pointer-config">
+                <input type="number" id="target-value" placeholder="目标值" style="width: 90px;">
+                <div class="pointer-status" id="target-status">目标：未设置</div>
+            </div>
+
+            <!-- 关系高亮模式 -->
+            <div class="pointer-config">
+                <select id="relation-mode" class="array-input" style="max-width: 200px;">
+                    <option value="none">关系高亮：关闭</option>
+                    <option value="two-sum">两数之和 = 目标</option>
+                    <option value="three-sum">三数之和 = 目标</option>
+                </select>
+                <button class="btn btn-outline" id="clear-highlight">清除高亮</button>
+            </div>
+
+            <!-- 场景模板 -->
+            <div class="pointer-config">
+                <button class="btn btn-outline" id="tpl-merge">模板：合并有序数组</button>
+                <button class="btn btn-outline" id="tpl-remove">模板：移除元素</button>
+                <button class="btn btn-outline" id="tpl-binary">模板：二分查找</button>
+                <button class="btn btn-outline" id="tpl-two-sum">模板：两数之和</button>
+                <button class="btn btn-outline" id="tpl-three-sum">模板：三数之和</button>
+                <button class="btn btn-outline" id="tpl-window">模板：滑动窗口</button>
+                <button class="btn btn-outline" id="tpl-move-zeros">模板：移动零</button>
+                <button class="btn btn-outline" id="tpl-remove-dup">模板：移除重复项</button>
+                <button class="btn btn-outline" id="tpl-reverse">模板：反转数组</button>
+            </div>
+
             <div class="pointer-config">
                 <button class="btn btn-primary" id="record-step">记录当前状态</button>
                 <button class="btn btn-primary" id="take-snapshot">生成数组快照</button>
+            </div>
+            <div class="pointer-config">
+                <button class="btn btn-outline" id="start-record">开始录制</button>
+                <button class="btn btn-outline" id="stop-record">停止录制</button>
+                <button class="btn btn-primary" id="play-record">回放录制</button>
+                <button class="btn btn-danger" id="clear-record">清空录制</button>
+                <button class="btn btn-outline" id="export-record">导出录制</button>
+                <div class="pointer-status" id="record-status">录制：未开始</div>
+            </div>
             </div>
         </div>
 
@@ -589,6 +677,10 @@
         let pointers = []; // 存储指针信息 {id, name, element, arrayId, index, color, positionType: 'top'/'bottom'}
         let selectedPointer = null;
         let maxArrayId = 1; // 记录最大数组ID
+        let targetValue = null; // 目标值用于高亮
+        let relationMode = 'none';
+        let isRecording = false;
+        let recordLog = [];
         // 指针颜色池（更酷的配色）
         const pointerColors = [
             'rgba(230, 57, 70, 0.8)',   // 红
@@ -621,6 +713,26 @@
         const pointerStatus = document.getElementById('pointer-status');
         const recordStepBtn = document.getElementById('record-step');
         const takeSnapshotBtn = document.getElementById('take-snapshot');
+        const targetInput = document.getElementById('target-value');
+        const targetStatus = document.getElementById('target-status');
+        const relationModeSelect = document.getElementById('relation-mode');
+        const clearHighlightBtn = document.getElementById('clear-highlight');
+        const tplMergeBtn = document.getElementById('tpl-merge');
+        const tplRemoveBtn = document.getElementById('tpl-remove');
+        const tplBinaryBtn = document.getElementById('tpl-binary');
+        const tplTwoSumBtn = document.getElementById('tpl-two-sum');
+        const tplThreeSumBtn = document.getElementById('tpl-three-sum');
+        const tplWindowBtn = document.getElementById('tpl-window');
+        const tplMoveZerosBtn = document.getElementById('tpl-move-zeros');
+        const tplRemoveDupBtn = document.getElementById('tpl-remove-dup');
+        const tplReverseBtn = document.getElementById('tpl-reverse');
+        const toggleControlsBtn = document.getElementById('toggle-controls');
+        const startRecordBtn = document.getElementById('start-record');
+        const stopRecordBtn = document.getElementById('stop-record');
+        const playRecordBtn = document.getElementById('play-record');
+        const clearRecordBtn = document.getElementById('clear-record');
+        const exportRecordBtn = document.getElementById('export-record');
+        const recordStatus = document.getElementById('record-status');
         const stepList = document.getElementById('step-list');
         const snapshotContainer = document.getElementById('snapshot-container');
         const visualization = document.querySelector('.visualization');
@@ -668,6 +780,43 @@
             
             // 生成快照
             takeSnapshotBtn.addEventListener('click', takeSnapshot);
+
+            // 目标值输入
+            targetInput.addEventListener('input', updateTargetFromInput);
+
+            // 关系模式切换
+            relationModeSelect.addEventListener('change', () => {
+                relationMode = relationModeSelect.value;
+                updateRelationHighlight();
+                updateTargetStats();
+            });
+
+            // 清除高亮
+            clearHighlightBtn.addEventListener('click', () => {
+                targetValue = null;
+                targetInput.value = '';
+                targetStatus.textContent = '目标：未设置';
+                clearAllRelationHighlights();
+                updateTargetHighlight();
+                updateTargetStats();
+            });
+
+            // 模板按钮
+            tplMergeBtn.addEventListener('click', applyTemplateMergeSorted);
+            tplRemoveBtn.addEventListener('click', applyTemplateRemoveElement);
+            tplBinaryBtn.addEventListener('click', applyTemplateBinarySearch);
+            tplTwoSumBtn.addEventListener('click', applyTemplateTwoSum);
+            tplThreeSumBtn.addEventListener('click', applyTemplateThreeSum);
+            tplWindowBtn.addEventListener('click', applyTemplateSlidingWindow);
+            tplMoveZerosBtn.addEventListener('click', applyTemplateMoveZeros);
+            tplRemoveDupBtn.addEventListener('click', applyTemplateRemoveDuplicates);
+            tplReverseBtn.addEventListener('click', applyTemplateReverseArray);
+            toggleControlsBtn.addEventListener('click', toggleControlsArea);
+            startRecordBtn.addEventListener('click', startRecording);
+            stopRecordBtn.addEventListener('click', stopRecording);
+            playRecordBtn.addEventListener('click', playRecording);
+            clearRecordBtn.addEventListener('click', clearRecording);
+            exportRecordBtn.addEventListener('click', exportRecording);
             
             // 监听数组元素修改
             arraysContainer.addEventListener('change', (e) => {
@@ -678,24 +827,32 @@
 
             // 键盘控制指针
             document.addEventListener('keydown', (e) => {
+                const k = e.key && e.key.toLowerCase();
+                if (k && k.length === 1) {
+                    const p = pointers.find(pp => pp.name.toLowerCase() === k);
+                    if (p) {
+                        selectPointer(p);
+                        updatePointerStatus();
+                        updateArrayItemHighlight();
+                        e.preventDefault();
+                        return;
+                    }
+                }
                 if (!selectedPointer) return;
-                
-                // 阻止方向键默认行为
                 if ([37, 38, 39, 40].includes(e.keyCode)) {
                     e.preventDefault();
                 }
-
                 switch(e.keyCode) {
-                    case 37: // 左箭头
+                    case 37:
                         movePointer(selectedPointer, 'left');
                         break;
-                    case 39: // 右箭头
+                    case 39:
                         movePointer(selectedPointer, 'right');
                         break;
-                    case 38: // 上箭头
+                    case 38:
                         movePointer(selectedPointer, 'up');
                         break;
-                    case 40: // 下箭头
+                    case 40:
                         movePointer(selectedPointer, 'down');
                         break;
                 }
@@ -902,13 +1059,10 @@
             // 解析所有激活的数组输入
             document.querySelectorAll('.array-input-wrapper.active').forEach(wrapper => {
                 const arrayId = Number(wrapper.dataset.arrayId);
-                const input = wrapper.querySelector('.array-input');
-                const arrayValue = input.value.trim();
-                
-                currentArrays[arrayId] = arrayValue ? arrayValue.split(',').map(item => {
-                    const num = Number(item.trim());
-                    return isNaN(num) ? 0 : num;
-                }) : [];
+            const input = wrapper.querySelector('.array-input');
+            const arrayValue = input.value.trim();
+            // 支持字符与数字，统一按字符串处理
+            currentArrays[arrayId] = arrayValue ? arrayValue.split(',').map(item => item.trim()) : [];
             });
 
             // 清空所有数组容器
@@ -930,6 +1084,19 @@
             repositionPointers();
             // 更新高亮
             updateArrayItemHighlight();
+            // 高亮目标值
+            updateTargetHighlight();
+            // 关系高亮
+            updateRelationHighlight();
+            // 更新统计
+            updateTargetStats();
+        }
+
+        function toggleControlsArea() {
+            const panel = document.getElementById('array-config');
+            const collapsed = panel.classList.toggle('collapsed');
+            const btn = document.getElementById('toggle-controls');
+            btn.innerHTML = `${collapsed ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg> 展开' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg> 折叠'}`;
         }
 
         // 渲染单个数组
@@ -945,16 +1112,14 @@
                 indexLabel.className = 'array-index';
                 indexLabel.textContent = `[${index}]`;
 
-                // 数值输入框
-                const valueInput = document.createElement('input');
-                valueInput.type = 'number';
-                valueInput.className = 'array-value';
-                valueInput.value = value;
-                valueInput.style.fontSize = '1.2rem';
+                // 数值/字符展示（不可编辑）
+                const valueText = document.createElement('div');
+                valueText.className = 'array-value-text';
+                valueText.textContent = String(value);
 
                 // 组装
                 arrayItem.appendChild(indexLabel);
-                arrayItem.appendChild(valueInput);
+                arrayItem.appendChild(valueText);
                 container.appendChild(arrayItem);
             });
         }
@@ -976,7 +1141,7 @@
             if (!currentArrays[targetArrayId]) {
                 currentArrays[targetArrayId] = [];
             }
-            currentArrays[targetArrayId].push(0);
+            currentArrays[targetArrayId].push('');
             
             // 更新输入框
             const input = document.querySelector(`.array-input[data-array-id="${targetArrayId}"]`);
@@ -1047,7 +1212,7 @@
             const pointerId = `pointer-${Date.now()}`;
             const pointer = document.createElement('div');
             pointer.id = pointerId;
-            pointer.className = 'pointer position-top';
+            pointer.className = 'pointer position-bottom';
             pointer.textContent = pointerName; // 仅内部字符
             pointer.dataset.name = pointerName;
             pointer.style.background = pointerColor;
@@ -1063,7 +1228,7 @@
                 arrayId: 1,
                 index: 0,
                 color: pointerColor.replace('0.8', '1'),
-                positionType: 'top'
+                positionType: 'bottom'
             };
             pointers.push(pointerInfo);
 
@@ -1194,6 +1359,10 @@
             // 更新高亮和状态
             updateArrayItemHighlight();
             updatePointerStatus();
+            if (isRecording) {
+                recordLog.push({ t: Date.now(), type: 'move', name: pointerInfo.name, arrayId: pointerInfo.arrayId, index: pointerInfo.index, pos: pointerInfo.positionType });
+                updateRecordStatus();
+            }
         }
 
         // 设置指针位置（适配页面宽度变化）
@@ -1254,6 +1423,13 @@
                     input.value = currentArrays[arrayId].join(',');
                 }
             }
+            if (isRecording) {
+                recordLog.push({ t: Date.now(), type: 'update', arrayId, index, value: newValue });
+                updateRecordStatus();
+            }
+            updateTargetHighlight();
+            updateRelationHighlight();
+            updateTargetStats();
         }
 
         // 更新指针状态显示
@@ -1265,6 +1441,14 @@
             
             const posText = `数组${selectedPointer.arrayId}[${selectedPointer.index}] ${selectedPointer.positionType === 'top' ? '上方' : '下方'} = ${currentArrays[selectedPointer.arrayId]?.[selectedPointer.index] || 'undefined'}`;
             pointerStatus.textContent = `当前选中：${selectedPointer.name} | 位置：${posText}`;
+        }
+        function clearPointers() {
+            pointers.forEach(p => p.element.remove());
+            pointers = [];
+            selectedPointer = null;
+            updatePointerStatus();
+            updateArrayItemHighlight();
+            updateDefaultPointerName();
         }
 
         // 记录步骤
@@ -1374,10 +1558,363 @@
             
             // 切换到单数组模式
             switchMode('single');
-            
+
             // 更新状态和默认指针名称
             updatePointerStatus();
             updateDefaultPointerName();
+
+            // 重置目标值
+            targetValue = null;
+            if (targetInput) targetInput.value = '';
+            if (targetStatus) targetStatus.textContent = '目标：未设置';
+            updateTargetHighlight();
+            clearAllRelationHighlights();
+            relationModeSelect.value = 'none';
+            relationMode = 'none';
+            updateTargetStats();
+        }
+
+        // 从输入更新目标值
+        function updateTargetFromInput() {
+            const v = Number(targetInput.value);
+            if (Number.isFinite(v)) {
+                targetValue = v;
+                targetStatus.textContent = `目标：${targetValue}`;
+            } else {
+                targetValue = null;
+                targetStatus.textContent = '目标：未设置';
+            }
+            updateTargetHighlight();
+            updateRelationHighlight();
+            updateTargetStats();
+        }
+
+        // 根据目标值更新数组元素高亮
+        function updateTargetHighlight() {
+            const items = document.querySelectorAll('.array-item');
+            items.forEach(item => {
+                const textEl = item.querySelector('.array-value-text');
+                const raw = textEl ? textEl.textContent : '';
+                const val = Number(raw);
+                if (targetValue !== null && Number.isFinite(val) && val === targetValue) {
+                    item.classList.add('target-match');
+                } else {
+                    item.classList.remove('target-match');
+                }
+            });
+        }
+
+        // 清除关系高亮
+        function clearAllRelationHighlights() {
+            document.querySelectorAll('.array-item').forEach(item => {
+                item.classList.remove('two-sum-match', 'three-sum-match');
+            });
+        }
+
+        // 更新关系高亮（两数/三数之和）
+        function updateRelationHighlight() {
+            clearAllRelationHighlights();
+            if (!targetValue || !Number.isFinite(targetValue) || relationMode === 'none') return;
+
+            // 收集激活数组的所有元素
+            const entries = [];
+            document.querySelectorAll('.array-container.active').forEach(container => {
+                const aid = Number(container.dataset.arrayId);
+                container.querySelectorAll('.array-item').forEach(item => {
+                    const idx = Number(item.dataset.index);
+                    const txt = item.querySelector('.array-value-text')?.textContent;
+                    const val = Number(txt);
+                    if (Number.isFinite(val)) entries.push({ aid, idx, val, el: item });
+                });
+            });
+
+            if (relationMode === 'two-sum') {
+                const seen = new Map(); // val -> list of entries
+                entries.forEach(e => {
+                    if (!seen.has(e.val)) seen.set(e.val, []);
+                    seen.get(e.val).push(e);
+                });
+                entries.forEach(e => {
+                    const need = targetValue - e.val;
+                    const list = seen.get(need);
+                    if (list) {
+                        list.forEach(f => {
+                            // 避免同元素重复（允许跨数组或同数组不同索引）
+                            if (e.el !== f.el) {
+                                e.el.classList.add('two-sum-match');
+                                f.el.classList.add('two-sum-match');
+                            }
+                        });
+                    }
+                });
+            } else if (relationMode === 'three-sum') {
+                // 朴素三数之和（适用于中小规模）
+                const n = entries.length;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        for (let k = j + 1; k < n; k++) {
+                            const sum = entries[i].val + entries[j].val + entries[k].val;
+                            if (sum === targetValue) {
+                                entries[i].el.classList.add('three-sum-match');
+                                entries[j].el.classList.add('three-sum-match');
+                                entries[k].el.classList.add('three-sum-match');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 更新目标统计与指针距离
+        function updateTargetStats() {
+            if (!targetStatus) return;
+            if (targetValue === null || !Number.isFinite(targetValue)) {
+                targetStatus.textContent = '目标：未设置';
+                return;
+            }
+
+            // 统计每个激活数组的目标出现
+            const stats = [];
+            document.querySelectorAll('.array-container.active').forEach(container => {
+                const aid = Number(container.dataset.arrayId);
+                const idxs = [];
+                container.querySelectorAll('.array-item').forEach(item => {
+                    const idx = Number(item.dataset.index);
+                    const txt = item.querySelector('.array-value-text')?.textContent;
+                    const val = Number(txt);
+                    if (Number.isFinite(val) && val === targetValue) idxs.push(idx);
+                });
+                stats.push({ aid, idxs });
+            });
+
+            // 计算各指针到目标的最近/最远距离（同数组）
+            const pointerDistances = pointers.map(p => {
+                const s = stats.find(x => x.aid === p.arrayId);
+                if (!s || s.idxs.length === 0) return `${p.name}→无`; 
+                const dists = s.idxs.map(ix => Math.abs(ix - p.index));
+                const min = Math.min(...dists);
+                const max = Math.max(...dists);
+                return `${p.name}→最近${min} 最远${max}`;
+            });
+
+            const distText = pointerDistances.length ? ` | ${pointerDistances.join(' ; ')}` : '';
+            const statText = stats.map(s => `数组${s.aid}×${s.idxs.length}${s.idxs.length ? '[' + s.idxs.join(',') + ']' : ''}`).join(' | ');
+            targetStatus.textContent = `目标：${targetValue} | 分布：${statText}${distText}`;
+        }
+
+        // 帮助函数：按名称创建指针并设置位置
+        function addPointerWith(name, arrayId, index, positionType) {
+            pointerNameInput.value = name;
+            addPointer();
+            const p = pointers.find(pp => pp.name === name);
+            if (p) {
+                p.arrayId = arrayId;
+                p.index = index;
+                p.positionType = positionType || 'bottom';
+                p.element.classList.remove('position-top', 'position-bottom');
+                p.element.classList.add(`position-${p.positionType}`);
+                setPointerPosition(p);
+                selectPointer(p);
+            }
+        }
+
+        // 模板：合并有序数组
+        function applyTemplateMergeSorted() {
+            clearPointers();
+            // 设置双数组与示例数据
+            switchMode('double');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            const input2 = document.querySelector('.array-input[data-array-id="2"]');
+            if (input1) input1.value = '1,3,5,7,9';
+            if (input2) input2.value = '2,4,6,8,10';
+            renderArray();
+            // 添加指针
+            addPointerWith('i', 1, 0, 'top');
+            addPointerWith('j', 2, 0, 'top');
+            // 清空目标与关系
+            targetInput.value = '';
+            updateTargetFromInput();
+        }
+
+        // 模板：移除元素
+        function applyTemplateRemoveElement() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '0,1,2,2,3,0,4,2';
+            renderArray();
+            // 设置目标为待移除元素 2
+            targetInput.value = '2';
+            updateTargetFromInput();
+            // 两指针
+            addPointerWith('i', 1, 0, 'top');
+            addPointerWith('j', 1, 0, 'bottom');
+        }
+
+        // 模板：二分查找
+        function applyTemplateBinarySearch() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '1,3,5,7,9,11,13';
+            renderArray();
+            // 设置目标 7
+            targetInput.value = '7';
+            updateTargetFromInput();
+            const len = currentArrays[1]?.length || 0;
+            addPointerWith('l', 1, 0, 'top');
+            addPointerWith('r', 1, Math.max(0, len - 1), 'top');
+            addPointerWith('m', 1, Math.floor((len - 1) / 2), 'bottom');
+        }
+        function applyTemplateTwoSum() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '1,2,3,4,6,8,11';
+            renderArray();
+            targetInput.value = '10';
+            updateTargetFromInput();
+            const len = currentArrays[1]?.length || 0;
+            addPointerWith('l', 1, 0, 'top');
+            addPointerWith('r', 1, Math.max(0, len - 1), 'top');
+            relationModeSelect.value = 'two-sum';
+            relationMode = 'two-sum';
+            updateRelationHighlight();
+            updateTargetStats();
+        }
+        function applyTemplateThreeSum() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '-1,0,1,2,-1,-4';
+            renderArray();
+            targetInput.value = '0';
+            updateTargetFromInput();
+            addPointerWith('i', 1, 0, 'top');
+            addPointerWith('j', 1, 1, 'bottom');
+            addPointerWith('k', 1, 5, 'top');
+            relationModeSelect.value = 'three-sum';
+            relationMode = 'three-sum';
+            updateRelationHighlight();
+            updateTargetStats();
+        }
+        function applyTemplateSlidingWindow() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '1,4,2,10,23,3,1,0,20';
+            renderArray();
+            targetInput.value = '15';
+            updateTargetFromInput();
+            addPointerWith('l', 1, 0, 'top');
+            addPointerWith('r', 1, 0, 'bottom');
+        }
+        function applyTemplateMoveZeros() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '0,1,0,3,12';
+            renderArray();
+            targetInput.value = '0';
+            updateTargetFromInput();
+            addPointerWith('i', 1, 0, 'top');
+            addPointerWith('j', 1, 0, 'bottom');
+        }
+        function applyTemplateRemoveDuplicates() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '1,1,2,2,3,3,3,4';
+            renderArray();
+            targetInput.value = '';
+            updateTargetFromInput();
+            addPointerWith('i', 1, 0, 'top');
+            addPointerWith('j', 1, 1, 'bottom');
+        }
+        function applyTemplateReverseArray() {
+            clearPointers();
+            switchMode('single');
+            const input1 = document.querySelector('.array-input[data-array-id="1"]');
+            if (input1) input1.value = '1,2,3,4,5';
+            renderArray();
+            targetInput.value = '';
+            updateTargetFromInput();
+            const len = currentArrays[1]?.length || 0;
+            addPointerWith('l', 1, 0, 'top');
+            addPointerWith('r', 1, Math.max(0, len - 1), 'bottom');
+        }
+        function startRecording() {
+            recordLog = [];
+            isRecording = true;
+            recordStatus.textContent = `录制：进行中 | 步数：${recordLog.length}`;
+        }
+        function stopRecording() {
+            isRecording = false;
+            recordStatus.textContent = `录制：未开始 | 步数：${recordLog.length}`;
+        }
+        function clearRecording() {
+            recordLog = [];
+            recordStatus.textContent = `录制：未开始 | 步数：0`;
+        }
+        function updateRecordStatus() {
+            recordStatus.textContent = `录制：${isRecording ? '进行中' : '未开始'} | 步数：${recordLog.length}`;
+        }
+        function playRecording() {
+            if (!recordLog.length) return;
+            let i = 0;
+            const tick = () => {
+                const e = recordLog[i];
+                if (!e) return;
+                if (e.type === 'move') {
+                    const p = pointers.find(pp => pp.name === e.name);
+                    if (p) {
+                        p.arrayId = e.arrayId;
+                        p.index = e.index;
+                        p.positionType = e.pos;
+                        p.element.classList.remove('position-top', 'position-bottom');
+                        p.element.classList.add(`position-${p.positionType}`);
+                        setPointerPosition(p);
+                        selectPointer(p);
+                    }
+                } else if (e.type === 'update') {
+                    const container = document.querySelector(`.array-container[data-array-id="${e.arrayId}"]`);
+                    const item = container?.querySelector(`.array-item[data-index="${e.index}"]`);
+                    const input = item?.querySelector('.array-value');
+                    if (input) {
+                        input.value = e.value;
+                        currentArrays[e.arrayId][e.index] = e.value;
+                    }
+                }
+                updateArrayItemHighlight();
+                updateTargetHighlight();
+                updateRelationHighlight();
+                updateTargetStats();
+                i++;
+                if (i < recordLog.length) setTimeout(tick, 300);
+            };
+            setTimeout(tick, 300);
+        }
+
+        function exportRecording() {
+            const payload = {
+                version: 1,
+                timestamp: Date.now(),
+                mode: currentMode,
+                arrays: currentArrays,
+                pointers: pointers.map(p => ({ name: p.name, arrayId: p.arrayId, index: p.index, pos: p.positionType, color: p.color })),
+                target: targetValue,
+                relation: relationMode,
+                log: recordLog
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `arraytool-record-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
