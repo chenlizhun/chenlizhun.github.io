@@ -66,15 +66,18 @@ function loadChapters() {
 // Create a chapter card element
 function createChapterCard(chapter, chapterIndex) {
     const card = document.createElement('div');
-    card.className = 'chapter-card cursor-pointer';
+    card.className = 'chapter-card';
+    const problemsHTML = (chapter.problems || []).map((p, i) => (
+        `<button class="px-2 py-1 text-sm bg-indigo-50 hover:bg-indigo-100 rounded text-indigo-700 text-left problem-link" data-index="${i + 1}">题目${i + 1}：${p.title}</button>`
+    )).join('');
     card.innerHTML = `
         <div class="p-6">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-semibold text-primary bg-blue-100 px-2 py-1 rounded">第${chapterIndex + 1}课</span>
                 <span class="text-xs font-medium text-gray-500">📝 ${chapter.problems.length}道题目</span>
             </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">${chapter.title}</h3>
-            <p class="text-gray-600 text-sm leading-relaxed">${chapter.description}</p>
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">${chapter.title}</h3>
+            <div class="flex flex-col gap-2">${problemsHTML}</div>
         </div>
     `;
     const mastered = isChapterMastered(chapter);
@@ -87,12 +90,16 @@ function createChapterCard(chapter, chapterIndex) {
             header.lastElementChild.appendChild(dot);
         }
     }
-    
-    // Add click event to show chapter details
-    card.addEventListener('click', () => {
-        showChapterDetails(chapter.title); // 使用章节标题作为ID查找
+
+    // 每个算法按钮进入单算法详情页
+    card.querySelectorAll('.problem-link').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = Number(btn.getAttribute('data-index')) || 1;
+            showAlgorithmDetail(chapter.title, idx);
+        });
     });
-    
+
     return card;
 }
 
@@ -159,6 +166,50 @@ function showChapterDetails(chapterTitle) {
     initializeVideoLinks(chapter.title);
 
     
+}
+
+// Show single algorithm detail inside a chapter
+function showAlgorithmDetail(chapterTitle, problemIndex) {
+    const chapter = algorithms.find(c => c.title === chapterTitle);
+    if (!chapter) return;
+    const problem = chapter.problems && chapter.problems[problemIndex - 1];
+    if (!problem) return;
+
+    const chapterNav = document.getElementById('chapter-nav');
+    const algorithmDetail = document.getElementById('algorithm-detail');
+    const algorithmContent = document.getElementById('algorithm-content');
+
+    algorithmDetail.classList.remove('hidden');
+
+    let html = `
+        <div class="detail-sticky">
+            <button id="back-btn" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                返回
+            </button>
+        </div>
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">${chapter.title}</h2>
+        </div>
+    `;
+
+    // 仅渲染一个算法
+    html += createProblemHTML(problem, problemIndex, chapter.title);
+
+    algorithmContent.innerHTML = html;
+    chapterNav.classList.add('hidden');
+
+    initializeCodeHighlighting();
+    initializeCopyCodeButtons();
+    document.getElementById('back-btn').addEventListener('click', showChapterList);
+    initializeProblemTabs();
+    initializeStepVisualizations();
+    initializeStatusControls(chapter.title);
+    setHeaderSticky(false);
+    initializeDemoLinks(chapter.title);
+    initializeVideoLinks(chapter.title);
 }
 
 // Create HTML for a problem
