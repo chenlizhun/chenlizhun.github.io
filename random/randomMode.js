@@ -6,11 +6,13 @@
 const gameStartFunctions = {
     simple: window.startSimple,
     group: window.startGroup,
+    race: window.startRace,
 };
 
 const gamePanels = {
     simple: 'simplePanel',
     group: 'groupPanel',
+    race: 'racePanel',
 };
 
 /**

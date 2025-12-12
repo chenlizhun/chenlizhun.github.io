@@ -5,6 +5,7 @@
 
 // 已抽中人员列表
 let selectedStudents = [];
+const STORAGE_KEY_SELECTED = 'random_selected_students';
 
 /**
  * 添加已抽中人员
@@ -60,6 +61,15 @@ function updateSelectedList() {
     
     // 清空列表
     selectedList.innerHTML = '';
+    
+    // 无论是否为空，先同步存储与按钮状态
+    try {
+        localStorage.setItem(STORAGE_KEY_SELECTED, JSON.stringify(selectedStudents));
+    } catch (e) {}
+    const btn = document.getElementById('btnClearSelected');
+    if (btn) {
+        btn.disabled = selectedStudents.length === 0;
+    }
     
     // 如果没有抽中人员，显示提示
     if (selectedStudents.length === 0) {
@@ -188,6 +198,19 @@ window.hideCelebrationModal = function() {
     if (confettiContainer) {
         confettiContainer.innerHTML = ''; // 清除五彩纸屑
     }
+};
+
+window.initSelectedList = function() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_SELECTED);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+                selectedStudents = parsed;
+            }
+        }
+    } catch (e) {}
+    updateSelectedList();
 };
 
 /**

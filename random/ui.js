@@ -54,6 +54,9 @@ function showModeDetails(modeName) {
         if (modeName === 'groupPanel' && typeof window.updateGroup === 'function') {
             window.updateGroup();
         }
+        if (modeName === 'racePanel' && typeof window.updateRace === 'function') {
+            window.updateRace();
+        }
     }
 }
 

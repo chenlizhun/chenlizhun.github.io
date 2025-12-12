@@ -8,6 +8,8 @@
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
   border-radius: 12px;
   border: 1px solid #dee2e6;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .race-row {
@@ -18,6 +20,8 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.7);
   transition: all 0.3s ease;
+  width: 100%;
+  min-width: 0;
 }
 
 .race-row:hover {
@@ -46,8 +50,9 @@
 }
 
 .race-bar-wrap {
-  flex: 1;
+  flex: 1 1 0;
   height: 16px;
+  min-width: 0;
   border-radius: 999px;
   background: linear-gradient(135deg, #dfe6e9, #b2bec3);
   overflow: hidden;

@@ -1,15 +1,51 @@
+@import "./styles/ball.css";
+@import "./styles/balloon.css";
+@import "./styles/card.css";
+@import "./styles/gift.css";
+@import "./styles/grid.css";
+@import "./styles/light.css";
+@import "./styles/list.css";
+@import "./styles/lottery.css";
+@import "./styles/matrix.css";
+@import "./styles/number.css";
+@import "./styles/race.css";
+@import "./styles/rainbow.css";
+@import "./styles/roller.css";
+@import "./styles/slot.css";
+@import "./styles/spin.css";
+@import "./styles/star.css";
+@import "./styles/type.css";
+@import "./styles/wheel.css";
+
+:root {
+  --bg: #0f172a;
+  --bg-panel: rgba(255, 255, 255, 0.92);
+  --bg-panel-weak: rgba(255, 255, 255, 0.78);
+  --border: rgba(255, 255, 255, 0.5);
+  --text-main: #0f172a;
+  --text-sub: #4b5563;
+  --accent: #ff9f43;
+  --accent-strong: #ff7a18;
+  --accent-soft: rgba(255, 159, 67, 0.18);
+  --shadow: 0 12px 50px rgba(15, 23, 42, 0.14);
+}
+
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
-    "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  background: linear-gradient(135deg,#fdf6ec,#fefefe);
-  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 198, 109, 0.16), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(108, 99, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 50% 80%, rgba(15, 172, 236, 0.12), transparent 35%),
+    #0f172a;
+  color: var(--text-main);
 }
 .app {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 16px 12px 40px;
+  padding: 20px 16px 48px;
 }
 
 /* 主容器布局 */
@@ -29,21 +65,24 @@ body {
 .sidebar-header {
   text-align: center;
   margin-bottom: 16px;
-  padding: 16px;
-  background: white;
+  padding: 18px 16px;
+  background: var(--bg-panel);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
 }
 
 .sidebar-header h1 {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-size: 20px;
-  color: #333;
+  color: var(--text-main);
+  letter-spacing: 0.2px;
 }
 
 .sidebar-header .sub {
   font-size: 12px;
-  color: #777;
+  color: var(--text-sub);
   margin-bottom: 0;
 }
 
@@ -58,19 +97,28 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px 0;
+  padding: 8px 0 16px;
 }
 
 /* 垂直布局中的面板样式 */
 .vertical-modes-container .panel {
   margin-bottom: 0;
-  border-left: 4px solid #ff9f43;
+  border-left: 4px solid var(--accent);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  min-height: 60px;
+  padding: 14px 18px;
+  min-height: 68px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.vertical-modes-container .panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.2);
 }
 
 /* 垂直布局中的左侧内容区 */
@@ -82,21 +130,22 @@ body {
 /* 垂直布局中的面板标题样式 */
 .vertical-modes-container .panel h2 {
   font-size: 16px;
-  margin: 0 0 4px 0;
-  padding-left: 8px;
-  border-left: 3px solid #ff9f43;
+  margin: 0 0 6px 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--text-main);
 }
 
 /* 垂直布局中的说明文字 */
 .vertical-modes-container .panel .panel-tip {
-  font-size: 11px;
-  color: #666;
+  font-size: 12px;
+  color: var(--text-sub);
   margin-bottom: 0;
-  padding-left: 8px;
-  line-height: 1.3;
+  padding-left: 10px;
+  line-height: 1.4;
 }
 
 /* 垂直布局中的按钮区域 */
@@ -109,18 +158,18 @@ body {
 
 /* 垂直布局中的开始按钮 */
 .vertical-modes-container .btn-primary {
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 12px;
-  border-radius: 16px;
-  min-width: 80px;
-  background: linear-gradient(135deg, #ff9f43, #ff8a1a);
-  box-shadow: 0 2px 8px rgba(255, 159, 67, 0.3);
+  border-radius: 14px;
+  min-width: 92px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 6px 18px rgba(255, 159, 67, 0.35);
 }
 
 .vertical-modes-container .btn-primary:hover {
-  background: linear-gradient(135deg, #ff8a1a, #ff7675);
+  background: linear-gradient(135deg, var(--accent-strong), #ff6b35);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 159, 67, 0.4);
+  box-shadow: 0 8px 22px rgba(255, 107, 53, 0.35);
 }
 
 /* 隐藏垂直布局中不需要的元素 */
@@ -202,14 +251,15 @@ body {
 }
 h1 {
   text-align: center;
-  margin: 8px 0 4px;
+  margin: 10px 0 6px;
   font-size: 24px;
+  color: #f8fafc;
 }
 .sub {
   text-align: center;
   font-size: 13px;
-  color: #888;
-  margin-bottom: 12px;
+  color: #cbd5e1;
+  margin-bottom: 14px;
 }
 .toolbar {
   display: flex;
@@ -220,21 +270,25 @@ h1 {
 }
 .toolbar button {
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 13px;
-  border-radius: 999px;
+  border-radius: 12px;
   cursor: pointer;
-  background: #ffe4c4;
-  transition: transform .1s, box-shadow .1s, background .1s;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  transition: transform .1s, box-shadow .1s, background .1s, color .1s;
 }
 .toolbar button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,.15);
-  background: #ffd1a0;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+  background: var(--accent-soft);
 }
 .toolbar button.active {
-  background: #ff9f43;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
+  border-color: transparent;
 }
 
 /* 左右布局容器 */
@@ -242,7 +296,7 @@ h1 {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .toolbar-column {
@@ -251,7 +305,7 @@ h1 {
 }
 
 .random-mode-column {
-  width: 280px;
+  width: 320px;
   flex-shrink: 0;
 }
 
@@ -272,11 +326,13 @@ h1 {
 }
 
 .panel {
-  background: #fff;
+  background: var(--bg-panel);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  box-shadow: var(--shadow);
   margin-bottom: 16px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
 }
 .panel h2 {
   margin: 0 0 8px;
@@ -284,13 +340,14 @@ h1 {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: var(--text-main);
 }
 .panel h2 span.emoji {
   font-size: 22px;
 }
 .panel-tip {
   font-size: 12px;
-  color: #777;
+  color: var(--text-sub);
   margin-bottom: 10px;
 }
 .panel.hidden {
@@ -298,13 +355,13 @@ h1 {
 }
 .btn-primary {
   border: none;
-  padding: 8px 16px;
-  border-radius: 999px;
+  padding: 9px 18px;
+  border-radius: 14px;
   cursor: pointer;
   font-size: 14px;
-  background: #ff9f43;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  box-shadow: 0 8px 20px rgba(255, 159, 67, 0.35);
   transition: transform .1s, box-shadow .1s, background .1s;
 }
 .btn-primary:disabled {
@@ -314,19 +371,20 @@ h1 {
 }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
-  background: #ff8a1a;
+  box-shadow: 0 10px 28px rgba(255, 159, 67, 0.35);
+  background: linear-gradient(135deg, var(--accent-strong), #ff6b35);
 }
 
 /* 随机抽签模式样式 */
 .random-mode-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2b2f77, #5a4fff);
   border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(34, 46, 99, 0.4);
   margin-bottom: 20px;
   text-align: center;
   color: white;
+  border: 1px solid rgba(255,255,255,0.12);
 }
 
 .random-mode-info h2 {
@@ -354,34 +412,34 @@ h1 {
 .btn-random-mode {
   border: none;
   padding: 16px 32px;
-  border-radius: 999px;
+  border-radius: 18px;
   cursor: pointer;
   font-size: 20px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #333;
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-  transition: all 0.3s ease;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+  color: #2d3436;
+  box-shadow: 0 10px 28px rgba(255, 215, 0, 0.35);
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
+  border: 1px solid rgba(255,255,255,0.22);
 }
 
 .btn-random-mode:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
-  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(255, 183, 71, 0.45);
 }
 
 .btn-random-mode:active {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transform: translateY(0);
+  box-shadow: 0 8px 20px rgba(255, 183, 71, 0.35);
 }
 
 .btn-random-mode:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.25);
 }
 
 .result {
@@ -409,11 +467,14 @@ h1 {
 .student-textarea {
   min-height: 120px;
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
   font-size: 14px;
   resize: vertical;
+  background: var(--bg-panel-weak);
+  color: var(--text-main);
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 /* 已抽中人员列表样式 */
@@ -421,20 +482,21 @@ h1 {
   max-height: 200px;
   overflow-y: auto;
   margin-bottom: 8px;
-  padding: 4px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 6px;
+  background: var(--bg-panel-weak);
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .selected-list-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
-  margin-bottom: 4px;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
   font-size: 14px;
 }
 
@@ -460,26 +522,6 @@ h1 {
 .remove-item-btn:hover {
   background: #ff5252;
 }
-
-/* 导入18种游戏模式的CSS文件 */
-@import "./styles/ball.css";
-@import "./styles/balloon.css";
-@import "./styles/card.css";
-@import "./styles/gift.css";
-@import "./styles/grid.css";
-@import "./styles/light.css";
-@import "./styles/list.css";
-@import "./styles/lottery.css";
-@import "./styles/matrix.css";
-@import "./styles/number.css";
-@import "./styles/race.css";
-@import "./styles/rainbow.css";
-@import "./styles/roller.css";
-@import "./styles/slot.css";
-@import "./styles/spin.css";
-@import "./styles/star.css";
-@import "./styles/type.css";
-@import "./styles/wheel.css";
 
 @media (max-width: 600px) {
   .wheel { width: 220px; height: 220px; }

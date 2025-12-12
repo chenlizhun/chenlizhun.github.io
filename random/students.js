@@ -11,6 +11,7 @@ window.defaultStudents = [
 
 // 当前学生列表
 let students = [...window.defaultStudents];
+const STORAGE_KEY_STUDENTS = 'random_students';
 
 // DOM元素
 // const namesLine = window.getElement("#namesLine"); // 不再需要输出到页面
@@ -32,7 +33,9 @@ window.getStudents = function() {
  */
 window.setStudents = function(newStudents) {
     students = [...newStudents];
-    // updateNamesLine(); // 不再需要输出到页面
+    try {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
+    } catch (e) {}
     try {
         window.updateGames(); // 更新游戏中的学生名单
     } catch (error) {
@@ -56,7 +59,9 @@ function updateNames() {
     const next = window.parseStudentInput(studentInput.value || "");
     if (next.length > 0) {
         students = next;
-        // updateNamesLine(); // 不再需要输出到页面
+        try {
+            localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
+        } catch (e) {}
         try {
             window.updateGames(); // 更新游戏中的学生名单
         } catch (error) {
@@ -80,6 +85,9 @@ function resetNames() {
     } catch (error) {
         console.error('更新游戏学生名单时出错:', error);
     }
+    try {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
+    } catch (e) {}
     alert("已重置为默认学生名单");
 }
 
@@ -87,8 +95,16 @@ function resetNames() {
  * 初始化学生管理模块
  */
 window.initStudents = function() {
-    // 设置默认学生输入
-    studentInput.value = window.defaultStudents.join('、');
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_STUDENTS);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                students = parsed;
+            }
+        }
+    } catch (e) {}
+    studentInput.value = students.join('、');
     
     // 更新初始显示
     updateNamesLine();

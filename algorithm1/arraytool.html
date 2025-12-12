@@ -339,10 +339,13 @@
 
         .array-index {
             position: absolute;
-            top: -18px;
-            font-size: 0.9rem;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
             color: #666;
             font-weight: 600;
+            pointer-events: none;
         }
 
         /* 指针样式 - 更酷的设计 */
@@ -364,6 +367,15 @@
             pointer-events: auto;
         }
 
+        .pointer::after {
+            content: "";
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
         .pointer.selected {
             opacity: 0.85; /* 选中时提高但仍低 */
             transform: scale(1.3);
@@ -377,10 +389,24 @@
             transform: translateX(-50%);
         }
 
+        .pointer.position-top::after {
+            top: 20px;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid var(--pointer-color, #0f3460);
+        }
+
         .pointer.position-bottom {
             top: calc(var(--item-top) + 90px);
             left: calc(var(--item-left) + 35px);
             transform: translateX(-50%);
+        }
+
+        .pointer.position-bottom::after {
+            bottom: 20px;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 6px solid var(--pointer-color, #0f3460);
         }
 
         /* 步骤记录 */
@@ -564,6 +590,7 @@
                 <input type="text" id="pointer-name" placeholder="指针名称" value="i">
                 <button class="btn btn-success" id="add-pointer">添加指针</button>
                 <button class="btn btn-danger" id="remove-pointer">删除选中指针</button>
+                <button class="btn btn-outline" id="clear-pointers">清除所有指针</button>
                 <div class="pointer-status" id="pointer-status">当前选中：无 | 位置：-</div>
             </div>
 
@@ -604,9 +631,38 @@
                 <button class="btn btn-outline" id="start-record">开始录制</button>
                 <button class="btn btn-outline" id="stop-record">停止录制</button>
                 <button class="btn btn-primary" id="play-record">回放录制</button>
+                <button class="btn btn-outline" id="step-prev">上一步</button>
+                <button class="btn btn-outline" id="step-next">下一步</button>
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;">
+                    回放速度
+                    <select id="play-speed" class="array-input" style="max-width:90px;">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </label>
+            </div>
+            <div class="pointer-config">
                 <button class="btn btn-danger" id="clear-record">清空录制</button>
                 <button class="btn btn-outline" id="export-record">导出录制</button>
+                <button class="btn btn-outline" id="import-record">导入录制</button>
+                <input type="file" id="import-record-file" accept="application/json" style="display:none;">
                 <div class="pointer-status" id="record-status">录制：未开始</div>
+            </div>
+            <div class="pointer-config">
+                <button class="btn btn-outline" id="zoom-out">缩小</button>
+                <button class="btn btn-outline" id="zoom-in">放大</button>
+                <button class="btn btn-outline" id="zoom-reset">重置缩放</button>
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;">
+                    <input type="checkbox" id="toggle-target-highlight" checked>
+                    目标高亮
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;">
+                    <input type="checkbox" id="toggle-relation-highlight" checked>
+                    关系高亮
+                </label>
             </div>
             </div>
         </div>
@@ -681,6 +737,16 @@
         let relationMode = 'none';
         let isRecording = false;
         let recordLog = [];
+        let playbackTimer = null;
+        let playbackIndex = 0;
+        let playbackSpeed = 1;
+        const PLAYBACK_BASE_DELAY = 300;
+        let enableTargetHighlight = true;
+        let enableRelationHighlight = true;
+        let zoomScale = 1;
+        const ZOOM_STEP = 0.1;
+        const ZOOM_MIN = 0.5;
+        const ZOOM_MAX = 2;
         // 指针颜色池（更酷的配色）
         const pointerColors = [
             'rgba(230, 57, 70, 0.8)',   // 红
@@ -710,6 +776,7 @@
         const pointerNameInput = document.getElementById('pointer-name');
         const addPointerBtn = document.getElementById('add-pointer');
         const removePointerBtn = document.getElementById('remove-pointer');
+        const clearPointersBtn = document.getElementById('clear-pointers');
         const pointerStatus = document.getElementById('pointer-status');
         const recordStepBtn = document.getElementById('record-step');
         const takeSnapshotBtn = document.getElementById('take-snapshot');
@@ -730,12 +797,22 @@
         const startRecordBtn = document.getElementById('start-record');
         const stopRecordBtn = document.getElementById('stop-record');
         const playRecordBtn = document.getElementById('play-record');
+        const stepPrevBtn = document.getElementById('step-prev');
+        const stepNextBtn = document.getElementById('step-next');
+        const playSpeedSelect = document.getElementById('play-speed');
         const clearRecordBtn = document.getElementById('clear-record');
         const exportRecordBtn = document.getElementById('export-record');
+        const importRecordBtn = document.getElementById('import-record');
+        const importRecordFile = document.getElementById('import-record-file');
         const recordStatus = document.getElementById('record-status');
         const stepList = document.getElementById('step-list');
         const snapshotContainer = document.getElementById('snapshot-container');
         const visualization = document.querySelector('.visualization');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const zoomResetBtn = document.getElementById('zoom-reset');
+        const toggleTargetHighlight = document.getElementById('toggle-target-highlight');
+        const toggleRelationHighlight = document.getElementById('toggle-relation-highlight');
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
@@ -774,6 +851,8 @@
             
             // 删除指针
             removePointerBtn.addEventListener('click', removeSelectedPointer);
+            // 清除所有指针
+            clearPointersBtn.addEventListener('click', clearPointers);
             
             // 记录步骤
             recordStepBtn.addEventListener('click', recordStep);
@@ -815,8 +894,40 @@
             startRecordBtn.addEventListener('click', startRecording);
             stopRecordBtn.addEventListener('click', stopRecording);
             playRecordBtn.addEventListener('click', playRecording);
+            stepPrevBtn.addEventListener('click', () => stepPlayback(-1));
+            stepNextBtn.addEventListener('click', () => stepPlayback(1));
+            playSpeedSelect.addEventListener('change', () => {
+                const v = Number(playSpeedSelect.value);
+                playbackSpeed = Number.isFinite(v) && v > 0 ? v : 1;
+            });
             clearRecordBtn.addEventListener('click', clearRecording);
             exportRecordBtn.addEventListener('click', exportRecording);
+            importRecordBtn.addEventListener('click', () => importRecordFile.click());
+            importRecordFile.addEventListener('change', handleImportRecording);
+            zoomInBtn.addEventListener('click', () => {
+                zoomScale = Math.min(ZOOM_MAX, zoomScale + ZOOM_STEP);
+                applyZoom();
+            });
+            zoomOutBtn.addEventListener('click', () => {
+                zoomScale = Math.max(ZOOM_MIN, zoomScale - ZOOM_STEP);
+                applyZoom();
+            });
+            zoomResetBtn.addEventListener('click', () => {
+                zoomScale = 1;
+                applyZoom();
+            });
+            if (toggleTargetHighlight) {
+                toggleTargetHighlight.addEventListener('change', () => {
+                    enableTargetHighlight = toggleTargetHighlight.checked;
+                    updateTargetHighlight();
+                });
+            }
+            if (toggleRelationHighlight) {
+                toggleRelationHighlight.addEventListener('change', () => {
+                    enableRelationHighlight = toggleRelationHighlight.checked;
+                    updateRelationHighlight();
+                });
+            }
             
             // 监听数组元素修改
             arraysContainer.addEventListener('change', (e) => {
@@ -1056,13 +1167,14 @@
 
         // 渲染数组
         function renderArray() {
+            clearPointers();
             // 解析所有激活的数组输入
             document.querySelectorAll('.array-input-wrapper.active').forEach(wrapper => {
                 const arrayId = Number(wrapper.dataset.arrayId);
-            const input = wrapper.querySelector('.array-input');
-            const arrayValue = input.value.trim();
-            // 支持字符与数字，统一按字符串处理
-            currentArrays[arrayId] = arrayValue ? arrayValue.split(',').map(item => item.trim()) : [];
+                const input = wrapper.querySelector('.array-input');
+                const arrayValue = input.value.trim();
+                // 支持字符与数字，统一按字符串处理
+                currentArrays[arrayId] = arrayValue ? arrayValue.split(',').map(item => item.trim()) : [];
             });
 
             // 清空所有数组容器
@@ -1216,6 +1328,7 @@
             pointer.textContent = pointerName; // 仅内部字符
             pointer.dataset.name = pointerName;
             pointer.style.background = pointerColor;
+            pointer.style.setProperty('--pointer-color', pointerColor.replace('0.8', '1'));
 
             // 添加到可视化区域
             visualization.appendChild(pointer);
@@ -1374,14 +1487,12 @@
             if (targetItem) {
                 const itemRect = targetItem.getBoundingClientRect();
                 const visRect = visualization.getBoundingClientRect();
-                
-                // 计算相对位置
-                const itemTop = itemRect.top - visRect.top;
-                const itemLeft = itemRect.left - visRect.left;
-                
-                // 设置CSS变量
-                pointerInfo.element.style.setProperty('--item-top', `${itemTop}px`);
-                pointerInfo.element.style.setProperty('--item-left', `${itemLeft}px`);
+                const rawTop = itemRect.top - visRect.top;
+                const rawLeft = itemRect.left - visRect.left;
+                const baseTop = rawTop / (zoomScale || 1);
+                const baseLeft = rawLeft / (zoomScale || 1);
+                pointerInfo.element.style.setProperty('--item-top', `${baseTop}px`);
+                pointerInfo.element.style.setProperty('--item-left', `${baseLeft}px`);
             }
         }
 
@@ -1591,6 +1702,10 @@
 
         // 根据目标值更新数组元素高亮
         function updateTargetHighlight() {
+            if (!enableTargetHighlight) {
+                document.querySelectorAll('.array-item').forEach(item => item.classList.remove('target-match'));
+                return;
+            }
             const items = document.querySelectorAll('.array-item');
             items.forEach(item => {
                 const textEl = item.querySelector('.array-value-text');
@@ -1614,6 +1729,7 @@
         // 更新关系高亮（两数/三数之和）
         function updateRelationHighlight() {
             clearAllRelationHighlights();
+            if (!enableRelationHighlight) return;
             if (!targetValue || !Number.isFinite(targetValue) || relationMode === 'none') return;
 
             // 收集激活数组的所有元素
@@ -1700,6 +1816,117 @@
             const distText = pointerDistances.length ? ` | ${pointerDistances.join(' ; ')}` : '';
             const statText = stats.map(s => `数组${s.aid}×${s.idxs.length}${s.idxs.length ? '[' + s.idxs.join(',') + ']' : ''}`).join(' | ');
             targetStatus.textContent = `目标：${targetValue} | 分布：${statText}${distText}`;
+        }
+
+        function applyZoom() {
+            if (visualization) {
+                visualization.style.transform = `scale(${zoomScale})`;
+                visualization.style.transformOrigin = 'center top';
+                repositionPointers();
+            }
+        }
+
+        function applyLogEntry(e) {
+            if (!e) return;
+            if (e.type === 'move') {
+                const p = pointers.find(pp => pp.name === e.name);
+                if (p) {
+                    p.arrayId = e.arrayId;
+                    p.index = e.index;
+                    p.positionType = e.pos;
+                    p.element.classList.remove('position-top', 'position-bottom');
+                    p.element.classList.add(`position-${p.positionType}`);
+                    setPointerPosition(p);
+                    selectPointer(p);
+                }
+            } else if (e.type === 'update') {
+                const container = document.querySelector(`.array-container[data-array-id="${e.arrayId}"]`);
+                const item = container?.querySelector(`.array-item[data-index="${e.index}"]`);
+                const input = item?.querySelector('.array-value');
+                if (input) {
+                    input.value = e.value;
+                    currentArrays[e.arrayId][e.index] = e.value;
+                }
+            }
+            updateArrayItemHighlight();
+            updateTargetHighlight();
+            updateRelationHighlight();
+            updateTargetStats();
+        }
+
+        function stopPlayback() {
+            if (playbackTimer) {
+                clearTimeout(playbackTimer);
+                playbackTimer = null;
+            }
+        }
+
+        function stepPlayback(direction) {
+            if (!recordLog.length) return;
+            stopPlayback();
+            playbackIndex = Math.max(0, Math.min(recordLog.length - 1, playbackIndex + direction));
+            applyLogEntry(recordLog[playbackIndex]);
+        }
+
+        function handleImportRecording(e) {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const payload = JSON.parse(reader.result);
+                    applyImportedRecording(payload);
+                } catch (err) {
+                    alert('导入失败：文件格式错误');
+                } finally {
+                    importRecordFile.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function applyImportedRecording(payload) {
+            stopPlayback();
+            clearRecording();
+            clearPointers();
+            currentMode = payload.mode || 'single';
+            relationMode = payload.relation || 'none';
+            if (relationModeSelect) relationModeSelect.value = relationMode;
+            currentArrays = payload.arrays || { 1: [] };
+            maxArrayId = Math.max(...Object.keys(currentArrays).map(id => Number(id)));
+            // 确保输入框/容器存在
+            Object.keys(currentArrays).forEach(id => {
+                const numId = Number(id);
+                if (!document.querySelector(`.array-input-wrapper[data-array-id="${numId}"]`)) {
+                    createArrayInput(numId);
+                }
+                if (!document.querySelector(`.array-container[data-array-id="${numId}"]`)) {
+                    createArrayContainer(numId);
+                }
+            });
+            if (currentMode === 'single') showOnlyArray(1);
+            else if (currentMode === 'double') showArrays([1, 2]);
+            else showAllArrays();
+            renderArray();
+            targetValue = payload.target ?? null;
+            if (targetInput) targetInput.value = targetValue ?? '';
+            updateTargetFromInput();
+            // 重建指针
+            if (Array.isArray(payload.pointers)) {
+                payload.pointers.forEach(p => {
+                    addPointerWith(p.name, p.arrayId, p.index, p.pos || 'bottom');
+                    const ptr = pointers.find(pp => pp.name === p.name);
+                    if (ptr && p.color) {
+                        ptr.color = p.color;
+                        ptr.element.style.background = p.color;
+                        ptr.element.style.setProperty('--pointer-color', p.color);
+                    }
+                });
+            }
+            recordLog = Array.isArray(payload.log) ? payload.log : [];
+            updateRecordStatus();
+            updateTargetHighlight();
+            updateRelationHighlight();
         }
 
         // 帮助函数：按名称创建指针并设置位置
@@ -1861,38 +2088,19 @@
         }
         function playRecording() {
             if (!recordLog.length) return;
-            let i = 0;
+            stopPlayback();
+            playbackIndex = 0;
             const tick = () => {
-                const e = recordLog[i];
-                if (!e) return;
-                if (e.type === 'move') {
-                    const p = pointers.find(pp => pp.name === e.name);
-                    if (p) {
-                        p.arrayId = e.arrayId;
-                        p.index = e.index;
-                        p.positionType = e.pos;
-                        p.element.classList.remove('position-top', 'position-bottom');
-                        p.element.classList.add(`position-${p.positionType}`);
-                        setPointerPosition(p);
-                        selectPointer(p);
-                    }
-                } else if (e.type === 'update') {
-                    const container = document.querySelector(`.array-container[data-array-id="${e.arrayId}"]`);
-                    const item = container?.querySelector(`.array-item[data-index="${e.index}"]`);
-                    const input = item?.querySelector('.array-value');
-                    if (input) {
-                        input.value = e.value;
-                        currentArrays[e.arrayId][e.index] = e.value;
-                    }
+                if (playbackIndex >= recordLog.length) {
+                    stopPlayback();
+                    return;
                 }
-                updateArrayItemHighlight();
-                updateTargetHighlight();
-                updateRelationHighlight();
-                updateTargetStats();
-                i++;
-                if (i < recordLog.length) setTimeout(tick, 300);
+                const e = recordLog[playbackIndex];
+                applyLogEntry(e);
+                playbackIndex++;
+                playbackTimer = setTimeout(tick, PLAYBACK_BASE_DELAY / playbackSpeed);
             };
-            setTimeout(tick, 300);
+            tick();
         }
 
         function exportRecording() {

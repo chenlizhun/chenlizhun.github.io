@@ -11,6 +11,7 @@
 window.initGames = function() {
     if (typeof window.initSimple === 'function') window.initSimple();
     if (typeof window.initGroup === 'function') window.initGroup();
+    if (typeof window.initRace === 'function') window.initRace();
 };
 
 /**
@@ -20,6 +21,7 @@ window.updateGames = function() {
     try {
         if (typeof window.updateSimple === 'function') window.updateSimple();
         if (typeof window.updateGroup === 'function') window.updateGroup();
+        if (typeof window.updateRace === 'function') window.updateRace();
     } catch (error) {
         console.error('更新游戏学生名单时出错:', error);
     }

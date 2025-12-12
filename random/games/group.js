@@ -39,6 +39,7 @@ function renderCandidates(names) {
 }
 
 window.startGroup = function() {
+    window.switchPanel('groupPanel');
     const eligible = window.getEligibleStudents();
     if (eligible.length === 0) {
         window.showResult(groupResult, '暂无可抽取人员');

@@ -23,6 +23,7 @@ window.updateSimple = function() {
 };
 
 window.startSimple = function() {
+    window.switchPanel('simplePanel');
     const eligible = window.getEligibleStudents();
     if (eligible.length === 0) {
         window.showResult(simpleResult, '暂无可抽取人员');

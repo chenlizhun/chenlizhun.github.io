@@ -50,6 +50,7 @@
                     <div class="toolbar">
                         <button data-target="simplePanel">🎲 简洁抽签</button>
                         <button data-target="groupPanel">👥 分组抽签</button>
+                        <button data-target="racePanel">🏃 赛跑抽签</button>
                     </div>
                 </div>
                 
@@ -88,6 +89,21 @@
                 </div>
                 <div class="group-container" id="groupContainer"></div>
                 <div class="result" id="groupResult"></div>
+            </div>
+
+            <!-- 赛跑抽签 -->
+            <div id="racePanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🏃</span>赛跑抽签</h2>
+                    <div class="panel-tip">每人一条进度条，随机向终点冲刺，第一个到达的是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnRace" class="btn-primary">开始赛跑</button>
+                </div>
+                <div class="race-container">
+                    <div id="raceContainer"></div>
+                </div>
+                <div class="result" id="raceResult"></div>
             </div>
 
     
@@ -167,6 +183,7 @@
 <script src="ui.js"></script>
 <script src="games/simple.js"></script>
 <script src="games/group.js"></script>
+<script src="games/race.js"></script>
         
             
 
