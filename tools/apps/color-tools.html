@@ -51,6 +51,11 @@
       </div>
     </div>
   </div>
+  <script>
+    (function autoDark(){
+      try{const mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');function apply(){if(mq&&mq.matches)document.body.classList.add('dark');else document.body.classList.remove('dark')}apply();mq&&mq.addEventListener('change',apply)}catch(e){}
+    })();
+  </script>
   <script src="color-tools.js"></script>
 </body>
 </html>

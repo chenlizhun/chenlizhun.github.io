@@ -250,7 +250,7 @@
         .arrays-container {
             display: flex;
             flex-direction: column;
-            gap: 50px;
+            gap: 24px;
             justify-content: center;
             align-items: center;
             width: 100%;
@@ -258,13 +258,13 @@
 
         .array-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             align-items: center;
             min-height: 100px;
             display: none;
             position: relative;
-            padding: 18px 0;
+            padding: 10px 0;
             width: 100%;
         }
 
@@ -272,7 +272,7 @@
             display: flex;
         }
 
-        .array-label { display: none !important; }
+        .array-label { font-weight: 600; color: #0f3460; margin-bottom: 8px; cursor: pointer; position: relative; }
 
         /* 数组方块 - 白色背景 */
         .array-item {
@@ -288,11 +288,17 @@
             position: relative;
             transition: all 0.3s;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
         .array-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .array-item.focused {
+            border-color: #1a508b;
+            box-shadow: 0 0 0 3px rgba(26, 80, 139, 0.15);
         }
 
         /* 高亮当前指针指向的数组元素 */
@@ -335,18 +341,36 @@
             font-size: 1.2rem;
             background: transparent;
             color: #111827;
+            width: 100%;
+            max-width: 100%;
         }
 
-        .array-index {
-            position: absolute;
-            bottom: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: #666;
-            font-weight: 600;
-            pointer-events: none;
+        .array-item input {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: none;
         }
+
+        .array-item.editing .array-value {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            width: calc(100% - 12px);
+            max-width: calc(100% - 12px);
+            background: #fff;
+        }
+        .array-item.editing .array-value-text {
+            opacity: 0.35;
+        }
+
+        
 
         /* 指针样式 - 更酷的设计 */
         .pointer {
@@ -672,11 +696,11 @@
             <div class="arrays-container" id="arrays-container">
                 <!-- 数组1容器 -->
                 <div class="array-container active" data-array-id="1">
-                    <div class="array-label">数组1</div>
+                    <div class="array-label">数据1</div>
                 </div>
                 <!-- 数组2容器（默认隐藏） -->
                 <div class="array-container" data-array-id="2">
-                    <div class="array-label">数组2</div>
+                    <div class="array-label">数据2</div>
                 </div>
             </div>
         </div>
@@ -710,7 +734,18 @@
                                 <li>↓ 方向键：指针在当前数组内切换位置（上方→下方）→ 多数组模式下再按切换到下一个数组</li>
                             </ul>
                         </li>
-                        <li>删除指针：选中指针后点击「删除选中指针」</li>
+                        <li>删除指针：选中指针后点击「删除选中指针」，或双击指针，或按 Delete/Backspace</li>
+                    </ul>
+                </li>
+                <li><strong>快捷键</strong>：
+                    <ul>
+                        <li>Ctrl+E：编辑当前焦点成员（有指针时为指针所指成员）</li>
+                        <li>Ctrl+D：删除当前焦点成员（有指针时为指针所指成员）</li>
+                        <li>Ctrl+P：在数组前方添加成员并重排索引</li>
+                        <li>Ctrl+A：在数组后方添加成员并重排索引</li>
+                        <li>Esc：折叠/展开功能按钮区</li>
+                        <li>双击数组成员：为该成员添加新指针</li>
+                        <li>双击指针：删除该指针</li>
                     </ul>
                 </li>
                 <li><strong>推演辅助</strong>：
@@ -739,6 +774,7 @@
         let recordLog = [];
         let playbackTimer = null;
         let playbackIndex = 0;
+        let arrayNames = {}; // { arrayId: name }
         let playbackSpeed = 1;
         const PLAYBACK_BASE_DELAY = 300;
         let enableTargetHighlight = true;
@@ -747,6 +783,8 @@
         const ZOOM_STEP = 0.1;
         const ZOOM_MIN = 0.5;
         const ZOOM_MAX = 2;
+        let focusedItem = null; // { arrayId, index }
+        
         // 指针颜色池（更酷的配色）
         const pointerColors = [
             'rgba(230, 57, 70, 0.8)',   // 红
@@ -937,8 +975,8 @@
             });
 
             // 键盘控制指针
-            document.addEventListener('keydown', (e) => {
-                const k = e.key && e.key.toLowerCase();
+        document.addEventListener('keydown', (e) => {
+            const k = e.key && e.key.toLowerCase();
                 if (k && k.length === 1) {
                     const p = pointers.find(pp => pp.name.toLowerCase() === k);
                     if (p) {
@@ -968,6 +1006,16 @@
                         break;
                 }
             });
+
+            // 全局快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { toggleControlsArea(); return; }
+            if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); focusEditFocusedItem(); return; }
+            if (e.ctrlKey && e.key.toLowerCase() === 'p') { e.preventDefault(); addMemberAtFront(); return; }
+            if (e.ctrlKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addMemberAtEnd(); return; }
+            if (e.ctrlKey && e.key.toLowerCase() === 'd') { e.preventDefault(); deleteFocusedMember(); return; }
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPointer) { e.preventDefault(); removeSelectedPointer(); return; }
+        });
         }
 
         // 更新默认指针名称（i→j→k循环）
@@ -1130,7 +1178,8 @@
             
             const label = document.createElement('div');
             label.className = 'array-label';
-            label.textContent = `数组${arrayId}`;
+            label.textContent = getArrayName(arrayId);
+            label.addEventListener('dblclick', () => startEditArrayName(arrayId, label));
             
             container.appendChild(label);
             arraysContainer.appendChild(container);
@@ -1181,7 +1230,12 @@
             document.querySelectorAll('.array-container').forEach(container => {
                 const label = container.querySelector('.array-label');
                 container.innerHTML = '';
-                container.appendChild(label);
+                if (label) {
+                    const aid = Number(container.dataset.arrayId);
+                    label.textContent = getArrayName(aid);
+                    label.addEventListener('dblclick', () => startEditArrayName(aid, label));
+                    container.appendChild(label);
+                }
             });
 
             // 渲染所有激活的数组
@@ -1204,6 +1258,121 @@
             updateTargetStats();
         }
 
+        function getArrayName(arrayId) {
+            return arrayNames[arrayId] || `数据${arrayId}`;
+        }
+        function setArrayName(arrayId, name) {
+            arrayNames[arrayId] = name && name.trim() ? name.trim() : `数据${arrayId}`;
+        }
+        function startEditArrayName(arrayId, labelEl) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = getArrayName(arrayId);
+            input.style.fontSize = '0.85rem';
+            input.style.padding = '2px 8px';
+            input.style.border = '1px solid #c7d2fe';
+            input.style.borderRadius = '999px';
+            input.style.boxSizing = 'border-box';
+            input.style.display = 'inline-block';
+            input.style.width = '50%';
+            input.style.maxWidth = '160px';
+            const commit = () => { setArrayName(arrayId, input.value); labelEl.textContent = getArrayName(arrayId); input.remove(); };
+            input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { commit(); } });
+            input.addEventListener('blur', commit);
+            labelEl.textContent = '';
+            labelEl.appendChild(input);
+            input.focus();
+        }
+        function setFocusedItem(arrayId, index, el) {
+            if (pointers.length) { applyPointerFocus(); return; }
+            document.querySelectorAll('.array-item.focused').forEach(x => x.classList.remove('focused'));
+            focusedItem = { arrayId, index };
+            el.classList.add('focused');
+        }
+        function focusEditFocusedItem() {
+            let aid = focusedItem?.arrayId;
+            let idx = focusedItem?.index;
+            if (pointers.length) {
+                if (!selectedPointer) { selectedPointer = pointers[0]; }
+                aid = selectedPointer.arrayId; idx = selectedPointer.index;
+            }
+            if (aid === undefined || idx === undefined) return;
+            const item = document.querySelector(`.array-container[data-array-id="${aid}"] .array-item[data-index="${idx}"]`);
+            const inp = item?.querySelector('.array-value');
+            const txt = item?.querySelector('.array-value-text');
+            if (item && inp && txt) { item.classList.add('editing'); inp.value = String(txt.textContent || ''); inp.focus(); inp.select(); }
+        }
+        function applyPointerFocus() {
+            if (!selectedPointer && pointers.length) { selectedPointer = pointers[0]; }
+            document.querySelectorAll('.array-item.focused').forEach(x => x.classList.remove('focused'));
+            if (selectedPointer) {
+                const el = document.querySelector(`.array-container[data-array-id="${selectedPointer.arrayId}"] .array-item[data-index="${selectedPointer.index}"]`);
+                if (el) {
+                    focusedItem = { arrayId: selectedPointer.arrayId, index: selectedPointer.index };
+                    el.classList.add('focused');
+                }
+            }
+        }
+        function addPointerOnItem(arrayId, index) {
+            updateDefaultPointerName();
+            const name = pointerNameInput.value.trim() || 'i';
+            // 若重名，选择下一个
+            if (pointers.some(p => p.name === name)) {
+                updateDefaultPointerName();
+            }
+            const nm = pointerNameInput.value.trim() || name;
+            addPointerWith(nm, arrayId, index, 'bottom');
+        }
+        function addMemberAtFront() {
+            const arrayId = focusedItem?.arrayId || 1;
+            if (!currentArrays[arrayId]) currentArrays[arrayId] = [];
+            currentArrays[arrayId].unshift('0');
+            const input = document.querySelector(`.array-input[data-array-id="${arrayId}"]`);
+            if (input) input.value = currentArrays[arrayId].join(',');
+            // 指针处理：若存在，令一个指针指向新元素
+            if (pointers.length) {
+                const p = selectedPointer || pointers[0];
+                p.arrayId = arrayId; p.index = 0; setPointerPosition(p); selectPointer(p);
+            }
+            renderArray();
+            // 聚焦新第一个
+            const item = document.querySelector(`.array-container[data-array-id="${arrayId}"] .array-item[data-index="0"]`);
+            if (item) setFocusedItem(arrayId, 0, item);
+        }
+        function addMemberAtEnd() {
+            const arrayId = focusedItem?.arrayId || 1;
+            if (!currentArrays[arrayId]) currentArrays[arrayId] = [];
+            currentArrays[arrayId].push('0');
+            const input = document.querySelector(`.array-input[data-array-id="${arrayId}"]`);
+            if (input) input.value = currentArrays[arrayId].join(',');
+            renderArray();
+            const lastIdx = Math.max(0, currentArrays[arrayId].length - 1);
+            const item = document.querySelector(`.array-container[data-array-id="${arrayId}"] .array-item[data-index="${lastIdx}"]`);
+            if (item) setFocusedItem(arrayId, lastIdx, item);
+            if (pointers.length) {
+                const p = selectedPointer || pointers[0];
+                p.arrayId = arrayId; p.index = lastIdx; setPointerPosition(p); selectPointer(p);
+            }
+        }
+        function deleteFocusedMember() {
+            if (!focusedItem) return;
+            const { arrayId, index } = focusedItem;
+            const arr = currentArrays[arrayId]; if (!arr || !arr.length) return;
+            arr.splice(index, 1);
+            
+            // 指针：删除指向该元素的指针，并调整后续索引
+            const toRemove = new Set();
+            pointers.forEach(p => { if (p.arrayId === arrayId) { if (p.index === index) toRemove.add(p.id); else if (p.index > index) p.index--; }});
+            pointers = pointers.filter(p => { if (toRemove.has(p.id)) { p.element.remove(); return false; } return true; });
+            const input = document.querySelector(`.array-input[data-array-id="${arrayId}"]`);
+            if (input) input.value = arr.join(',');
+            renderArray();
+            const newIdx = Math.min(index, Math.max(0, (currentArrays[arrayId]?.length || 1) - 1));
+            const item = document.querySelector(`.array-container[data-array-id="${arrayId}"] .array-item[data-index="${newIdx}"]`);
+            if (item) setFocusedItem(arrayId, newIdx, item);
+            repositionPointers();
+        }
+
         function toggleControlsArea() {
             const panel = document.getElementById('array-config');
             const collapsed = panel.classList.toggle('collapsed');
@@ -1219,20 +1388,42 @@
                 arrayItem.dataset.array = arrayId;
                 arrayItem.dataset.index = index;
 
-                // 索引标签
-                const indexLabel = document.createElement('div');
-                indexLabel.className = 'array-index';
-                indexLabel.textContent = `[${index}]`;
+                
 
-                // 数值/字符展示（不可编辑）
+                // 数值/字符展示（文本）
                 const valueText = document.createElement('div');
                 valueText.className = 'array-value-text';
                 valueText.textContent = String(value);
+                // 可编辑输入（默认隐藏）
+                const valueInput = document.createElement('input');
+                valueInput.type = 'text';
+                valueInput.className = 'array-value';
+                valueInput.value = String(value);
+                valueInput.style.textAlign = 'center';
+                valueInput.style.border = '1px solid #ddd';
+                valueInput.style.borderRadius = '6px';
+                valueInput.style.padding = '2px 6px';
+                valueInput.style.minWidth = '50px';
+                valueInput.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') { valueInput.blur(); }
+                });
+                valueInput.addEventListener('blur', () => {
+                    const fakeEvent = { target: valueInput };
+                    updateArrayValue(fakeEvent);
+                    valueText.textContent = String(valueInput.value);
+                    const itemEl = valueInput.closest('.array-item');
+                    if (itemEl) { itemEl.classList.remove('editing'); }
+                });
 
                 // 组装
-                arrayItem.appendChild(indexLabel);
                 arrayItem.appendChild(valueText);
+                arrayItem.appendChild(valueInput);
                 container.appendChild(arrayItem);
+
+                // 悬停聚焦
+                arrayItem.addEventListener('mouseenter', () => setFocusedItem(arrayId, index, arrayItem));
+                // 双击添加指针
+                arrayItem.addEventListener('dblclick', () => addPointerOnItem(arrayId, index));
             });
         }
 
@@ -1353,6 +1544,12 @@
                 e.stopPropagation();
                 selectPointer(pointerInfo);
             });
+            // 双击删除指针
+            pointer.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                selectPointer(pointerInfo);
+                removeSelectedPointer();
+            });
 
             // 默认选中新添加的指针
             selectPointer(pointerInfo);
@@ -1376,6 +1573,7 @@
             updateArrayItemHighlight();
             // 更新状态显示
             updatePointerStatus();
+            applyPointerFocus();
         }
 
         // 删除选中指针
@@ -1518,21 +1716,26 @@
                     targetItem.classList.add('highlighted');
                 }
             }
+            if (pointers.length) { applyPointerFocus(); }
         }
 
         // 更新数组值
         function updateArrayValue(e) {
             const arrayId = Number(e.target.closest('.array-item').dataset.array);
             const index = Number(e.target.closest('.array-item').dataset.index);
-            const newValue = Number(e.target.value);
-            
-            if (!isNaN(newValue) && currentArrays[arrayId]) {
+            const raw = e.target.value;
+            const newValue = raw;
+            if (currentArrays[arrayId]) {
                 currentArrays[arrayId][index] = newValue;
                 // 更新输入框
                 const input = document.querySelector(`.array-input[data-array-id="${arrayId}"]`);
                 if (input) {
                     input.value = currentArrays[arrayId].join(',');
                 }
+                // 同步显示文本
+                const item = document.querySelector(`.array-container[data-array-id="${arrayId}"] .array-item[data-index="${index}"]`);
+                const txt = item?.querySelector('.array-value-text');
+                if (txt) txt.textContent = String(newValue);
             }
             if (isRecording) {
                 recordLog.push({ t: Date.now(), type: 'update', arrayId, index, value: newValue });
@@ -1708,8 +1911,8 @@
             }
             const items = document.querySelectorAll('.array-item');
             items.forEach(item => {
-                const textEl = item.querySelector('.array-value-text');
-                const raw = textEl ? textEl.textContent : '';
+                const inputEl = item.querySelector('.array-value');
+                const raw = inputEl ? inputEl.value : '';
                 const val = Number(raw);
                 if (targetValue !== null && Number.isFinite(val) && val === targetValue) {
                     item.classList.add('target-match');
@@ -1738,7 +1941,7 @@
                 const aid = Number(container.dataset.arrayId);
                 container.querySelectorAll('.array-item').forEach(item => {
                     const idx = Number(item.dataset.index);
-                    const txt = item.querySelector('.array-value-text')?.textContent;
+                    const txt = item.querySelector('.array-value')?.value;
                     const val = Number(txt);
                     if (Number.isFinite(val)) entries.push({ aid, idx, val, el: item });
                 });

@@ -1,15 +1,23 @@
-const groupContainer = window.getElement('#groupContainer');
-const groupResult = window.getElement('#groupResult');
-const btnGroup = window.getElement('#btnGroup');
+let groupContainer = null;
+let groupResult = null;
+let btnGroup = null;
 
 const GROUP_SIZE = 4;
 let groupCycleTimer = null;
 
 window.initGroup = function() {
-    window.updateGroup();
-    if (btnGroup) {
-        btnGroup.addEventListener('click', window.startGroup);
+    // 统一在初始化时获取DOM元素
+    groupContainer = window.getElement('#groupContainer');
+    groupResult = window.getElement('#groupResult');
+    btnGroup = window.getElement('#btnGroup');
+    
+    if (!groupContainer || !groupResult || !btnGroup) {
+        console.error('[Group] 初始化失败：必要的DOM元素未找到');
+        return;
     }
+    
+    window.updateGroup();
+    btnGroup.addEventListener('click', window.startGroup);
 };
 
 window.updateGroup = function() {
@@ -39,6 +47,11 @@ function renderCandidates(names) {
 }
 
 window.startGroup = function() {
+    if (!groupContainer || !groupResult || !btnGroup) {
+        console.error('[Group] 必要的DOM元素未找到');
+        return;
+    }
+    
     window.switchPanel('groupPanel');
     const eligible = window.getEligibleStudents();
     if (eligible.length === 0) {
@@ -50,9 +63,13 @@ window.startGroup = function() {
     window.clearResult(groupResult);
 
     const candidates = window.shuffle(eligible).slice(0, Math.min(GROUP_SIZE, eligible.length));
-    renderCandidates(candidates);
-
-    const items = groupContainer ? groupContainer.querySelectorAll('.group-item') : [];
+    const items = renderCandidates(candidates);
+    if (items.length === 0) {
+        console.error('[Group] 候选列表创建失败');
+        window.updateButtonState(btnGroup, false);
+        return;
+    }
+    
     let idx = 0;
     let elapsed = 0;
     const duration = 2000;
@@ -60,9 +77,10 @@ window.startGroup = function() {
 
     if (groupCycleTimer) clearInterval(groupCycleTimer);
     groupCycleTimer = setInterval(() => {
-        items.forEach(el => {
-            el.style.background = '#f1f2f6';
-            el.style.transform = 'scale(1)';
+        // 使用批量更新优化性能
+        window.batchUpdateStyles(Array.from(items), {
+            background: '#f1f2f6',
+            transform: 'scale(1)'
         });
         const current = items[idx % items.length];
         if (current) {

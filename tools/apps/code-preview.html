@@ -43,6 +43,11 @@
       <div class="row"><span class="hint">支持多语言高亮与行号显示。</span></div>
     </div>
   </div>
+  <script>
+    (function autoDark(){
+      try{const mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');function apply(){if(mq&&mq.matches)document.body.classList.add('dark');else document.body.classList.remove('dark')}apply();mq&&mq.addEventListener('change',apply)}catch(e){}
+    })();
+  </script>
   <script src="code-preview.js"></script>
 </body>
 </html>

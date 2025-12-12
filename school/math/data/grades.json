@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "grades": [
+    {
+      "grade": 1,
+      "units": [
+        {
+          "id": "number-sense",
+          "title": "数与数感",
+          "skills": ["数数", "比较大小", "位值初识"],
+          "games": [
+            {
+              "id": "count-stairs",
+              "title": "数数跑道",
+              "type": "select",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "range": [1, 20], "mode": "target-number" },
+              "success": { "accuracy": 0.9, "timeLimitSec": 60 },
+              "rewards": { "coins": 5, "badge": "number-sense-starter" },
+              "skills": ["数数"],
+              "next": ["compare-pairs"]
+            },
+            {
+              "id": "compare-pairs",
+              "title": "比较大小连线",
+              "type": "match",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "pairs": 6, "range": [1, 100], "comparators": ["<", ">", "="] },
+              "success": { "accuracy": 0.85, "timeLimitSec": 60 },
+              "rewards": { "coins": 5 },
+              "skills": ["比较大小"],
+              "next": ["place-value-box"]
+            },
+            {
+              "id": "place-value-box",
+              "title": "位值装箱",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "range": [10, 99], "boxes": ["十位", "个位"] },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["位值初识"]
+            }
+          ]
+        },
+        {
+          "id": "addition-subtraction",
+          "title": "加减法基础",
+          "skills": ["凑十", "组合拆分", "20以内加减"],
+          "games": [
+            {
+              "id": "make-ten",
+              "title": "凑十拼卡",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "target": 10, "cards": [1,2,3,4,5,6,7,8,9] },
+              "success": { "accuracy": 0.9 },
+              "rewards": { "coins": 5, "badge": "make-ten" },
+              "skills": ["凑十"]
+            },
+            {
+              "id": "add-sub-mole",
+              "title": "加减打地鼠",
+              "type": "click",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "range": [1, 20], "ops": ["+", "-"] },
+              "success": { "accuracy": 0.9, "timeLimitSec": 45 },
+              "rewards": { "coins": 5 },
+              "skills": ["20以内加减"]
+            },
+            {
+              "id": "split-combine",
+              "title": "组合拆分台",
+              "type": "fill",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "targetRange": [5, 20], "parts": 2 },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["组合拆分"]
+            }
+          ]
+        },
+        {
+          "id": "time-calendar",
+          "title": "时间与日历",
+          "skills": ["整点", "半点", "星期与月份"],
+          "games": [
+            {
+              "id": "clock-half",
+              "title": "整点半点调针",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 2 },
+              "generator": { "modes": ["整点", "半点"], "count": 10 },
+              "success": { "accuracy": 0.9 },
+              "rewards": { "coins": 5 },
+              "skills": ["整点", "半点"]
+            }
+          ]
+        },
+        {
+          "id": "shapes",
+          "title": "图形与空间",
+          "skills": ["基本图形识别", "拼搭"],
+          "games": [
+            {
+              "id": "shape-puzzle",
+              "title": "图形拼搭",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "shapes": ["正方形", "圆", "三角形"], "targets": 6 },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["基本图形识别", "拼搭"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 2,
+      "units": [
+        {
+          "id": "add-sub-100",
+          "title": "100以内加减法",
+          "skills": ["进位", "退位", "笔算"],
+          "games": [
+            {
+              "id": "column-add-sub",
+              "title": "竖式笔算",
+              "type": "fill",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "range": [10, 99], "ops": ["+", "-"] },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["进位", "退位", "笔算"]
+            }
+          ]
+        },
+        {
+          "id": "multiplication-division",
+          "title": "乘除法基础",
+          "skills": ["乘法口诀", "除法平均分", "乘除关系"],
+          "games": [
+            {
+              "id": "mul-match",
+              "title": "乘法口诀连线",
+              "type": "match",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "tables": [2,3,4,5], "mode": "expression->result" },
+              "success": { "accuracy": 0.9, "timeLimitSec": 60 },
+              "rewards": { "coins": 5, "badge": "mul-starter" },
+              "skills": ["乘法口诀"]
+            },
+            {
+              "id": "divide-baskets",
+              "title": "平均分篮",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "itemsRange": [6, 24], "baskets": [2,3,4] },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["除法平均分"]
+            }
+          ]
+        },
+        {
+          "id": "measurement-money",
+          "title": "度量衡与人民币",
+          "skills": ["长度", "质量", "人民币找零"],
+          "games": [
+            {
+              "id": "rmb-change",
+              "title": "找零组合",
+              "type": "drag",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "prices": [3,5,7,12], "paid": [10,20], "coins": [1,2,5,10] },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["人民币找零"]
+            }
+          ]
+        },
+        {
+          "id": "perimeter",
+          "title": "图形与周长",
+          "skills": ["周长", "边长计算"],
+          "games": [
+            {
+              "id": "perimeter-walk",
+              "title": "周长步数",
+              "type": "select",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "shapes": ["长方形", "正方形"], "grid": true },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["周长"]
+            }
+          ]
+        },
+        {
+          "id": "statistics",
+          "title": "统计初识",
+          "skills": ["读图", "填图"],
+          "games": [
+            {
+              "id": "bar-chart-fill",
+              "title": "条形图填空",
+              "type": "fill",
+              "difficulty": { "min": 1, "max": 3 },
+              "generator": { "categories": 4, "maxValue": 20 },
+              "success": { "accuracy": 0.85 },
+              "rewards": { "coins": 5 },
+              "skills": ["读图", "填图"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

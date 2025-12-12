@@ -255,15 +255,20 @@ function createConfetti() {
  * @param {string} message - 结果消息
  */
 window.showResult = function(element, message) {
+    if (!element) {
+        console.warn('[Utils] showResult: 元素不存在');
+        return;
+    }
     element.textContent = message;
     
     // 解析结果消息，记录已抽中人员
     if (message.startsWith('恭喜 ')) {
         const name = message.substring(3).trim();
-        window.addSelectedStudent(name);
-        
-        // 显示庆祝模态窗口
-        window.showCelebrationModal(name);
+        if (name) {
+            window.addSelectedStudent(name);
+            // 显示庆祝模态窗口
+            window.showCelebrationModal(name);
+        }
     }
 };
 
@@ -272,7 +277,9 @@ window.showResult = function(element, message) {
  * @param {HTMLElement} element - 结果显示元素
  */
 window.clearResult = function(element) {
-    element.textContent = '';
+    if (element) {
+        element.textContent = '';
+    }
 };
 
 /**

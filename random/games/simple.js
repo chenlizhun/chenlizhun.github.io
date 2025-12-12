@@ -1,14 +1,21 @@
-const simpleDisplay = window.getElement('#simpleDisplay');
-const simpleResult = window.getElement('#simpleResult');
-const btnSimple = window.getElement('#btnSimple');
-
+let simpleDisplay = null;
+let simpleResult = null;
+let btnSimple = null;
 let simpleTimer = null;
 
 window.initSimple = function() {
-    window.updateSimple();
-    if (btnSimple) {
-        btnSimple.addEventListener('click', window.startSimple);
+    // 统一在初始化时获取DOM元素
+    simpleDisplay = window.getElement('#simpleDisplay');
+    simpleResult = window.getElement('#simpleResult');
+    btnSimple = window.getElement('#btnSimple');
+    
+    if (!simpleDisplay || !simpleResult || !btnSimple) {
+        console.error('[Simple] 初始化失败：必要的DOM元素未找到');
+        return;
     }
+    
+    window.updateSimple();
+    btnSimple.addEventListener('click', window.startSimple);
 };
 
 window.updateSimple = function() {
@@ -23,6 +30,11 @@ window.updateSimple = function() {
 };
 
 window.startSimple = function() {
+    if (!simpleDisplay || !simpleResult || !btnSimple) {
+        console.error('[Simple] 必要的DOM元素未找到');
+        return;
+    }
+    
     window.switchPanel('simplePanel');
     const eligible = window.getEligibleStudents();
     if (eligible.length === 0) {
@@ -40,12 +52,12 @@ window.startSimple = function() {
     if (simpleTimer) clearInterval(simpleTimer);
     simpleTimer = setInterval(() => {
         const name = eligible[window.randomIndex(eligible.length)];
-        if (simpleDisplay) simpleDisplay.textContent = name;
+        simpleDisplay.textContent = name;
         elapsed += interval;
         if (elapsed >= duration) {
             clearInterval(simpleTimer);
             const winner = eligible[window.randomIndex(eligible.length)];
-            if (simpleDisplay) simpleDisplay.textContent = winner;
+            simpleDisplay.textContent = winner;
             window.showResult(simpleResult, '恭喜 ' + winner);
             window.updateButtonState(btnSimple, false);
         }

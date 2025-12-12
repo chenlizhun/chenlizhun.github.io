@@ -29,6 +29,11 @@
       <div class="row"><span class="hint">支持校验、格式化、压缩、键排序与复制。严格遵循 JSON 标准。</span></div>
     </div>
   </div>
+  <script>
+    (function autoDark(){
+      try{const mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');function apply(){if(mq&&mq.matches)document.body.classList.add('dark');else document.body.classList.remove('dark')}apply();mq&&mq.addEventListener('change',apply)}catch(e){}
+    })();
+  </script>
   <script src="json.js"></script>
 </body>
 </html>

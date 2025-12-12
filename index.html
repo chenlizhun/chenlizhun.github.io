@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>站点首页 · chenlizhun.github.io</title>
+    <meta name="description" content="站点入口，快速访问算法演示、小游戏、工具与课程页面">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='80'>🐇</text></svg>">
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #111827;
+        --muted: #6b7280;
+        --card: #f9fafb;
+        --accent: #2563eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #0b0f18; --fg: #e5e7eb; --muted: #9ca3af; --card: #0f172a; --accent: #3b82f6; }
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.6;
+      }
+      a { color: var(--accent); text-decoration: none; }
+      a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      header {
+        padding: 32px 20px 12px;
+        max-width: 980px; margin: 0 auto;
+      }
+      header h1 { margin: 0 0 6px; font-size: 28px; font-weight: 700; }
+      header p { margin: 0; color: var(--muted); }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        padding: 20px; max-width: 980px; margin: 0 auto 24px;
+      }
+      .card {
+        display: block;
+        border-radius: 12px;
+        padding: 16px;
+        background: var(--card);
+        border: 1px solid rgba(100, 116, 139, .2);
+        transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.06); border-color: rgba(37, 99, 235, .35); }
+      .card h3 { margin: 0 0 8px; font-size: 18px; }
+      .card p { margin: 0; color: var(--muted); font-size: 14px; }
+      footer { padding: 20px; max-width: 980px; margin: 0 auto 40px; color: var(--muted); font-size: 14px; }
+      .section-title { padding: 0 20px; max-width: 980px; margin: 10px auto 0; color: var(--muted); font-size: 13px; letter-spacing: .02em; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>chenlizhun.github.io</h1>
+      <p>统一入口 · 快速访问各模块</p>
+    </header>
+
+    <div class="section-title">主要模块</div>
+    <main class="grid" aria-label="主要模块">
+      <a class="card" href="algorithm1/index.html">
+        <h3>算法演示</h3>
+        <p>可视化步骤、示例与测试页面</p>
+      </a>
+      <a class="card" href="rabbit/index.html">
+        <h3>Rabbit</h3>
+        <p>游戏中心与交互应用</p>
+      </a>
+      <a class="card" href="random/index.html">
+        <h3>随机工具</h3>
+        <p>抽签、转盘等课堂互动</p>
+      </a>
+      <a class="card" href="tools/index.html">
+        <h3>工具箱</h3>
+        <p>颜色、JSON、Markdown 等常用工具</p>
+      </a>
+      <a class="card" href="school/math/index.html">
+        <h3>课程 · 数学</h3>
+        <p>成绩数据与课程页面</p>
+      </a>
+    </main>
+
+    <div class="section-title">单页入口</div>
+    <section class="grid" aria-label="单页入口">
+      <a class="card" href="data-rabbit.html">
+        <h3>Data Rabbit</h3>
+        <p>数据展示入口</p>
+      </a>
+      <a class="card" href="random.html">
+        <h3>随机页</h3>
+        <p>快速进入随机互动</p>
+      </a>
+    </section>
+
+    <footer>
+      <span>© 2025 chenlizhun · GitHub Pages</span>
+    </footer>
+  </body>
+</html>
