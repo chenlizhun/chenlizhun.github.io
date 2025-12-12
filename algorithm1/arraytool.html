@@ -329,6 +329,24 @@
             box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
         }
 
+        .array-index {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #e5e7eb;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 1;
+        }
+
+        .array-item.focused .array-index,
+        .array-item.highlighted .array-index {
+            color: #9ca3af;
+            opacity: 0.9;
+        }
+
         .array-value-text {
             min-width: 50px;
             min-height: 40px;
@@ -1388,7 +1406,9 @@
                 arrayItem.dataset.array = arrayId;
                 arrayItem.dataset.index = index;
 
-                
+                const indexLabel = document.createElement('div');
+                indexLabel.className = 'array-index';
+                indexLabel.textContent = `[${index}]`;
 
                 // 数值/字符展示（文本）
                 const valueText = document.createElement('div');
@@ -1418,6 +1438,7 @@
                 // 组装
                 arrayItem.appendChild(valueText);
                 arrayItem.appendChild(valueInput);
+                arrayItem.appendChild(indexLabel);
                 container.appendChild(arrayItem);
 
                 // 悬停聚焦
@@ -2330,3 +2351,4 @@
     </script>
 </body>
 </html>
+        
