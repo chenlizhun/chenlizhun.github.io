@@ -105,9 +105,6 @@ body {
   margin-bottom: 0;
   border-left: 4px solid var(--accent);
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 14px 18px;
   min-height: 68px;
   background: var(--bg-panel);
@@ -115,6 +112,32 @@ body {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   transition: transform .15s ease, box-shadow .15s ease;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 默认隐藏所有面板的游戏容器和结果 */
+.vertical-modes-container .panel:not(.active) > .wheel-container,
+.vertical-modes-container .panel:not(.active) > .slot-container,
+.vertical-modes-container .panel:not(.active) > .race-container,
+.vertical-modes-container .panel:not(.active) > .lottery-container,
+.vertical-modes-container .panel:not(.active) > .card-container,
+.vertical-modes-container .panel:not(.active) > .spin-container,
+.vertical-modes-container .panel:not(.active) > .result {
+  display: none !important;
+}
+
+/* 确保非激活面板的游戏容器和结果区域完全隐藏 */
+.vertical-modes-container .panel:not(.active) .wheel-container,
+.vertical-modes-container .panel:not(.active) .slot-container,
+.vertical-modes-container .panel:not(.active) .race-container,
+.vertical-modes-container .panel:not(.active) .lottery-container,
+.vertical-modes-container .panel:not(.active) .card-container,
+.vertical-modes-container .panel:not(.active) .spin-container,
+.vertical-modes-container .panel:not(.active) .result {
+  display: none !important;
 }
 .vertical-modes-container .panel:hover {
   transform: translateY(-2px);
@@ -125,6 +148,29 @@ body {
 .vertical-modes-container .panel-left {
   flex: 1;
   padding-right: 16px;
+}
+
+/* 游戏容器和结果区域应该换行显示，占据整行 */
+.vertical-modes-container .panel > .wheel-container,
+.vertical-modes-container .panel > .slot-container,
+.vertical-modes-container .panel > .race-container,
+.vertical-modes-container .panel > .lottery-container,
+.vertical-modes-container .panel > .card-container,
+.vertical-modes-container .panel > .spin-container,
+.vertical-modes-container .panel > .simple-display,
+.vertical-modes-container .panel > .group-container,
+.vertical-modes-container .panel > .result {
+  flex-basis: 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  order: 10 !important;
+  margin-top: 16px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box !important;
 }
 
 /* 垂直布局中的面板标题样式 */
@@ -184,6 +230,7 @@ body {
 .vertical-modes-container .balloon-container,
 .vertical-modes-container .gift-container,
 .vertical-modes-container .spin-container,
+.vertical-modes-container .lottery-container,
 .vertical-modes-container .lottery-box,
 .vertical-modes-container .number-display,
 .vertical-modes-container .matrix-container,
@@ -210,6 +257,7 @@ body {
 .vertical-modes-container .panel.active .balloon-container,
 .vertical-modes-container .panel.active .gift-container,
 .vertical-modes-container .panel.active .spin-container,
+.vertical-modes-container .panel.active .lottery-container,
 .vertical-modes-container .panel.active .lottery-box,
 .vertical-modes-container .panel.active .number-display,
 .vertical-modes-container .panel.active .matrix-container,
@@ -221,6 +269,8 @@ body {
 .vertical-modes-container .panel.active .group-container,
 .vertical-modes-container .panel.active .result {
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* 响应式设计 */

@@ -1,11 +1,14 @@
 /* 旋转抽奖样式 */
+.vertical-modes-container .spin-container,
 .spin-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  max-width: 320px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 16px auto 0 auto !important;
+  max-width: 320px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .spin-item {

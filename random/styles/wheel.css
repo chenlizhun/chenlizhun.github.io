@@ -1,11 +1,13 @@
 /* 转盘游戏样式 */
+.vertical-modes-container .wheel-container,
 .wheel-container {
-  position: relative;
-  width: 360px;
-  height: 360px;
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
+  position: relative !important;
+  width: 360px !important;
+  max-width: 100% !important;
+  height: 360px !important;
+  margin: 16px auto 0 auto !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
 }
 
 .wheel-pointer {

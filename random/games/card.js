@@ -15,10 +15,16 @@ let cardSpinning = false;
  * 创建卡片
  */
 function createCards() {
-    const students = window.getStudents();
+    if (!cardContainer) return;
+    const eligible = window.getEligibleStudents();
     cardContainer.innerHTML = '';
     
-    students.forEach((name, index) => {
+    if (eligible.length === 0) {
+        cardContainer.textContent = '暂无可抽取人员';
+        return;
+    }
+    
+    eligible.forEach((name, index) => {
         const card = document.createElement("div");
         card.className = "card";
         card.textContent = name;
@@ -30,17 +36,24 @@ function createCards() {
  * 开始翻牌游戏
  */
 window.startCard = function() {
-    if (cardSpinning) return;
+    if (cardSpinning || !cardContainer || !cardResult || !btnCard) return;
     
-    const students = window.getStudents();
+    window.switchPanel('cardPanel');
+    const eligible = window.getEligibleStudents();
+    if (eligible.length === 0) {
+        window.showResult(cardResult, '暂无可抽取人员');
+        return;
+    }
+    
+    const students = eligible;
     if (students.length === 0) {
         window.showResult(cardResult, "请先添加学生名单");
         return;
     }
     
+    window.updateButtonState(btnCard, true);
+    window.clearResult(cardResult);
     cardSpinning = true;
-    btnCard.disabled = true;
-    window.showResult(cardResult, "");
     
     // 获取所有卡片
     const cards = cardContainer.querySelectorAll(".card");
@@ -64,7 +77,7 @@ window.startCard = function() {
         if (count >= maxCount) {
             clearInterval(interval);
             cardSpinning = false;
-            btnCard.disabled = false;
+            window.updateButtonState(btnCard, false);
             
             // 显示结果
             const winnerIdx = window.randomIndex(students.length);

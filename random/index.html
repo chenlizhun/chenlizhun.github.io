@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <title>随机抽签（2种模式）</title>
+    <title>随机抽签（8种模式）</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,8 +13,8 @@
         <div class="sidebar">
             <!-- 标题区域 -->
             <div class="sidebar-header">
-                <h1>随机抽签（2种模式）</h1>
-                <div class="sub">从学生名单中随机抽出 1 名，支持两种抽签玩法</div>
+                <h1>随机抽签（8种模式）</h1>
+                <div class="sub">从学生名单中随机抽出 1 名，支持多种抽签玩法</div>
             </div>
             
             <!-- 学生名单管理 -->
@@ -51,6 +51,11 @@
                         <button data-target="simplePanel">🎲 简洁抽签</button>
                         <button data-target="groupPanel">👥 分组抽签</button>
                         <button data-target="racePanel">🏃 赛跑抽签</button>
+                        <button data-target="wheelPanel">🎡 转盘抽签</button>
+                        <button data-target="slotPanel">🎰 老虎机</button>
+                        <button data-target="lotteryPanel">🎫 抽奖箱</button>
+                        <button data-target="cardPanel">🃏 卡片翻牌</button>
+                        <button data-target="spinPanel">🌀 旋转抽奖</button>
                     </div>
                 </div>
                 
@@ -106,38 +111,78 @@
                 <div class="result" id="raceResult"></div>
             </div>
 
-    
-    <!-- 3. 数字滚轮 -->
-    
-    <!-- 4. 卡片 -->
-    
-    <!-- 5. 网格 -->
-    
-    <!-- 6. 列表 -->
-    
-    <!-- 7. 彩球 -->
-    
-    <!-- 8. 赛跑 -->
-    
-    <!-- 9. 气球 -->
-    
-    <!-- 10. 礼物 -->
-    
-    <!-- 11. 旋转 -->
-    
-    <!-- 12. 抽奖 -->
-    
-    <!-- 13. 数字 -->
-    
-    <!-- 14. 矩阵 -->
-    
-    <!-- 15. 光点 -->
-    
-    <!-- 16. 彩虹 -->
-    
-    <!-- 17. 打字 -->
-    
-    <!-- 18. 星星 -->
+            <!-- 转盘抽签 -->
+            <div id="wheelPanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🎡</span>转盘抽签</h2>
+                    <div class="panel-tip">转盘旋转，指针指向谁，谁就是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnWheel" class="btn-primary">开始转盘</button>
+                </div>
+                <div class="wheel-container" id="wheelContainer">
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-center"></div>
+                    </div>
+                </div>
+                <div class="result" id="wheelResult"></div>
+            </div>
+
+            <!-- 老虎机 -->
+            <div id="slotPanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🎰</span>老虎机</h2>
+                    <div class="panel-tip">三列滚动，当三列都显示同一个名字时，就是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnSlot" class="btn-primary">开始抽奖</button>
+                </div>
+                <div class="slot-container">
+                    <div class="slot-column" id="slotCol1"></div>
+                    <div class="slot-column" id="slotCol2"></div>
+                    <div class="slot-column" id="slotCol3"></div>
+                </div>
+                <div class="result" id="slotResult"></div>
+            </div>
+
+            <!-- 抽奖箱 -->
+            <div id="lotteryPanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🎫</span>抽奖箱</h2>
+                    <div class="panel-tip">抽奖券快速切换，最终停在谁的名字上，谁就是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnLottery" class="btn-primary">开始抽奖</button>
+                </div>
+                <div class="lottery-container" id="lotteryBox"></div>
+                <div class="result" id="lotteryResult"></div>
+            </div>
+
+            <!-- 卡片翻牌 -->
+            <div id="cardPanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🃏</span>卡片翻牌</h2>
+                    <div class="panel-tip">卡片快速切换，最终翻开的卡片上显示的就是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnCard" class="btn-primary">开始翻牌</button>
+                </div>
+                <div class="card-container" id="cardContainer"></div>
+                <div class="result" id="cardResult"></div>
+            </div>
+
+            <!-- 旋转抽奖 -->
+            <div id="spinPanel" class="panel">
+                <div class="panel-left">
+                    <h2><span class="emoji">🌀</span>旋转抽奖</h2>
+                    <div class="panel-tip">旋转元素快速切换，最终停在谁的名字上，谁就是被抽中的学生。</div>
+                </div>
+                <div class="panel-right">
+                    <button id="btnSpin" class="btn-primary">开始旋转</button>
+                </div>
+                <div class="spin-container" id="spinContainer"></div>
+                <div class="result" id="spinResult"></div>
+            </div>
     
     
     
@@ -185,6 +230,11 @@
 <script src="games/simple.js"></script>
 <script src="games/group.js"></script>
 <script src="games/race.js"></script>
+<script src="games/wheel.js"></script>
+<script src="games/slot.js"></script>
+<script src="games/lottery.js"></script>
+<script src="games/card.js"></script>
+<script src="games/spin.js"></script>
         
             
 

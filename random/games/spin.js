@@ -15,10 +15,16 @@ let spinSpinning = false;
  * 创建旋转元素
  */
 function createSpinElements() {
-    const students = window.getStudents();
+    if (!spinContainer) return;
+    const eligible = window.getEligibleStudents();
     spinContainer.innerHTML = '';
     
-    students.forEach((name, index) => {
+    if (eligible.length === 0) {
+        spinContainer.textContent = '暂无可抽取人员';
+        return;
+    }
+    
+    eligible.forEach((name, index) => {
         const spinItem = document.createElement("div");
         spinItem.className = "spin-item";
         spinItem.textContent = name;
@@ -30,17 +36,24 @@ function createSpinElements() {
  * 开始旋转抽奖游戏
  */
 window.startSpin = function() {
-    if (spinSpinning) return;
+    if (spinSpinning || !spinContainer || !spinResult || !btnSpin) return;
     
-    const students = window.getStudents();
+    window.switchPanel('spinPanel');
+    const eligible = window.getEligibleStudents();
+    if (eligible.length === 0) {
+        window.showResult(spinResult, '暂无可抽取人员');
+        return;
+    }
+    
+    const students = eligible;
     if (students.length === 0) {
         window.showResult(spinResult, "请先添加学生名单");
         return;
     }
     
+    window.updateButtonState(btnSpin, true);
+    window.clearResult(spinResult);
     spinSpinning = true;
-    btnSpin.disabled = true;
-    window.showResult(spinResult, "");
     
     // 获取所有旋转元素
     const spinItems = spinContainer.querySelectorAll(".spin-item");
@@ -64,7 +77,7 @@ window.startSpin = function() {
         if (count >= maxCount) {
             clearInterval(interval);
             spinSpinning = false;
-            btnSpin.disabled = false;
+            window.updateButtonState(btnSpin, false);
             
             // 显示结果
             const winnerIdx = window.randomIndex(students.length);
@@ -77,8 +90,12 @@ window.startSpin = function() {
  * 初始化旋转抽奖游戏
  */
 window.initSpin = function() {
-    createSpinElements();
-    btnSpin.addEventListener("click", startSpin);
+    if (!spinContainer || !spinResult || !btnSpin) {
+        console.error('[Spin] 初始化失败：必要的DOM元素未找到');
+        return;
+    }
+    window.updateSpin();
+    btnSpin.addEventListener("click", window.startSpin);
 };
 
 /**

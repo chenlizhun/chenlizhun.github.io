@@ -20,7 +20,7 @@ let slotSpinning = false;
  * @param {string} winnerName - 中奖者姓名（可选）
  */
 function fillSlotColumn(col, winnerName = null) {
-    const students = window.getStudents();
+    const students = window.getEligibleStudents();
     const total = 20;
     let winnerRowIndex = -1;
     
@@ -86,18 +86,25 @@ function spinColumn(col, duration) {
 /**
  * 开始老虎机游戏
  */
-window.startSlotMachine = async function() {
-    if (slotSpinning) return;
+window.startSlot = async function() {
+    if (slotSpinning || !slotCol1 || !slotCol2 || !slotCol3 || !slotResult || !btnSlot) return;
     
-    const students = window.getStudents();
+    window.switchPanel('slotPanel');
+    const eligible = window.getEligibleStudents();
+    if (eligible.length === 0) {
+        window.showResult(slotResult, '暂无可抽取人员');
+        return;
+    }
+    
+    const students = eligible;
     if (students.length === 0) {
         window.showResult(slotResult, "请先添加学生名单");
         return;
     }
     
+    window.updateButtonState(btnSlot, true);
+    window.clearResult(slotResult);
     slotSpinning = true;
-    btnSlot.disabled = true;
-    window.showResult(slotResult, "");
     
     // 选择中奖者
     const targetIndex = window.randomIndex(students.length);
@@ -118,20 +125,19 @@ window.startSlotMachine = async function() {
     // 显示结果
     window.showResult(slotResult, `恭喜 ${name}`);
     slotSpinning = false;
-    btnSlot.disabled = false;
+    window.updateButtonState(btnSlot, false);
 };
 
 /**
  * 初始化老虎机游戏
  */
 window.initSlotMachine = function() {
-    // 初始填充列
-    fillSlotColumn(slotCol1);
-    fillSlotColumn(slotCol2);
-    fillSlotColumn(slotCol3);
-    
-    // 添加事件监听
-    btnSlot.addEventListener("click", startSlotMachine);
+    if (!slotCol1 || !slotCol2 || !slotCol3 || !slotResult || !btnSlot) {
+        console.error('[Slot] 初始化失败：必要的DOM元素未找到');
+        return;
+    }
+    window.updateSlotMachine();
+    btnSlot.addEventListener("click", window.startSlot);
 };
 
 /**

@@ -1,9 +1,13 @@
 /* 抽卡片 / 翻牌样式 */
+.vertical-modes-container .card-container,
 .card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  gap: 12px !important;
+  margin: 16px auto 0 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .card {

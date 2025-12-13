@@ -1,15 +1,17 @@
 /* 赛跑抽签样式 */
+.vertical-modes-container .race-container,
 .race-container {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  border-radius: 12px;
-  border: 1px solid #dee2e6;
-  width: 100%;
-  box-sizing: border-box;
+  margin: 16px auto 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+  border-radius: 12px !important;
+  border: 1px solid #dee2e6 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .race-row {

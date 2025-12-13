@@ -26,12 +26,17 @@ let wheelSpinning = false;
 function createWheelLabels() {
     if (!wheel) return;
     
-    const students = window.getStudents();
-    if (students.length === 0) return;
+    const students = window.getEligibleStudents();
+    if (students.length === 0) {
+        wheel.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无可抽取人员</div>';
+        return;
+    }
     
-    // 清空现有标签
-    const existingLabels = wheel.querySelectorAll('.wheel-label');
-    existingLabels.forEach(label => label.remove());
+    // 清空现有标签（包括可能的提示文字）
+    wheel.innerHTML = '';
+    const wheelCenter = document.createElement('div');
+    wheelCenter.className = 'wheel-center';
+    wheel.appendChild(wheelCenter);
     
     const sliceAngle = 360 / students.length;
     const radius = 120; // 标签距离中心的距离
@@ -64,20 +69,27 @@ function createWheelLabels() {
 /**
  * 旋转转盘
  */
-function spinWheel() {
+window.startWheel = function() {
     if (wheelSpinning || !wheel || !wheelResult || !btnWheel) return;
     
-    const students = window.getStudents();
+    window.switchPanel('wheelPanel');
+    const eligible = window.getEligibleStudents();
+    if (eligible.length === 0) {
+        window.showResult(wheelResult, '暂无可抽取人员');
+        return;
+    }
+    
+    const students = eligible;
     if (students.length === 0) {
         window.showResult(wheelResult, "请先添加学生名单");
         return;
     }
     
     // 旋转开始前的视觉反馈
-    wheelSpinning = true;
-    btnWheel.disabled = true;
+    window.updateButtonState(btnWheel, true);
     btnWheel.textContent = "旋转中...";
-    window.showResult(wheelResult, "");
+    window.clearResult(wheelResult);
+    wheelSpinning = true;
     
     const sliceAngle = 360 / students.length;
     const targetIndex = window.randomIndex(students.length);
@@ -103,10 +115,10 @@ function spinWheel() {
         
         // 恢复按钮状态
         wheelSpinning = false;
-        btnWheel.disabled = false;
-        btnWheel.textContent = "开始抽奖";
+        window.updateButtonState(btnWheel, false);
+        btnWheel.textContent = "开始转盘";
     }, rotationTime);
-}
+};
 
 /**
  * 显示中奖动画
@@ -132,15 +144,18 @@ function showWinnerAnimation(name) {
  * 初始化转盘
  */
 window.initWheel = function() {
-    if (!wheel || !btnWheel) return;
+    if (!wheel || !btnWheel) {
+        console.error('[Wheel] 初始化失败：必要的DOM元素未找到');
+        return;
+    }
     
-    createWheelLabels();
-    btnWheel.addEventListener("click", spinWheel);
+    window.updateWheel();
+    btnWheel.addEventListener("click", window.startWheel);
     
     // 允许点击转盘中心开始旋转
     const wheelCenter = window.getElement(".wheel-center");
     if (wheelCenter) {
-        wheelCenter.addEventListener("click", spinWheel);
+        wheelCenter.addEventListener("click", window.startWheel);
     }
     
     // 响应窗口大小变化，重新计算标签位置
@@ -148,9 +163,8 @@ window.initWheel = function() {
 };
 
 /**
- * 更新转盘（已重命名禁用）
+ * 更新转盘（当学生名单改变时调用）
  */
-window.updateWheelDisabled = function() {
-    console.warn('updateWheel函数已禁用，转盘模式被隐藏');
-    return;
+window.updateWheel = function() {
+    createWheelLabels();
 };

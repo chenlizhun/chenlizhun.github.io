@@ -328,6 +328,10 @@
             border-color: #a78bfa; /* violet-400 */
             box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
         }
+        .array-container.selected .array-label {
+            color: #0ea5e9;
+            font-weight: 700;
+        }
 
         .array-index {
             position: absolute;
@@ -583,20 +587,81 @@
                 font-size: 0.8rem;
             }
         }
+        .layout {
+            display: grid;
+            grid-template-columns: var(--left-width, 520px) 6px 1fr;
+            gap: 1rem;
+        }
+        .layout-divider {
+            background: transparent;
+            border-radius: 6px;
+            cursor: col-resize;
+            height: 100%;
+            align-self: stretch;
+            opacity: 0;
+        }
+        .code-panel.collapsed + .layout-divider {
+            display: none;
+        }
+        .code-panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+        .code-actions {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+        .code-editor {
+            width: 100%;
+            min-height: 80px;
+            height: 90px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.85rem;
+            font-family: Consolas, monospace;
+            background: #fff;
+            margin-top: 0.6rem;
+        }
+        .code-output {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #fff;
+            padding: 0.6rem;
+            overflow: visible;
+            font-size: 0.8rem;
+        }
+        .code-panel.collapsed {
+            display: none;
+        }
     </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+    <script src="https://unpkg.com/prettier@3.2.5/standalone.js"></script>
+    <script src="https://unpkg.com/prettier@3.2.5/plugins/babel.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>⚡ 算法推演工具 - 多数组指针交互</h1>
-
-        <!-- 数组模式切换 -->
-        <div class="mode-switch">
+        <!-- 顶部功能按钮区（上方） -->
+        <div class="mode-switch" style="display:none;">
             <button class="mode-btn active" id="single-mode">单数组模式</button>
             <button class="mode-btn" id="double-mode">双数组模式</button>
             <button class="mode-btn" id="multi-mode">多数组模式</button>
         </div>
-
-        <!-- 数组配置区域 -->
         <div class="array-config" id="array-config">
             <div class="array-config-header">
                 <div class="config-title">功能按钮区</div>
@@ -611,13 +676,10 @@
                 <button class="btn btn-outline" id="add-array">添加新数组</button>
                 <button class="btn btn-outline" id="remove-array">删除最后数组</button>
             </div>
-
             <div class="array-input-group" id="array-inputs-container">
-                <!-- 数组1输入 -->
                 <div class="array-input-wrapper active" data-array-id="1">
                     <input type="text" class="array-input" data-array-id="1" placeholder="输入数组1，用逗号分隔，例如：1,3,5,7,9" value="1,3,5,7,9">
                 </div>
-                <!-- 数组2输入（默认隐藏） -->
                 <div class="array-input-wrapper" data-array-id="2">
                     <input type="text" class="array-input" data-array-id="2" placeholder="输入数组2，用逗号分隔，例如：2,4,6,8,10" value="2,4,6,8,10">
                 </div>
@@ -626,8 +688,6 @@
                 <button class="btn btn-outline" id="remove-array-item">删除元素</button>
                 <button class="btn btn-danger" id="clear-all">清空所有</button>
             </div>
-
-            <!-- 指针配置 -->
             <div class="pointer-config">
                 <input type="text" id="pointer-name" placeholder="指针名称" value="i">
                 <button class="btn btn-success" id="add-pointer">添加指针</button>
@@ -635,14 +695,10 @@
                 <button class="btn btn-outline" id="clear-pointers">清除所有指针</button>
                 <div class="pointer-status" id="pointer-status">当前选中：无 | 位置：-</div>
             </div>
-
-            <!-- 目标值配置 -->
             <div class="pointer-config">
                 <input type="number" id="target-value" placeholder="目标值" style="width: 90px;">
                 <div class="pointer-status" id="target-status">目标：未设置</div>
             </div>
-
-            <!-- 关系高亮模式 -->
             <div class="pointer-config">
                 <select id="relation-mode" class="array-input" style="max-width: 200px;">
                     <option value="none">关系高亮：关闭</option>
@@ -651,8 +707,6 @@
                 </select>
                 <button class="btn btn-outline" id="clear-highlight">清除高亮</button>
             </div>
-
-            <!-- 场景模板 -->
             <div class="pointer-config">
                 <button class="btn btn-outline" id="tpl-merge">模板：合并有序数组</button>
                 <button class="btn btn-outline" id="tpl-remove">模板：移除元素</button>
@@ -664,7 +718,6 @@
                 <button class="btn btn-outline" id="tpl-remove-dup">模板：移除重复项</button>
                 <button class="btn btn-outline" id="tpl-reverse">模板：反转数组</button>
             </div>
-
             <div class="pointer-config">
                 <button class="btn btn-primary" id="record-step">记录当前状态</button>
                 <button class="btn btn-primary" id="take-snapshot">生成数组快照</button>
@@ -708,6 +761,29 @@
             </div>
             </div>
         </div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:0.5rem;">
+            <button class="toggle-pill" id="toggle-code-global">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                折叠代码区
+            </button>
+        </div>
+        <div class="layout">
+            <div class="code-panel" id="code-panel">
+                <div class="code-header">
+                    <div class="code-actions">
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <span style="font-size:0.8rem;color:#666;">字体</span>
+                            <button class="btn btn-outline" id="code-font-dec">-</button>
+                            <button class="btn btn-outline" id="code-font-inc">+</button>
+                        </div>
+                    </div>
+                </div>
+                <pre class="code-output line-numbers"><code id="code-highlight" class="language-javascript"></code></pre>
+                <textarea id="code-input" class="code-editor" placeholder="粘贴或输入代码" style="opacity:0.2;"></textarea>
+            </div>
+            <div class="layout-divider" id="layout-divider"></div>
+            <div id="content-area">
+
 
         <!-- 可视化区域 -->
         <div class="visualization">
@@ -775,12 +851,383 @@
                 </li>
             </ul>
         </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        const codePanel = document.getElementById('code-panel');
+        const layoutEl = document.querySelector('.layout');
+        const dividerEl = document.getElementById('layout-divider');
+        const toggleCodeGlobalBtn = document.getElementById('toggle-code-global');
+        const codeInputEl = document.getElementById('code-input');
+        const codeHighlightEl = document.getElementById('code-highlight');
+        const codeOutputPre = document.querySelector('.code-output');
+        const fontDecBtn = document.getElementById('code-font-dec');
+        const fontIncBtn = document.getElementById('code-font-inc');
+        (function initCodeFontSize(){
+            let fs = Number(localStorage.getItem('arraytool_code_fontsize_rem'));
+            if (!Number.isFinite(fs)) fs = 0.7;
+            if (codeOutputPre) codeOutputPre.style.fontSize = fs + 'rem';
+            function apply(fs2) {
+                fs = Math.min(1.0, Math.max(0.55, fs2));
+                if (codeOutputPre) codeOutputPre.style.fontSize = fs + 'rem';
+                localStorage.setItem('arraytool_code_fontsize_rem', String(fs));
+            }
+            if (fontDecBtn) fontDecBtn.addEventListener('click', () => apply(fs - 0.05));
+            if (fontIncBtn) fontIncBtn.addEventListener('click', () => apply(fs + 0.05));
+        })();
+        function showCode(lang, src) {
+            try {
+                codeHighlightEl.className = 'language-' + lang;
+                codeHighlightEl.textContent = src || '';
+                if (window.Prism) Prism.highlightElement(codeHighlightEl);
+            } catch (_) {}
+        }
+        const templateDart = {
+            mergeSorted:
+`List<int> merge(List<int> a, List<int> b) {
+  int i=0,j=0;
+  List<int> r=[];
+  while(i<a.length && j<b.length){
+    if(a[i]<=b[j]){ r.add(a[i]); i++; } else { r.add(b[j]); j++; }
+  }
+  while(i<a.length){ r.add(a[i]); i++; }
+  while(j<b.length){ r.add(b[j]); j++; }
+  return r;
+}`,
+            removeElement:
+`int removeElement(List<int> nums, int val) {
+  int k=0;
+  for(int i=0;i<nums.length;i++){
+    if(nums[i]!=val){ nums[k]=nums[i]; k++; }
+  }
+  return k;
+}`,
+            binarySearch:
+`int binarySearch(List<int> nums,int target){
+  int l=0,r=nums.length-1;
+  while(l<=r){
+    int m=(l+r)>>1;
+    if(nums[m]==target) return m;
+    if(nums[m]<target) l=m+1; else r=m-1;
+  }
+  return -1;
+}`,
+            twoSum:
+`List<int> twoSumSorted(List<int> nums,int target){
+  int l=0,r=nums.length-1;
+  while(l<r){
+    int s=nums[l]+nums[r];
+    if(s==target) return [l,r];
+    if(s<target) l++; else r--;
+  }
+  return [];
+}`,
+            threeSum:
+`List<List<int>> threeSum(List<int> nums){
+  nums.sort();
+  List<List<int>> res=[];
+  for(int i=0;i<nums.length;i++){
+    if(i>0 && nums[i]==nums[i-1]) continue;
+    int l=i+1,r=nums.length-1;
+    while(l<r){
+      int s=nums[i]+nums[l]+nums[r];
+      if(s==0){
+        res.add([nums[i],nums[l],nums[r]]);
+        l++; r--;
+        while(l<r && nums[l]==nums[l-1]) l++;
+        while(l<r && nums[r]==nums[r+1]) r--;
+      } else if(s<0){ l++; } else { r--; }
+    }
+  }
+  return res;
+}`,
+            slidingWindow:
+`int maxSumOfSizeK(List<int> nums,int k){
+  int sum=0,best=0;
+  for(int i=0;i<nums.length;i++){
+    sum+=nums[i];
+    if(i>=k){ sum-=nums[i-k]; }
+    if(i>=k-1 && sum>best) best=sum;
+  }
+  return best;
+}`,
+            moveZeros:
+`void moveZeroes(List<int> nums){
+  int k=0;
+  for(int i=0;i<nums.length;i++){
+    if(nums[i]!=0){ nums[k]=nums[i]; k++; }
+  }
+  for(int i=k;i<nums.length;i++) nums[i]=0;
+}`,
+            removeDuplicates:
+`int removeDuplicates(List<int> nums){
+  if(nums.isEmpty) return 0;
+  int k=1;
+  for(int i=1;i<nums.length;i++){
+    if(nums[i]!=nums[k-1]){ nums[k]=nums[i]; k++; }
+  }
+  return k;
+}`,
+            reverseArray:
+`void reverse(List<int> nums){
+  int l=0,r=nums.length-1;
+  while(l<r){
+    int t=nums[l]; nums[l]=nums[r]; nums[r]=t;
+    l++; r--;
+  }
+}`
+        };
+        function updateHighlight(text) {
+            codeHighlightEl.textContent = text || '';
+            if (window.Prism) Prism.highlightElement(codeHighlightEl);
+        }
+        async function getClipboardText() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const t = await navigator.clipboard.readText();
+                    if (typeof t === 'string' && t.trim().length && t !== '[object Promise]') return t;
+                }
+            } catch (_) {}
+            try {
+                if (navigator.clipboard && navigator.clipboard.read) {
+                    const items = await navigator.clipboard.read();
+                    for (const item of items) {
+                        if (item.types && item.types.length) {
+                            const type = item.types.includes('text/plain') ? 'text/plain' : item.types[0];
+                            const blob = await item.getType(type);
+                            const txt = await blob.text();
+                            if (typeof txt === 'string' && txt.trim().length && txt !== '[object Promise]') return txt;
+                        }
+                    }
+                }
+            } catch (_) {}
+            return null;
+        }
+        async function pasteFromClipboard() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const txt = await navigator.clipboard.readText();
+                    if (txt && txt.length && txt !== '[object Promise]') {
+                        codeInputEl.value = txt;
+                        autoFormat();
+                        return;
+                    }
+                }
+            } catch (_) {}
+            try {
+                codeInputEl.focus();
+            } catch (_) {}
+            showManualPasteOverlay();
+        }
+        function autoFormat() {
+            try {
+                const src = codeInputEl.value || '';
+                const formatted = window.prettier.format(src, { parser: 'babel', plugins: [window.prettierPlugins.babel] });
+                codeInputEl.value = formatted;
+                updateHighlight(formatted);
+            } catch (_) {
+                updateHighlight(codeInputEl.value || '');
+            }
+        }
+        function showManualPasteOverlay() {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.background = 'rgba(0,0,0,0.35)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+            const box = document.createElement('div');
+            box.style.background = '#fff';
+            box.style.border = '1px solid #e5e7eb';
+            box.style.borderRadius = '10px';
+            box.style.width = '520px';
+            box.style.maxWidth = '92vw';
+            box.style.padding = '12px';
+            box.style.boxShadow = '0 10px 25px rgba(0,0,0,0.15)';
+            const title = document.createElement('div');
+            title.textContent = '粘贴代码';
+            title.style.fontSize = '14px';
+            title.style.fontWeight = '600';
+            title.style.marginBottom = '8px';
+            const ta = document.createElement('textarea');
+            ta.style.width = '100%';
+            ta.style.height = '120px';
+            ta.style.border = '1px solid #ddd';
+            ta.style.borderRadius = '8px';
+            ta.style.padding = '8px';
+            ta.style.fontSize = '13px';
+            ta.style.fontFamily = 'Consolas, monospace';
+            ta.placeholder = '在此处按 ⌘V / Ctrl+V 粘贴代码';
+            const actions = document.createElement('div');
+            actions.style.display = 'flex';
+            actions.style.justifyContent = 'flex-end';
+            actions.style.gap = '8px';
+            actions.style.marginTop = '10px';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-outline';
+            cancelBtn.textContent = '取消';
+            const okBtn = document.createElement('button');
+            okBtn.className = 'btn btn-primary';
+            okBtn.textContent = '确定';
+            actions.appendChild(cancelBtn);
+            actions.appendChild(okBtn);
+            box.appendChild(title);
+            box.appendChild(ta);
+            box.appendChild(actions);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            function close() {
+                overlay.remove();
+            }
+            cancelBtn.addEventListener('click', close);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) close();
+            });
+            okBtn.addEventListener('click', () => {
+                const val = ta.value || '';
+                if (val.length) {
+                    codeInputEl.value = val;
+                    autoFormat();
+                }
+                close();
+            });
+            ta.addEventListener('paste', (e) => {
+                setTimeout(() => {
+                    const val = ta.value || '';
+                    if (val.length) {
+                        codeInputEl.value = val;
+                        autoFormat();
+                        close();
+                    }
+                }, 0);
+            });
+            ta.focus();
+        }
+        if (toggleCodeGlobalBtn) {
+            toggleCodeGlobalBtn.addEventListener('click', () => {
+                const collapsed = codePanel.classList.toggle('collapsed');
+                toggleCodeGlobalBtn.innerHTML = `${toggleCodeGlobalBtn.innerHTML.replace(/(展开|折叠)代码区/, collapsed ? '展开代码区' : '折叠代码区')}`;
+                // 不再切换布局的collapsed，避免内容区受影响
+            });
+        }
+        (function() {
+            let leftWidth = Number(localStorage.getItem('arraytool_left_width'));
+            if (!Number.isFinite(leftWidth) || leftWidth < 280) leftWidth = 520;
+            if (layoutEl) layoutEl.style.setProperty('--left-width', leftWidth + 'px');
+            if (!dividerEl) return;
+            let dragging = false;
+            let startX = 0;
+            let startW = leftWidth;
+            function onMove(e) {
+                if (!dragging) return;
+                const rect = layoutEl.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const minLeft = 280;
+                const maxLeft = Math.max(minLeft, rect.width - 320);
+                const w = Math.max(minLeft, Math.min(maxLeft, x));
+                layoutEl.style.setProperty('--left-width', w + 'px');
+            }
+            function onUp() {
+                if (!dragging) return;
+                dragging = false;
+                const val = layoutEl.style.getPropertyValue('--left-width').replace('px','');
+                const num = Number(val);
+                if (Number.isFinite(num)) localStorage.setItem('arraytool_left_width', String(num));
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+            dividerEl.addEventListener('mousedown', (e) => {
+                if (layoutEl && layoutEl.classList.contains('collapsed')) return;
+                dragging = true;
+                startX = e.clientX;
+                startW = Number((layoutEl.style.getPropertyValue('--left-width') || '520px').replace('px',''));
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+        })();
+        codeInputEl.addEventListener('input', () => updateHighlight(codeInputEl.value));
+        function parseCodeToData(src) {
+            let payload = null;
+            try {
+                const trimmed = src.trim();
+                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                    payload = JSON.parse(trimmed);
+                }
+            } catch (_) {}
+            if (!payload) {
+                const arrays = [];
+                const names = [];
+                const re = /(?:const|let|var)\s+([A-Za-z_]\w*)\s*=\s*\[([\s\S]*?)\]/g;
+                let m;
+                while ((m = re.exec(src)) !== null) {
+                    const varName = m[1];
+                    const raw = m[2];
+                    const items = raw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                    arrays.push(items);
+                    names.push(varName);
+                }
+                if (arrays.length) {
+                    payload = { arrays, names };
+                }
+            }
+            return payload;
+        }
+        function applyParsedData(payload) {
+            if (!payload) return;
+            if (Array.isArray(payload.arrays) && payload.arrays.length) {
+                const arrs = payload.arrays;
+                // 确保足够的数组输入与容器
+                while (maxArrayId < arrs.length) { addNewArray(); }
+                // 设置数组名称（可选）
+                if (Array.isArray(payload.names)) {
+                    payload.names.forEach((nm, i) => { setArrayName(i + 1, nm); });
+                }
+                // 写入输入框
+                arrs.forEach((a, i) => {
+                    const id = i + 1;
+                    const input = document.querySelector(`.array-input[data-array-id="${id}"]`);
+                    if (input) {
+                        input.value = a.join(',');
+                    }
+                });
+                // 切换模式
+                const mode = arrs.length === 1 ? 'single' : (arrs.length === 2 ? 'double' : 'multi');
+                switchMode(mode);
+            }
+            if (Array.isArray(payload.pointers)) {
+                clearPointers();
+                payload.pointers.forEach(p => {
+                    if (p && p.name && Number.isFinite(Number(p.arrayId)) && Number.isFinite(Number(p.index))) {
+                        addPointerWith(p.name, Number(p.arrayId), Number(p.index), p.pos || p.position || 'bottom');
+                    }
+                });
+            }
+            if (payload.target !== undefined) {
+                const v = Number(payload.target);
+                const targetInput = document.getElementById('target-value');
+                if (targetInput) {
+                    targetInput.value = Number.isFinite(v) ? String(v) : '';
+                    updateTargetFromInput();
+                }
+            }
+            if (payload.relationMode) {
+                const relationModeSelect = document.getElementById('relation-mode');
+                if (relationModeSelect) {
+                    relationModeSelect.value = payload.relationMode;
+                    relationMode = relationModeSelect.value;
+                    updateRelationHighlight();
+                    updateTargetStats();
+                }
+            }
+            renderArray();
+        }
         // 全局变量
         let currentArrays = {
-            1: [] // 初始数组1
+            1: []
         };
         let currentMode = 'single'; // single/double/multi
         let pointers = []; // 存储指针信息 {id, name, element, arrayId, index, color, positionType: 'top'/'bottom'}
@@ -864,11 +1311,13 @@
         const stepList = document.getElementById('step-list');
         const snapshotContainer = document.getElementById('snapshot-container');
         const visualization = document.querySelector('.visualization');
+        const contentArea = document.getElementById('content-area');
         const zoomInBtn = document.getElementById('zoom-in');
         const zoomOutBtn = document.getElementById('zoom-out');
         const zoomResetBtn = document.getElementById('zoom-reset');
         const toggleTargetHighlight = document.getElementById('toggle-target-highlight');
         const toggleRelationHighlight = document.getElementById('toggle-relation-highlight');
+        let activeArrayId = 1;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
@@ -879,6 +1328,27 @@
             window.addEventListener('resize', repositionPointers);
             // 初始化默认指针名称
             updateDefaultPointerName();
+            if (contentArea) {
+                contentArea.tabIndex = 0;
+            }
+            let maxId = 1;
+            document.querySelectorAll('.array-container').forEach(c => {
+                const id = Number(c.dataset.arrayId);
+                if (Number.isFinite(id) && id > maxId) maxId = id;
+                if (id === 1) {
+                    c.classList.add('active');
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('active');
+                    c.classList.remove('selected');
+                }
+            });
+            document.querySelectorAll('.array-input-wrapper').forEach(w => {
+                const id = Number(w.dataset.arrayId);
+                if (id === 1) w.classList.add('active'); else w.classList.remove('active');
+            });
+            activeArrayId = 1;
+            maxArrayId = maxId;
         });
 
         // 绑定事件
@@ -991,6 +1461,34 @@
                     updateArrayValue(e);
                 }
             });
+            arraysContainer.addEventListener('click', (e) => {
+                const c = e.target.closest('.array-container');
+                if (c && c.dataset.arrayId) {
+                    activeArrayId = Number(c.dataset.arrayId);
+                    document.querySelectorAll('.array-container').forEach(el => el.classList.remove('selected'));
+                    c.classList.add('selected');
+                    document.querySelectorAll('.array-input-wrapper').forEach(w => {
+                        if (Number(w.dataset.arrayId) === activeArrayId) w.classList.add('active');
+                        else w.classList.remove('active');
+                    });
+                    renderArray();
+                }
+            });
+            if (contentArea) {
+                contentArea.addEventListener('keydown', (e) => {
+                    const key = (e.key || '').toLowerCase();
+                    if (e.ctrlKey && e.metaKey && key === 'a') {
+                        e.preventDefault();
+                        addNewArray();
+                        return;
+                    }
+                    if (e.ctrlKey && e.metaKey && key === 'd') {
+                        e.preventDefault();
+                        removeArrayById(activeArrayId);
+                        return;
+                    }
+                });
+            }
 
             // 键盘控制指针
         document.addEventListener('keydown', (e) => {
@@ -1028,10 +1526,10 @@
             // 全局快捷键
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') { toggleControlsArea(); return; }
-            if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); focusEditFocusedItem(); return; }
-            if (e.ctrlKey && e.key.toLowerCase() === 'p') { e.preventDefault(); addMemberAtFront(); return; }
-            if (e.ctrlKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addMemberAtEnd(); return; }
-            if (e.ctrlKey && e.key.toLowerCase() === 'd') { e.preventDefault(); deleteFocusedMember(); return; }
+            if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'e') { e.preventDefault(); focusEditFocusedItem(); return; }
+            if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'p') { e.preventDefault(); addArrayItem(); return; }
+            if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addArrayItem(); return; }
+            if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'd') { e.preventDefault(); removeArrayItem(); return; }
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPointer) { e.preventDefault(); removeSelectedPointer(); return; }
         });
         }
@@ -1062,34 +1560,8 @@
 
         // 切换数组模式
         function switchMode(mode) {
-            currentMode = mode;
-            
-            // 重置所有模式按钮状态
-            [singleModeBtn, doubleModeBtn, multiModeBtn].forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // 激活当前模式按钮
-            if (mode === 'single') {
-                singleModeBtn.classList.add('active');
-                // 只显示数组1
-                showOnlyArray(1);
-            } else if (mode === 'double') {
-                doubleModeBtn.classList.add('active');
-                // 显示数组1和2
-                showArrays([1, 2]);
-                // 确保数组2存在
-                if (!currentArrays[2]) {
-                    currentArrays[2] = [];
-                    createArrayInput(2);
-                    createArrayContainer(2);
-                }
-            } else {
-                multiModeBtn.classList.add('active');
-                // 显示所有数组
-                showAllArrays();
-            }
-            
+            currentMode = 'multi';
+            showAllArrays();
             renderArray();
         }
 
@@ -1150,13 +1622,16 @@
             // 创建数组容器
             createArrayContainer(maxArrayId);
             
-            // 如果是多数组模式，自动显示新数组
-            if (currentMode === 'multi') {
-                const inputWrapper = document.querySelector(`.array-input-wrapper[data-array-id="${maxArrayId}"]`);
-                const arrayContainer = document.querySelector(`.array-container[data-array-id="${maxArrayId}"]`);
-                if (inputWrapper) inputWrapper.classList.add('active');
-                if (arrayContainer) arrayContainer.classList.add('active');
+            // 显示并选中新数组
+            const inputWrapper = document.querySelector(`.array-input-wrapper[data-array-id="${maxArrayId}"]`);
+            const arrayContainer = document.querySelector(`.array-container[data-array-id="${maxArrayId}"]`);
+            if (inputWrapper) inputWrapper.classList.add('active');
+            if (arrayContainer) {
+                arrayContainer.classList.add('active');
+                document.querySelectorAll('.array-container').forEach(el => el.classList.remove('selected'));
+                arrayContainer.classList.add('selected');
             }
+            activeArrayId = maxArrayId;
             
             renderArray();
         }
@@ -1231,6 +1706,29 @@
             
             renderArray();
         }
+        function removeArrayById(arrayId) {
+            const keys = Object.keys(currentArrays).map(k => Number(k));
+            if (keys.length <= 1) {
+                alert('至少保留一个数组！');
+                return;
+            }
+            if (!currentArrays[arrayId]) {
+                return;
+            }
+            delete currentArrays[arrayId];
+            const inputWrapper = document.querySelector(`.array-input-wrapper[data-array-id="${arrayId}"]`);
+            if (inputWrapper) inputWrapper.remove();
+            const arrayContainer = document.querySelector(`.array-container[data-array-id="${arrayId}"]`);
+            if (arrayContainer) arrayContainer.remove();
+            const leftKeys = Object.keys(currentArrays).map(k => Number(k));
+            if (!leftKeys.includes(activeArrayId)) {
+                activeArrayId = leftKeys.length ? leftKeys[0] : 1;
+            }
+            if (currentMode === 'double' && leftKeys.length === 1) {
+                switchMode('single');
+            }
+            renderArray();
+        }
 
         // 渲染数组
         function renderArray() {
@@ -1261,6 +1759,11 @@
                 const arrayId = Number(container.dataset.arrayId);
                 if (currentArrays[arrayId]) {
                     renderSingleArray(arrayId, currentArrays[arrayId], container);
+                    if (arrayId === activeArrayId) {
+                        container.classList.add('selected');
+                    } else {
+                        container.classList.remove('selected');
+                    }
                 }
             });
 
@@ -1451,21 +1954,13 @@
         // 动态添加数组元素
         function addArrayItem() {
             // 确定目标数组
-            let targetArrayId = 1;
-            if (selectedPointer) {
-                targetArrayId = selectedPointer.arrayId;
-            } else if (currentMode === 'multi') {
-                // 多数组模式下默认添加到最后一个数组
-                targetArrayId = maxArrayId;
-            } else if (currentMode === 'double') {
-                targetArrayId = 2;
-            }
+            let targetArrayId = activeArrayId || 1;
             
             // 添加元素
             if (!currentArrays[targetArrayId]) {
                 currentArrays[targetArrayId] = [];
             }
-            currentArrays[targetArrayId].push('');
+            currentArrays[targetArrayId].push('0');
             
             // 更新输入框
             const input = document.querySelector(`.array-input[data-array-id="${targetArrayId}"]`);
@@ -1479,15 +1974,7 @@
         // 动态删除数组元素
         function removeArrayItem() {
             // 确定目标数组
-            let targetArrayId = 1;
-            if (selectedPointer) {
-                targetArrayId = selectedPointer.arrayId;
-            } else if (currentMode === 'multi') {
-                // 多数组模式下默认删除最后一个数组的元素
-                targetArrayId = maxArrayId;
-            } else if (currentMode === 'double') {
-                targetArrayId = 2;
-            }
+            let targetArrayId = activeArrayId || 1;
             
             // 检查是否有元素可删
             if (!currentArrays[targetArrayId] || currentArrays[targetArrayId].length <= 0) {
@@ -2185,6 +2672,7 @@
             // 清空目标与关系
             targetInput.value = '';
             updateTargetFromInput();
+            showCode('dart', templateDart.mergeSorted);
         }
 
         // 模板：移除元素
@@ -2200,6 +2688,7 @@
             // 两指针
             addPointerWith('i', 1, 0, 'top');
             addPointerWith('j', 1, 0, 'bottom');
+            showCode('dart', templateDart.removeElement);
         }
 
         // 模板：二分查找
@@ -2216,6 +2705,7 @@
             addPointerWith('l', 1, 0, 'top');
             addPointerWith('r', 1, Math.max(0, len - 1), 'top');
             addPointerWith('m', 1, Math.floor((len - 1) / 2), 'bottom');
+            showCode('dart', templateDart.binarySearch);
         }
         function applyTemplateTwoSum() {
             clearPointers();
@@ -2232,6 +2722,7 @@
             relationMode = 'two-sum';
             updateRelationHighlight();
             updateTargetStats();
+            showCode('dart', templateDart.twoSum);
         }
         function applyTemplateThreeSum() {
             clearPointers();
@@ -2248,6 +2739,7 @@
             relationMode = 'three-sum';
             updateRelationHighlight();
             updateTargetStats();
+            showCode('dart', templateDart.threeSum);
         }
         function applyTemplateSlidingWindow() {
             clearPointers();
@@ -2259,6 +2751,7 @@
             updateTargetFromInput();
             addPointerWith('l', 1, 0, 'top');
             addPointerWith('r', 1, 0, 'bottom');
+            showCode('dart', templateDart.slidingWindow);
         }
         function applyTemplateMoveZeros() {
             clearPointers();
@@ -2270,6 +2763,7 @@
             updateTargetFromInput();
             addPointerWith('i', 1, 0, 'top');
             addPointerWith('j', 1, 0, 'bottom');
+            showCode('dart', templateDart.moveZeros);
         }
         function applyTemplateRemoveDuplicates() {
             clearPointers();
@@ -2281,6 +2775,7 @@
             updateTargetFromInput();
             addPointerWith('i', 1, 0, 'top');
             addPointerWith('j', 1, 1, 'bottom');
+            showCode('dart', templateDart.removeDuplicates);
         }
         function applyTemplateReverseArray() {
             clearPointers();
@@ -2293,6 +2788,7 @@
             const len = currentArrays[1]?.length || 0;
             addPointerWith('l', 1, 0, 'top');
             addPointerWith('r', 1, Math.max(0, len - 1), 'bottom');
+            showCode('dart', templateDart.reverseArray);
         }
         function startRecording() {
             recordLog = [];

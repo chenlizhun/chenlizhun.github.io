@@ -6,11 +6,13 @@
   <title>小学数学知识游戏库</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .card { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(17,24,39,0.06); }
     .badge { font-size: 12px; padding: 2px 8px; border-radius: 9999px; background: #eef2ff; color: #3730a3; }
     .pill { font-size: 12px; padding: 2px 8px; border-radius: 9999px; background: #f3f4f6; color: #374151; }
     .unit-title { font-weight: 600; color: #111827; }
-    .game-btn { padding: 4px 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px; }
+    .game-btn { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; transition: all 120ms ease; cursor: pointer; background: #fff; }
+    .game-btn:hover { background: #f9fafb; border-color: #d1d5db; }
+    .game-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); border-color: #c7d2fe; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .animate-spin { animation: spin 1s linear infinite; }
   </style>
@@ -21,8 +23,8 @@
       <h1 class="text-xl font-bold text-gray-800">小学数学知识游戏库</h1>
       <a href="/" class="text-sm text-indigo-600 hover:underline">返回主页</a>
     </div>
-    <div id="controls" class="mb-3 flex flex-wrap items-center gap-2">
-      <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+    <div id="controls" class="sticky top-0 z-10 mb-3 flex flex-wrap items-center gap-2 bg-gray-50/90 backdrop-blur p-2 rounded border border-gray-200">
+      <div class="flex items-center gap-2 flex-1 min-w-[200px] hidden">
         <input type="text" id="searchInput" placeholder="搜索游戏或技能..." 
           class="text-sm border rounded px-3 py-1 bg-white flex-1 min-w-0" />
       </div>
@@ -34,6 +36,7 @@
       <select id="skillFilter" class="text-sm border rounded px-2 py-1 bg-white"></select>
       <button id="exportJson" class="text-sm px-2 py-1 border rounded bg-white hover:bg-gray-50">导出JSON</button>
       <button id="clearFilter" class="text-sm px-2 py-1 border rounded bg-white hover:bg-gray-50">清除</button>
+      <button id="toggleAllGrades" class="text-sm px-2 py-1 border rounded bg-white hover:bg-gray-50">折叠全部</button>
     </div>
     <div id="loadingIndicator" class="hidden mb-4">
       <div class="card p-4">
@@ -43,7 +46,7 @@
         </div>
       </div>
     </div>
-    <div id="summary" class="mb-4"></div>
+    <div id="summary" class="mb-4 hidden"></div>
     <div id="content" class="space-y-4"></div>
   </div>
 

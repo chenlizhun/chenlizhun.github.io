@@ -38,16 +38,71 @@ window.switchPanel = function(targetPanelName) {
  * @param {string} modeName - 模式名称
  */
 function showModeDetails(modeName) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/b866faf6-ffea-4b99-be8e-55511d176c32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ui.js:40',message:'showModeDetails called',data:{modeName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
     // 移除所有面板的active类
     const allPanels = document.querySelectorAll('.vertical-modes-container .panel');
     allPanels.forEach(panel => {
         panel.classList.remove('active');
+        // #region agent log
+        const containers = panel.querySelectorAll('.wheel-container, .slot-container, .race-container, .lottery-container, .card-container, .spin-container, .result');
+        const containerStates = Array.from(containers).map(c => ({
+            className: c.className,
+            display: window.getComputedStyle(c).display
+        }));
+        fetch('http://127.0.0.1:7242/ingest/b866faf6-ffea-4b99-be8e-55511d176c32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ui.js:48',message:'Panel deactivated',data:{panelId:panel.id,containerStates},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
     });
     
     // 添加active类到选中的面板
     const targetPanel = document.getElementById(modeName);
     if (targetPanel) {
         targetPanel.classList.add('active');
+        
+        // #region agent log
+        setTimeout(() => {
+            const gameContainers = {
+                wheel: targetPanel.querySelector('.wheel-container'),
+                slot: targetPanel.querySelector('.slot-container'),
+                lottery: targetPanel.querySelector('.lottery-container, .lottery-box'),
+                card: targetPanel.querySelector('.card-container'),
+                spin: targetPanel.querySelector('.spin-container'),
+                race: targetPanel.querySelector('.race-container'),
+                simple: targetPanel.querySelector('.simple-display'),
+                group: targetPanel.querySelector('.group-container')
+            };
+            const containerStyles = {};
+            Object.keys(gameContainers).forEach(key => {
+                const container = gameContainers[key];
+                if (container) {
+                    const computed = window.getComputedStyle(container);
+                    const parentComputed = window.getComputedStyle(container.parentElement);
+                    containerStyles[key] = {
+                        display: computed.display,
+                        visibility: computed.visibility,
+                        width: computed.width,
+                        height: computed.height,
+                        margin: computed.margin,
+                        padding: computed.padding,
+                        flexBasis: computed.flexBasis,
+                        order: computed.order,
+                        position: computed.position,
+                        className: container.className,
+                        id: container.id,
+                        parentDisplay: parentComputed.display,
+                        parentFlexDirection: parentComputed.flexDirection,
+                        parentFlexWrap: parentComputed.flexWrap
+                    };
+                }
+            });
+            const allActivePanels = document.querySelectorAll('.vertical-modes-container .panel.active');
+            const panelComputed = window.getComputedStyle(targetPanel);
+            fetch('http://127.0.0.1:7242/ingest/b866faf6-ffea-4b99-be8e-55511d176c32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ui.js:75',message:'Panel activated with computed styles',data:{modeName,panelId:targetPanel.id,hasActive:targetPanel.classList.contains('active'),containerStyles,panelClasses:Array.from(targetPanel.classList),activePanelCount:allActivePanels.length,panelDisplay:panelComputed.display,panelFlexDirection:panelComputed.flexDirection,panelFlexWrap:panelComputed.flexWrap},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+        }, 100);
+        // #endregion
+        
         if (modeName === 'simplePanel' && typeof window.updateSimple === 'function') {
             window.updateSimple();
         }
@@ -57,6 +112,10 @@ function showModeDetails(modeName) {
         if (modeName === 'racePanel' && typeof window.updateRace === 'function') {
             window.updateRace();
         }
+    } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b866faf6-ffea-4b99-be8e-55511d176c32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ui.js:95',message:'Target panel not found',data:{modeName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
     }
 }
 

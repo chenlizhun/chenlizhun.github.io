@@ -1,17 +1,24 @@
 /* 抽奖箱样式 */
+.vertical-modes-container .lottery-container,
 .lottery-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 16px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin: 16px auto 0 auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
+.vertical-modes-container .lottery-box,
 .lottery-box {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  max-width: 320px;
-  justify-content: center;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  max-width: 320px !important;
+  width: 100% !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
 }
 
 .lottery-ticket {

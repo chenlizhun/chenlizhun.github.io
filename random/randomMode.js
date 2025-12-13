@@ -7,12 +7,22 @@ const gameStartFunctions = {
     simple: window.startSimple,
     group: window.startGroup,
     race: window.startRace,
+    wheel: window.startWheel,
+    slot: window.startSlot,
+    lottery: window.startLottery,
+    card: window.startCard,
+    spin: window.startSpin,
 };
 
 const gamePanels = {
     simple: 'simplePanel',
     group: 'groupPanel',
     race: 'racePanel',
+    wheel: 'wheelPanel',
+    slot: 'slotPanel',
+    lottery: 'lotteryPanel',
+    card: 'cardPanel',
+    spin: 'spinPanel',
 };
 
 /**

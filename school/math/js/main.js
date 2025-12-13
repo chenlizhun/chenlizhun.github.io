@@ -101,10 +101,14 @@ async function init() {
       currentGrades = applyFiltersAndSearch(originalGrades, currentFilters);
       window.Renderer.renderAll(currentGrades, content);
       
-      const stats = window.Stats.collectStats(currentGrades);
-      stats.grades = window.Utils.getUniqueGrades(currentGrades);
-      summaryEl.innerHTML = '';
-      summaryEl.appendChild(window.Renderer.renderSummary(stats, currentFilters));
+      if (!summaryEl.classList.contains('hidden')) {
+        const stats = window.Stats.collectStats(currentGrades);
+        stats.grades = window.Utils.getUniqueGrades(currentGrades);
+        summaryEl.innerHTML = '';
+        summaryEl.appendChild(window.Renderer.renderSummary(stats, currentFilters));
+      } else {
+        summaryEl.innerHTML = '';
+      }
       
       // URL更新（不包含搜索关键词，避免URL过长）
       window.Utils.updateURL({
@@ -161,16 +165,41 @@ async function init() {
         
         if (!game) return;
         
-        // 移除已存在的详情
+        // 先处理当前按钮所在区域的切换：如果本区域已有详情，则移除并返回（切换关闭）
         const existingDetail = btn.parentElement.querySelector('.card.mt-3');
         if (existingDetail) {
+          if (typeof existingDetail._cleanup === 'function') {
+            try { existingDetail._cleanup(); } catch (_) {}
+          }
           existingDetail.remove();
           return;
         }
+        // 保证同一时间仅显示一个详情：移除页面上其它详情
+        const allDetails = content.querySelectorAll('.card.mt-3');
+        allDetails.forEach(d => {
+          if (typeof d._cleanup === 'function') {
+            try { d._cleanup(); } catch (_) {}
+          }
+          d.remove();
+        });
         
         // 显示详情
         const detail = window.Renderer.renderGameDetail(game, unit);
         btn.parentElement.appendChild(detail);
+        // 展示后滚动进视口
+        detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      // 关闭详情按钮
+      content.addEventListener('click', (e) => {
+        const closeBtn = e.target.closest('button[data-action="close-detail"]');
+        if (!closeBtn) return;
+        const card = closeBtn.closest('.card.mt-3');
+        if (card) {
+          if (typeof card._cleanup === 'function') {
+            try { card._cleanup(); } catch (_) {}
+          }
+          card.remove();
+        }
       });
     }
     
@@ -180,6 +209,36 @@ async function init() {
     typeEl.addEventListener('change', update);
     clearEl.addEventListener('click', clearFilters);
     exportEl.addEventListener('click', exportData);
+    // 折叠全部/展开全部
+    const toggleAllEl = document.getElementById('toggleAllGrades');
+    if (toggleAllEl) {
+      toggleAllEl.addEventListener('click', () => {
+        const gradeCards = content.querySelectorAll('.card.p-4');
+        if (!gradeCards.length) return;
+        let anyVisible = false;
+        gradeCards.forEach(card => {
+          const gc = card.querySelector('.grade-content');
+          if (gc && gc.style.display !== 'none') anyVisible = true;
+        });
+        const targetHidden = anyVisible; // 如果当前有可见，则目标是全部隐藏
+        gradeCards.forEach(card => {
+          const gc = card.querySelector('.grade-content');
+          const toggleBtn = card.querySelector('button[data-action="toggle-grade"]');
+          const arrow = toggleBtn ? toggleBtn.querySelector('.toggle-arrow') : null;
+          const text = toggleBtn ? toggleBtn.querySelector('.toggle-text') : null;
+          if (gc) gc.style.display = targetHidden ? 'none' : '';
+          if (toggleBtn) toggleBtn.setAttribute('aria-expanded', targetHidden ? 'false' : 'true');
+          if (arrow) arrow.textContent = targetHidden ? '▸' : '▾';
+          if (text) text.textContent = targetHidden ? '展开' : '折叠';
+          // 写入存储
+          const gradeLabel = card.dataset.grade;
+          if (typeof localStorage !== 'undefined' && gradeLabel) {
+            localStorage.setItem(`math_grade_collapsed_${gradeLabel}`, targetHidden ? '1' : '0');
+          }
+        });
+        toggleAllEl.textContent = targetHidden ? '展开全部' : '折叠全部';
+      });
+    }
     
     // 搜索功能（防抖处理）
     if (searchInput) {
@@ -232,4 +291,3 @@ function waitForModules() {
 
 // 开始等待模块加载
 waitForModules();
-

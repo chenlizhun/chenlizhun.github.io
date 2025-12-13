@@ -1414,6 +1414,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 初始化事件监听器
   initEventListeners();
+  
+  // 防止 iPad 双击缩放（防止快速连续触摸触发缩放）
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      // 阻止快速连续触摸（双击）的默认缩放行为
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+  
   nightOverlayEl = document.querySelector(".night-overlay");
   if (!nightOverlayEl) {
     nightOverlayEl = document.createElement("div");
