@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>用栈实现队列 · 算法推演（Dart）</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1527;
+      --text:#d7e1ff;
+      --muted:#9fb0e6;
+      --line:#1b2b4b;
+      --accent:#7aa2ff;
+      --good:#41d392;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --code:#0b1326;
+      --hl: rgba(122,162,255,.16);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(1200px 800px at 10% 10%, #13244a 0%, var(--bg) 55%, #060a14 100%);
+      color:var(--text);
+    }
+    .app{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+      display:grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+      min-height: 100vh;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .title h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.3px;
+    }
+    .title p{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .badge.good{ border-color: rgba(65,211,146,.35); background: rgba(65,211,146,.12); color: #bff6df; }
+    .badge.bad{ border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.12); color: #ffd0db; }
+    .badge.warn{ border-color: rgba(255,209,102,.35); background: rgba(255,209,102,.10); color: #ffe8b1; }
+
+    .controls{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .controls .left, .controls .right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .pill{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size: 13px;
+    }
+    input[type="number"], input[type="text"]{
+      width: 130px;
+      max-width: 60vw;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(5,10,20,.65);
+      color: var(--text);
+      outline:none;
+    }
+    input[type="range"]{ width: 160px; }
+    button{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor:pointer;
+      transition: .15s transform, .15s background;
+      font-weight: 700;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: translateY(1px); }
+    button.primary{
+      background: rgba(122,162,255,.18);
+      border-color: rgba(122,162,255,.35);
+    }
+    button.danger{
+      background: rgba(255,92,122,.14);
+      border-color: rgba(255,92,122,.3);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 12px;
+      min-height: 0;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 0;
+    }
+    .cardHeader{
+      padding: 12px 12px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .cardHeader .h{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .cardHeader .h b{ font-size: 14px; }
+    .cardHeader .h span{ font-size: 12px; color: var(--muted); }
+
+    /* ===== Code panel (rendered view, NOT raw source block) ===== */
+    .codeViewport{
+      background: var(--code);
+      overflow:auto;
+      height: calc(100vh - 245px);
+      min-height: 420px;
+      padding: 10px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+    @media (max-width: 980px){
+      .codeViewport{ height: 420px; }
+    }
+    .codeLine{
+      display:grid;
+      grid-template-columns: 54px 1fr;
+      padding: 0 12px;
+      align-items:stretch;
+    }
+    .codeLine.active{ background: var(--hl); }
+    .ln{
+      color: rgba(159,176,230,.65);
+      text-align:right;
+      padding-right: 12px;
+      border-right: 1px solid rgba(255,255,255,.06);
+      user-select:none;
+    }
+    .src{
+      padding-left: 12px;
+      white-space: pre;
+    }
+
+    /* simple syntax colors */
+    .kw{ color: #9dffb3; font-weight: 800; }
+    .type{ color: #7aa2ff; }
+    .fn{ color: #ffd166; font-weight: 800; }
+    .str{ color: #ff89b0; }
+    .cm{ color: #7aa0c8; font-style: italic; }
+    .num{ color: #b4f0ff; }
+    .op{ color: #cfd8ff; }
+
+    /* ===== Debug panel ===== */
+    .debug{
+      padding: 12px;
+      display:grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+    .meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 480px){
+      .meta{ grid-template-columns: 1fr; }
+    }
+    .box{
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .box h3{
+      margin:0 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .big{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .hint{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stacks{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 520px){
+      .stacks{ grid-template-columns: 1fr; }
+    }
+    .stackArea{
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      padding: 10px;
+      min-height: 110px;
+      overflow:auto;
+      border-radius: 12px;
+      background: rgba(5,10,20,.45);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .stackItem{
+      min-width: 46px;
+      height: 46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.06);
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.28);
+    }
+    .stackItem.top{
+      outline: 2px solid rgba(122,162,255,.55);
+      background: rgba(122,162,255,.15);
+    }
+    .log{
+      overflow:auto;
+      min-height: 0;
+      height: calc(100vh - 470px);
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(5,10,20,.45);
+      border: 1px solid rgba(255,255,255,.10);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cfe0ff;
+      white-space: pre-wrap;
+    }
+    @media (max-width: 980px){
+      .log{ height: 260px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <h1>用两个栈实现队列 · 算法推演动画（Dart）</h1>
+      <p>左侧是“渲染后的 Dart 代码视图”（行号 + 着色 + 执行行高亮），右侧是 inStack/outStack 可视化调试。</p>
+    </div>
+    <span id="resultBadge" class="badge warn">等待操作</span>
+  </header>
+
+  <div class="controls">
+    <div class="left">
+      <div class="pill">
+        <span>push(x)：</span>
+        <input id="pushVal" type="number" value="1" />
+        <button id="btnPush" class="primary">加入操作</button>
+      </div>
+
+      <button id="btnPop">加入 pop()</button>
+      <button id="btnPeek">加入 peek()</button>
+      <button id="btnEmpty">加入 empty()</button>
+
+      <button id="btnBuild" class="primary">重新推演</button>
+      <button id="btnStep">单步</button>
+      <button id="btnPlay" class="primary">播放</button>
+      <button id="btnPause">暂停</button>
+      <button id="btnReset" class="danger">重置</button>
+    </div>
+
+    <div class="right">
+      <div class="pill">
+        <span>速度</span>
+        <input id="speed" type="range" min="0" max="100" value="55"/>
+        <span id="speedLabel" style="width:72px; display:inline-block; text-align:right;">650ms</span>
+      </div>
+      <span class="badge">当前步：<b id="stepCounter">0 / 0</b></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Code Panel -->
+    <section class="card">
+      <div class="cardHeader">
+        <div class="h">
+          <b>Dart 代码（渲染视图）</b>
+          <span>注意：这里不是直接显示原始源码块，而是渲染后的逐行视图</span>
+        </div>
+        <span class="badge">类：MyQueue</span>
+      </div>
+      <div id="codeViewport" class="codeViewport"></div>
+    </section>
+
+    <!-- Debug Panel -->
+    <section class="card">
+      <div class="cardHeader">
+        <div class="h">
+          <b>调试区（两个栈 + 队列行为）</b>
+          <span class="hint">队头元素 = outStack 的栈顶（若 outStack 为空则先倒入）</span>
+        </div>
+        <span class="badge" id="queueFront">队头：—</span>
+      </div>
+
+      <div class="debug">
+        <div class="meta">
+          <div class="box">
+            <h3>当前操作</h3>
+            <div class="big" id="curOp">—</div>
+            <div class="hint" id="curExplain">—</div>
+          </div>
+          <div class="box">
+            <h3>返回值</h3>
+            <div class="big" id="curRet">—</div>
+            <div class="hint">push 无返回；pop/peek/empty 会显示</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>inStack / outStack</h3>
+          <div class="stacks">
+            <div>
+              <div class="hint">inStack（入栈区）</div>
+              <div id="inArea" class="stackArea"></div>
+            </div>
+            <div>
+              <div class="hint">outStack（出栈区）</div>
+              <div id="outArea" class="stackArea"></div>
+            </div>
+          </div>
+          <div class="hint" id="stackHint" style="margin-top:8px;">—</div>
+        </div>
+
+        <div class="box" style="min-height:0;">
+          <h3>日志（最近在下方）</h3>
+          <div id="log" class="log"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+/** =========================
+ * 1) “代码视图”数据（用于渲染，不用 <pre> 直接吐源码块）
+ * ========================= */
+const CODE_LINES = [
+  "class MyQueue {",
+  "  List inStack = [];",
+  "  List outStack = [];",
+  "",
+  "  void push(int x) {",
+  "    inStack.add(x);",
+  "  }",
+  "",
+  "  int pop() {",
+  "    if (outStack.isEmpty) {",
+  "      while (inStack.isNotEmpty) {",
+  "        outStack.add(inStack.removeLast());",
+  "      }",
+  "    }",
+  "    return outStack.removeLast();",
+  "  }",
+  "",
+  "  int peek() {",
+  "    if (outStack.isEmpty) {",
+  "      while (inStack.isNotEmpty) {",
+  "        outStack.add(inStack.removeLast());",
+  "      }",
+  "    }",
+  "    return outStack.last;",
+  "  }",
+  "",
+  "  bool empty() {",
+  "    return inStack.isEmpty && outStack.isEmpty;",
+  "  }",
+  "}"
+];
+
+/** ==============
+ * 2) 基础语法着色
+ * ============== */
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+// ✅ 单次扫描：只在“纯文本”上做高亮，永远不会去改动已生成的 <span> 标签
+function highlightDart(line){
+  const text = escapeHtml(line);
+
+  // 注意：这里刻意不把 < 和 > 当作“操作符”高亮（否则会把 <span> 标签拆掉）
+  const re = /\/\/.*$|'([^'\\]|\\.)*'|\b(class|for|var|in|if|else|return|true|false)\b|\b(Solution|String|List|Map|bool)\b|\b(isValid|containsValue|containsKey|split|add|removeLast|isEmpty)\b|\b(\d+)\b|(\|\||!=|==|<=|>=|=|\+|\-|\*|\/)|[()\[\]{}]/g;
+
+  return text.replace(re, (m, _s1, kw, type, fn, num, op) => {
+    if (m.startsWith('//')) return `<span class="cm">${m}</span>`;
+    if (m.startsWith("'"))  return `<span class="str">${m}</span>`;
+    if (kw)   return `<span class="kw">${m}</span>`;
+    if (type) return `<span class="type">${m}</span>`;
+    if (fn)   return `<span class="fn">${m}</span>`;
+    if (num)  return `<span class="num">${m}</span>`;
+    if (op)   return `<span class="op">${m}</span>`;
+    // brackets
+    return `<span class="br">${m}</span>`;
+  });
+}
+
+
+function renderCode(activeLine = -1){
+  const vp = document.getElementById('codeViewport');
+  vp.innerHTML = "";
+  CODE_LINES.forEach((line, idx) => {
+    const lineNo = idx + 1;
+    const row = document.createElement('div');
+    row.className = 'codeLine' + (lineNo === activeLine ? ' active' : '');
+    row.dataset.line = String(lineNo);
+
+    const ln = document.createElement('div');
+    ln.className = 'ln';
+    ln.textContent = lineNo;
+
+    const src = document.createElement('div');
+    src.className = 'src';
+    src.innerHTML = highlightDart(line || " ");
+
+    row.appendChild(ln);
+    row.appendChild(src);
+    vp.appendChild(row);
+  });
+}
+
+function scrollCodeToLine(line){
+  if (line < 1) return;
+  const vp = document.getElementById('codeViewport');
+  const el = vp.querySelector(`.codeLine[data-line="${line}"]`);
+  if (!el) return;
+  const top = el.offsetTop;
+  const vh = vp.clientHeight;
+  vp.scrollTo({ top: Math.max(0, top - vh * 0.35), behavior: 'smooth' });
+}
+
+/** =========================
+ * 3) 推演：把“操作序列”转成 steps
+ * ========================= */
+let ops = [
+  { type:'push', x: 1 },
+  { type:'push', x: 2 },
+  { type:'peek' },
+  { type:'pop' },
+  { type:'empty' }
+];
+
+function buildSteps(ops){
+  const inStack = [];
+  const outStack = [];
+  const steps = [];
+
+  const addStep = (o) => {
+    steps.push({
+      line: o.line ?? -1,
+      op: o.op ?? '',
+      explain: o.explain ?? '',
+      inStack: [...inStack],
+      outStack: [...outStack],
+      ret: o.ret ?? null,
+      done: o.done ?? false,
+      ok: o.ok ?? null
+    });
+  };
+
+  addStep({ line: 1, op: '开始', explain: '创建 MyQueue，inStack/outStack 为空' });
+
+  for (let i=0;i<ops.length;i++){
+    const op = ops[i];
+
+    if (op.type === 'push'){
+      addStep({ line: 5, op: `push(${op.x})`, explain: '进入 push(x)' });
+      addStep({ line: 6, op: `push(${op.x})`, explain: `inStack.add(${op.x})` });
+      inStack.push(op.x);
+      addStep({ line: 6, op: `push(${op.x})`, explain: `inStack = [${inStack.join(', ')}]` });
+      continue;
+    }
+
+    if (op.type === 'pop'){
+      addStep({ line: 9, op: 'pop()', explain: '进入 pop()' });
+
+      if (outStack.length === 0){
+        addStep({ line: 10, op: 'pop()', explain: 'outStack.isEmpty 为 true，需要把 inStack 倒入 outStack' });
+
+        while (inStack.length > 0){
+          addStep({ line: 11, op: 'pop()', explain: 'while (inStack.isNotEmpty) -> true' });
+          const moved = inStack[inStack.length-1];
+          addStep({ line: 12, op: 'pop()', explain: `outStack.add(inStack.removeLast())，移动元素 ${moved}` });
+          outStack.push(inStack.pop());
+          addStep({ line: 12, op: 'pop()', explain: `inStack=[${inStack.join(', ')}], outStack=[${outStack.join(', ')}]` });
+        }
+        addStep({ line: 11, op: 'pop()', explain: 'while (inStack.isNotEmpty) -> false（倒入完成）' });
+      } else {
+        addStep({ line: 10, op: 'pop()', explain: 'outStack.isEmpty 为 false，不需要倒入' });
+      }
+
+      // pop from outStack
+      const ret = outStack.length > 0 ? outStack[outStack.length-1] : undefined;
+      if (ret === undefined){
+        addStep({ line: 15, op: 'pop()', explain: '⚠️ outStack 仍为空：此实现会在 removeLast 处报错（此处仅提示）', ok:false, done:true, ret: 'Error' });
+        return steps;
+      }
+      addStep({ line: 15, op: 'pop()', explain: `return outStack.removeLast() -> 返回 ${ret}` , ret });
+      outStack.pop();
+      addStep({ line: 15, op: 'pop()', explain: `弹出后 outStack=[${outStack.join(', ')}]`, ret });
+      continue;
+    }
+
+    if (op.type === 'peek'){
+      addStep({ line: 18, op: 'peek()', explain: '进入 peek()' });
+
+      if (outStack.length === 0){
+        addStep({ line: 19, op: 'peek()', explain: 'outStack.isEmpty 为 true，需要把 inStack 倒入 outStack' });
+
+        while (inStack.length > 0){
+          addStep({ line: 20, op: 'peek()', explain: 'while (inStack.isNotEmpty) -> true' });
+          const moved = inStack[inStack.length-1];
+          addStep({ line: 21, op: 'peek()', explain: `outStack.add(inStack.removeLast())，移动元素 ${moved}` });
+          outStack.push(inStack.pop());
+          addStep({ line: 21, op: 'peek()', explain: `inStack=[${inStack.join(', ')}], outStack=[${outStack.join(', ')}]` });
+        }
+        addStep({ line: 20, op: 'peek()', explain: 'while (inStack.isNotEmpty) -> false（倒入完成）' });
+      } else {
+        addStep({ line: 19, op: 'peek()', explain: 'outStack.isEmpty 为 false，不需要倒入' });
+      }
+
+      const ret = outStack.length > 0 ? outStack[outStack.length-1] : undefined;
+      if (ret === undefined){
+        addStep({ line: 24, op: 'peek()', explain: '⚠️ outStack 为空：此实现会在 last 处报错（此处仅提示）', ok:false, done:true, ret: 'Error' });
+        return steps;
+      }
+      addStep({ line: 24, op: 'peek()', explain: `return outStack.last -> ${ret}`, ret });
+      continue;
+    }
+
+    if (op.type === 'empty'){
+      addStep({ line: 27, op: 'empty()', explain: '进入 empty()' });
+      const ret = (inStack.length === 0 && outStack.length === 0);
+      addStep({ line: 28, op: 'empty()', explain: `return inStack.isEmpty && outStack.isEmpty -> ${ret}`, ret });
+      continue;
+    }
+  }
+
+  addStep({ line: 1, op: '结束', explain: '操作序列推演完成', done: true });
+  return steps;
+}
+
+/** =========================
+ * 4) UI & 播放器
+ * ========================= */
+let steps = [];
+let ptr = 0;
+let timer = null;
+let delayMs = 650;
+
+function setBadge(type, text){
+  const badge = document.getElementById('resultBadge');
+  badge.className = 'badge ' + type;
+  badge.textContent = text;
+}
+
+function renderStack(areaId, arr){
+  const area = document.getElementById(areaId);
+  area.innerHTML = "";
+  if (!arr || arr.length === 0) return;
+
+  // 左->右：底->顶（最右是 top）
+  arr.forEach((v, idx) => {
+    const d = document.createElement('div');
+    d.className = 'stackItem' + (idx === arr.length - 1 ? ' top' : '');
+    d.textContent = String(v);
+    area.appendChild(d);
+  });
+}
+
+function appendLog(line){
+  const log = document.getElementById('log');
+  log.textContent += line + "\n";
+  log.scrollTop = log.scrollHeight;
+}
+function clearLog(){
+  document.getElementById('log').textContent = "";
+}
+function updateStepCounter(){
+  document.getElementById('stepCounter').textContent = `${Math.min(ptr+1, steps.length)} / ${steps.length}`;
+}
+
+function computeFront(st){
+  // 队头 = outStack.top；如果 outStack 空，则队头是 inStack 的最早入队元素（inStack[0]）但实现里 peek 会先倒入
+  if (st.outStack.length > 0) return st.outStack[st.outStack.length-1];
+  if (st.inStack.length > 0) return st.inStack[0];
+  return null;
+}
+
+function renderAt(i){
+  if (!steps.length) return;
+  const st = steps[Math.max(0, Math.min(i, steps.length-1))];
+
+  renderCode(st.line);
+  scrollCodeToLine(st.line);
+
+  document.getElementById('curOp').textContent = st.op || '—';
+  document.getElementById('curExplain').textContent = st.explain || '—';
+  document.getElementById('curRet').textContent = (st.ret === null || st.ret === undefined) ? '—' : String(st.ret);
+
+  renderStack('inArea', st.inStack);
+  renderStack('outArea', st.outStack);
+
+  const front = computeFront(st);
+  document.getElementById('queueFront').textContent = '队头：' + (front === null ? '—' : front);
+
+  const hint = `inStack=${st.inStack.length} 个，outStack=${st.outStack.length} 个`;
+  document.getElementById('stackHint').textContent = hint;
+
+  if (st.done){
+    setBadge('good', '推演完成');
+  } else if (st.ok === false){
+    setBadge('bad', '注意：可能触发运行时错误');
+  } else {
+    setBadge('warn', '推演中…');
+  }
+
+  updateStepCounter();
+}
+
+function stepOnce(){
+  if (!steps.length) return;
+  if (ptr >= steps.length) return;
+
+  const st = steps[ptr];
+  renderAt(ptr);
+
+  const head = `[${String(ptr+1).padStart(2,'0')}/${steps.length}]`;
+  const retPart = (st.ret === null || st.ret === undefined) ? '' : ` | ret=${st.ret}`;
+  appendLog(`${head} ${st.op} :: ${st.explain}${retPart}`);
+
+  ptr++;
+  if (ptr >= steps.length) stopPlay();
+}
+
+function play(){
+  if (timer) return;
+  timer = setInterval(() => {
+    if (ptr >= steps.length){
+      stopPlay();
+      return;
+    }
+    stepOnce();
+  }, delayMs);
+}
+function stopPlay(){
+  if (timer){ clearInterval(timer); timer = null; }
+}
+function reset(){
+  stopPlay();
+  ptr = 0;
+  clearLog();
+  if (steps.length){
+    renderAt(0);
+    setBadge('warn','等待操作');
+  }
+}
+function rebuild(){
+  stopPlay();
+  steps = buildSteps(ops);
+  ptr = 0;
+  clearLog();
+  renderAt(0);
+  setBadge('warn','等待操作');
+}
+
+/** =========================
+ * 5) 操作序列编辑
+ * ========================= */
+function addOp(op){
+  ops.push(op);
+  appendLog(`+ 已加入操作：${op.type}${op.type==='push' ? '('+op.x+')' : '()'}`);
+  setBadge('warn','已加入操作，点“重新推演”开始');
+}
+
+document.getElementById('btnPush').addEventListener('click', () => {
+  const x = Number(document.getElementById('pushVal').value);
+  if (Number.isNaN(x)) return;
+  addOp({ type:'push', x });
+});
+document.getElementById('btnPop').addEventListener('click', () => addOp({ type:'pop' }));
+document.getElementById('btnPeek').addEventListener('click', () => addOp({ type:'peek' }));
+document.getElementById('btnEmpty').addEventListener('click', () => addOp({ type:'empty' }));
+
+document.getElementById('btnBuild').addEventListener('click', rebuild);
+document.getElementById('btnStep').addEventListener('click', stepOnce);
+document.getElementById('btnPlay').addEventListener('click', play);
+document.getElementById('btnPause').addEventListener('click', stopPlay);
+document.getElementById('btnReset').addEventListener('click', reset);
+
+document.getElementById('speed').addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  delayMs = Math.round(1200 - v * 10.8);
+  document.getElementById('speedLabel').textContent = `${delayMs}ms`;
+  if (timer){ stopPlay(); play(); }
+});
+
+/** =========================
+ * 6) 初始化
+ * ========================= */
+renderCode(-1);
+rebuild();
+</script>
+</body>
+</html>
