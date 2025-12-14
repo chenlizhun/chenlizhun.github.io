@@ -1490,7 +1490,7 @@
                 });
             }
 
-            // 键盘控制指针
+            // 键盘控制指针与无指针时的聚焦移动
         document.addEventListener('keydown', (e) => {
             const k = e.key && e.key.toLowerCase();
                 if (k && k.length === 1) {
@@ -1503,23 +1503,41 @@
                         return;
                     }
                 }
-                if (!selectedPointer) return;
-                if ([37, 38, 39, 40].includes(e.keyCode)) {
-                    e.preventDefault();
+                // 无指针时，使用左右方向键在当前数组中移动聚焦成员
+                if (!selectedPointer && pointers.length === 0) {
+                    if (e.keyCode === 37 || e.keyCode === 39) {
+                        e.preventDefault();
+                        const aid = (focusedItem && focusedItem.arrayId) ? focusedItem.arrayId : (activeArrayId || 1);
+                        const arr = currentArrays[aid] || [];
+                        if (!arr.length) return;
+                        let idx = (focusedItem && typeof focusedItem.index === 'number') ? focusedItem.index : 0;
+                        if (e.keyCode === 37) idx = Math.max(0, idx - 1);
+                        if (e.keyCode === 39) idx = Math.min(arr.length - 1, idx + 1);
+                        const itemEl = document.querySelector(`.array-container[data-array-id="${aid}"] .array-item[data-index="${idx}"]`);
+                        if (itemEl) setFocusedItem(aid, idx, itemEl);
+                        return;
+                    }
+                    // 无指针时，不处理上下方向键
                 }
-                switch(e.keyCode) {
-                    case 37:
-                        movePointer(selectedPointer, 'left');
-                        break;
-                    case 39:
-                        movePointer(selectedPointer, 'right');
-                        break;
-                    case 38:
-                        movePointer(selectedPointer, 'up');
-                        break;
-                    case 40:
-                        movePointer(selectedPointer, 'down');
-                        break;
+                // 有选中指针时，方向键移动指针
+                if (selectedPointer) {
+                    if ([37, 38, 39, 40].includes(e.keyCode)) {
+                        e.preventDefault();
+                    }
+                    switch(e.keyCode) {
+                        case 37:
+                            movePointer(selectedPointer, 'left');
+                            break;
+                        case 39:
+                            movePointer(selectedPointer, 'right');
+                            break;
+                        case 38:
+                            movePointer(selectedPointer, 'up');
+                            break;
+                        case 40:
+                            movePointer(selectedPointer, 'down');
+                            break;
+                    }
                 }
             });
 
