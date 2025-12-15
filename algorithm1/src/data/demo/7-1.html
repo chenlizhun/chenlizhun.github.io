@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>有效字母异位词 · 算法推演（Dart思路）</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1527;
+      --text:#d7e1ff;
+      --muted:#9fb0e6;
+      --line:#1b2b4b;
+      --accent:#7aa2ff;
+      --good:#41d392;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --code:#0b1326;
+      --hl:#142a52;
+      --hl2:#1f3b73;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #172a57 0%, rgba(23,42,87,0) 55%),
+                  radial-gradient(900px 500px at 100% 20%, #2a1c57 0%, rgba(42,28,87,0) 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 14px 40px;
+    }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    h1{
+      margin:0;
+      font-size: 20px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color:var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 12px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card h2{
+      margin:0;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing:.3px;
+    }
+    .card-head{
+      padding: 12px 12px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
+    }
+    .card-body{ padding: 12px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > *{ flex: 0 0 auto; }
+
+    .inp{
+      display:flex; flex-direction:column; gap:6px;
+      min-width: 240px;
+    }
+    label{
+      font-size:12px;
+      color: var(--muted);
+    }
+    input[type="text"]{
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      outline:none;
+      color: var(--text);
+      font-size: 14px;
+    }
+    input[type="text"]:focus{
+      border-color: rgba(122,162,255,.55);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.15);
+    }
+
+    .btns{ display:flex; gap:8px; flex-wrap:wrap; }
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size: 13px;
+    }
+    button:hover{ border-color: rgba(255,255,255,.22); }
+    button.primary{
+      background: linear-gradient(180deg, rgba(122,162,255,.35), rgba(122,162,255,.14));
+      border-color: rgba(122,162,255,.55);
+    }
+    button.danger{
+      background: linear-gradient(180deg, rgba(255,92,122,.30), rgba(255,92,122,.12));
+      border-color: rgba(255,92,122,.55);
+    }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    .slider{
+      display:flex; align-items:center; gap:10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+    }
+    .slider span{ font-size:12px; color: var(--muted); }
+    input[type="range"]{ width: 160px; }
+
+    .pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+    }
+    .pill.good{ color: var(--good); border-color: rgba(65,211,146,.35); background: rgba(65,211,146,.10); }
+    .pill.bad{ color: var(--bad); border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.10); }
+    .pill.warn{ color: var(--warn); border-color: rgba(255,209,102,.35); background: rgba(255,209,102,.10); }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .bigline{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+
+    .stringBox{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .stringBox .cap{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .stringBox .cap b{ font-size: 13px; color: var(--muted); font-weight: 600; }
+    .chars{
+      display:flex; flex-wrap:wrap; gap:6px;
+    }
+    .ch{
+      min-width: 28px;
+      height: 28px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      font-size: 14px;
+    }
+    .ch.cur{ border-color: rgba(122,162,255,.60); background: rgba(122,162,255,.16); }
+    .ch.done{ opacity:.55; }
+    .idx{
+      font-size:12px; color: var(--muted);
+    }
+
+    .log{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 14px;
+      padding: 10px 12px;
+      min-height: 124px;
+      max-height: 220px;
+      overflow:auto;
+    }
+    .log .item{
+      padding: 8px 8px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      margin-bottom: 8px;
+    }
+    .log .item:last-child{ margin-bottom:0; }
+    .log .k{ color: var(--muted); font-size: 12px; }
+    .log .v{ margin-top:4px; font-size: 13px; line-height:1.55; }
+
+    .mapGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 520px){
+      .mapGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .kv{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 14px;
+      padding: 10px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height: 44px;
+    }
+    .kv .key{
+      font-weight: 700;
+      letter-spacing:.4px;
+      padding: 4px 9px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+    .kv .val{
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .kv.cur{
+      border-color: rgba(122,162,255,.60);
+      background: rgba(122,162,255,.10);
+    }
+    .kv.neg .val{ color: var(--bad); }
+    .kv.zero .val{ opacity:.6; }
+    .kv.pos .val{ color: var(--good); }
+
+    .code{
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.18));
+      border-radius: 14px;
+      padding: 12px;
+      overflow:auto;
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+    .codeLine{
+      display:grid;
+      grid-template-columns: 54px 1fr;
+      padding: 2px 8px;
+      border-radius: 10px;
+      align-items:stretch;
+    }
+    .codeLine.hl{ background: rgba(122,162,255,.14); outline: 1px solid rgba(122,162,255,.18); }
+    .ln{
+      color: rgba(159,176,230,.65);
+      text-align:right;
+      padding-right: 12px;
+      border-right: 1px solid rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .src{
+      padding-left: 12px;
+      white-space: pre;
+    }
+    .kw{ color: #9dffb3; font-weight: 700; }
+    .type{ color: #7aa2ff; }
+    .fn{ color: #ffd166; font-weight: 700; }
+    .str{ color: #ff89b0; }
+    .cm{ color: #7aa0c8; font-style: italic; }
+    .num{ color: #b4f0ff; }
+    .op{ color: #cfd8ff; }
+    .hint{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+    .footerNote{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      opacity:.9;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>字母异位词（Anagram）· 算法推演</h1>
+      <div class="sub">按你的 Dart 思路：先统计 s 的字符次数 count；再遍历 t，逐个扣减并检查 containsKey / 变负数。</div>
+    </div>
+    <div class="pill mono" id="statusPill">READY</div>
+  </header>
+
+  <div class="grid">
+    <!-- 左：控制 + 可视化 -->
+    <section class="card">
+      <div class="card-head">
+        <h2>输入与控制</h2>
+        <div class="row">
+          <span class="pill mono" id="stepPill">step 0/0</span>
+          <span class="pill mono" id="phasePill">phase: -</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row" style="margin-bottom:10px;">
+          <div class="inp">
+            <label>s（被统计）</label>
+            <input id="inS" type="text" value="anagram" />
+          </div>
+          <div class="inp">
+            <label>t（用来扣减）</label>
+            <input id="inT" type="text" value="nagaram" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:10px;">
+          <div class="btns">
+            <button class="primary" id="btnBuild">生成推演</button>
+            <button id="btnStep" disabled>单步 ▶</button>
+            <button id="btnPlay" disabled>自动播放 ⏵</button>
+            <button class="danger" id="btnStop" disabled>停止 ⏹</button>
+            <button id="btnReset" disabled>重置 ↺</button>
+          </div>
+
+          <div class="slider">
+            <span>速度</span>
+            <input id="speed" type="range" min="120" max="1200" value="520" />
+            <span class="mono" id="speedVal">520ms</span>
+          </div>
+        </div>
+
+        <div class="bigline">
+          <div class="stringBox">
+            <div class="cap">
+              <b>s：遍历统计</b>
+              <span class="idx mono" id="sIdx">i = -</span>
+            </div>
+            <div class="chars" id="sChars"></div>
+          </div>
+
+          <div class="stringBox">
+            <div class="cap">
+              <b>t：遍历扣减</b>
+              <span class="idx mono" id="tIdx">j = -</span>
+            </div>
+            <div class="chars" id="tChars"></div>
+          </div>
+
+          <div class="stringBox">
+            <div class="cap">
+              <b>count Map（字符 → 次数）</b>
+              <span class="idx mono" id="curChar">char = -</span>
+            </div>
+            <div class="mapGrid" id="mapGrid"></div>
+            <div class="hint">提示：扣减阶段若遇到「不存在 key」或「扣减后 &lt; 0」，会立刻判定 false。</div>
+          </div>
+
+          <div class="log" id="log"></div>
+        </div>
+
+        <div class="footerNote mono">可试：s="rat", t="car"；或 s="aacc", t="ccac"。</div>
+      </div>
+    </section>
+
+    <!-- 右：Dart代码 + 高亮行 -->
+    <aside class="card">
+      <div class="card-head">
+        <h2>Dart 伪代码（对齐你的实现）</h2>
+        <span class="pill mono" id="linePill">line -</span>
+      </div>
+      <div class="card-body">
+        <div class="code mono" id="codeBox"></div>
+        <div class="hint">
+          行高亮会跟随推演步骤：<br/>
+          1）长度不等直接 false；2）统计 s；3）遍历 t 检查 key、扣减、判负；4）结束 true。
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ====== UI refs ======
+  const inS = document.getElementById('inS');
+  const inT = document.getElementById('inT');
+  const btnBuild = document.getElementById('btnBuild');
+  const btnStep  = document.getElementById('btnStep');
+  const btnPlay  = document.getElementById('btnPlay');
+  const btnStop  = document.getElementById('btnStop');
+  const btnReset = document.getElementById('btnReset');
+  const speed = document.getElementById('speed');
+  const speedVal = document.getElementById('speedVal');
+
+  const sChars = document.getElementById('sChars');
+  const tChars = document.getElementById('tChars');
+  const mapGrid = document.getElementById('mapGrid');
+  const logEl = document.getElementById('log');
+
+  const statusPill = document.getElementById('statusPill');
+  const stepPill = document.getElementById('stepPill');
+  const phasePill = document.getElementById('phasePill');
+  const linePill = document.getElementById('linePill');
+
+  const sIdx = document.getElementById('sIdx');
+  const tIdx = document.getElementById('tIdx');
+  const curChar = document.getElementById('curChar');
+
+  const codeBox = document.getElementById('codeBox');
+
+  // ====== Code lines (for highlighting) ======
+  const CODE = [
+    'class Solution {',
+    '  bool isAnagram(String s, String t) {',
+    '    if (s.length != t.length) return false;',
+    '',
+    '    Map count = {};',
+    '    for (var c in s.split(\'\')) {',
+    '      count[c] = (count[c] ?? 0) + 1;',
+    '    }',
+    '',
+    '    for (var c in t.split(\'\')) {',
+    '      if (!count.containsKey(c)) return false;',
+    '      count[c] = count[c]! - 1;',
+    '      if (count[c]! < 0) return false;',
+    '    }',
+    '',
+    '    return true;',
+    '  }',
+    '}'
+  ];
+/** ==============
+ * 2) 基础语法着色
+ * ============== */
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+// ✅ 单次扫描：只在“纯文本”上做高亮，永远不会去改动已生成的 <span> 标签
+function highlightDart(line){
+  const text = escapeHtml(line);
+
+  // 注意：这里刻意不把 < 和 > 当作“操作符”高亮（否则会把 <span> 标签拆掉）
+  const re = /\/\/.*$|'([^'\\]|\\.)*'|\b(class|for|var|in|if|else|return|true|false)\b|\b(Solution|String|List|Map|bool)\b|\b(isValid|containsValue|containsKey|split|add|removeLast|isEmpty)\b|\b(\d+)\b|(\|\||!=|==|<=|>=|=|\+|\-|\*|\/)|[()\[\]{}]/g;
+
+  return text.replace(re, (m, _s1, kw, type, fn, num, op) => {
+    if (m.startsWith('//')) return `<span class="cm">${m}</span>`;
+    if (m.startsWith("'"))  return `<span class="str">${m}</span>`;
+    if (kw)   return `<span class="kw">${m}</span>`;
+    if (type) return `<span class="type">${m}</span>`;
+    if (fn)   return `<span class="fn">${m}</span>`;
+    if (num)  return `<span class="num">${m}</span>`;
+    if (op)   return `<span class="op">${m}</span>`;
+    // brackets
+    return `<span class="br">${m}</span>`;
+  });
+}
+
+  function renderCode(activeLineIdx) {
+    codeBox.innerHTML = '';
+    CODE.forEach((line, i) => {
+      const row = document.createElement('div');
+      row.className = 'codeLine' + (i === activeLineIdx ? ' hl' : '');
+      const ln = document.createElement('div');
+      ln.className = 'ln';
+      ln.textContent = i + 1;
+      const src = document.createElement('div');
+      src.className = 'src';
+      src.innerHTML = highlightDart(line === '' ? ' ' : line);
+      row.appendChild(ln);
+      row.appendChild(src);
+      codeBox.appendChild(row);
+    });
+    linePill.textContent = 'line ' + (activeLineIdx == null ? '-' : (activeLineIdx + 1));
+  }
+
+  // ====== Steps model ======
+  // each step: { phase, line, action, i, j, ch, kind, msg, apply(state) }
+  let steps = [];
+  let idxStep = 0;
+  let playing = false;
+  let timer = null;
+
+  // runtime state
+  const state = {
+    s: '',
+    t: '',
+    i: -1,
+    j: -1,
+    ch: null,
+    count: new Map(),
+    failed: false,
+    result: null, // true/false/null
+    failReason: ''
+  };
+
+  function resetRuntimeUI() {
+    sChars.innerHTML = '';
+    tChars.innerHTML = '';
+    mapGrid.innerHTML = '';
+    logEl.innerHTML = '';
+    sIdx.textContent = 'i = -';
+    tIdx.textContent = 'j = -';
+    curChar.textContent = 'char = -';
+    phasePill.textContent = 'phase: -';
+    stepPill.textContent = 'step 0/0';
+    setStatus('READY', 'pill');
+    renderCode(null);
+  }
+
+  function setStatus(text, clsType) {
+    statusPill.className = 'pill mono';
+    if (clsType === 'good') statusPill.classList.add('good');
+    if (clsType === 'bad') statusPill.classList.add('bad');
+    if (clsType === 'warn') statusPill.classList.add('warn');
+    statusPill.textContent = text;
+  }
+
+  function log(kind, title, detail) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    const k = document.createElement('div');
+    k.className = 'k mono';
+    k.textContent = title;
+    const v = document.createElement('div');
+    v.className = 'v';
+    v.innerHTML = detail;
+    div.appendChild(k);
+    div.appendChild(v);
+    logEl.prepend(div);
+  }
+
+  function renderStringBoxes() {
+    sChars.innerHTML = '';
+    tChars.innerHTML = '';
+
+    [...state.s].forEach((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'ch mono';
+      el.textContent = c;
+      el.dataset.i = i;
+      sChars.appendChild(el);
+    });
+
+    [...state.t].forEach((c, j) => {
+      const el = document.createElement('div');
+      el.className = 'ch mono';
+      el.textContent = c;
+      el.dataset.j = j;
+      tChars.appendChild(el);
+    });
+  }
+
+  function highlightChars() {
+    // clear
+    [...sChars.children].forEach(el => el.classList.remove('cur'));
+    [...tChars.children].forEach(el => el.classList.remove('cur'));
+
+    // mark done based on phase
+    [...sChars.children].forEach(el => {
+      const i = Number(el.dataset.i);
+      el.classList.toggle('done', state.i >= 0 && i < state.i);
+    });
+    [...tChars.children].forEach(el => {
+      const j = Number(el.dataset.j);
+      el.classList.toggle('done', state.j >= 0 && j < state.j);
+    });
+
+    // current
+    if (state.i >= 0 && state.i < state.s.length) {
+      const el = sChars.querySelector(`.ch[data-i="${state.i}"]`);
+      if (el) el.classList.add('cur');
+    }
+    if (state.j >= 0 && state.j < state.t.length) {
+      const el = tChars.querySelector(`.ch[data-j="${state.j}"]`);
+      if (el) el.classList.add('cur');
+    }
+
+    sIdx.textContent = 'i = ' + (state.i >= 0 ? state.i : '-');
+    tIdx.textContent = 'j = ' + (state.j >= 0 ? state.j : '-');
+    curChar.textContent = 'char = ' + (state.ch ?? '-');
+  }
+
+  function renderMap(highlightKey=null) {
+    mapGrid.innerHTML = '';
+    // sort keys for stable view
+    const entries = [...state.count.entries()].sort((a,b)=> a[0].localeCompare(b[0]));
+    if (entries.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'pill mono';
+      empty.textContent = 'Map 为空';
+      mapGrid.appendChild(empty);
+      return;
+    }
+
+    entries.forEach(([k,v]) => {
+      const box = document.createElement('div');
+      box.className = 'kv mono';
+      if (k === highlightKey) box.classList.add('cur');
+      if (v < 0) box.classList.add('neg');
+      else if (v === 0) box.classList.add('zero');
+      else box.classList.add('pos');
+
+      const key = document.createElement('div');
+      key.className = 'key';
+      key.textContent = k;
+
+      const val = document.createElement('div');
+      val.className = 'val';
+      val.textContent = v;
+
+      box.appendChild(key);
+      box.appendChild(val);
+      mapGrid.appendChild(box);
+    });
+  }
+
+  // ====== Build steps ======
+  function buildSteps(s, t) {
+    const out = [];
+
+    // step 0: check length
+    out.push({
+      phase: 'check',
+      line: 2,
+      action: 'checkLength',
+      msg: `比较长度：s.length=${s.length}, t.length=${t.length}`,
+      apply() {
+        state.i = -1; state.j = -1; state.ch = null;
+        if (s.length !== t.length) {
+          state.failed = true;
+          state.result = false;
+          state.failReason = '长度不相等，直接 false';
+        }
+      }
+    });
+
+    // If length mismatch, we still keep a finalize step
+    out.push({
+      phase: 'final',
+      line: 2,
+      action: 'finalizeLengthMismatch',
+      msg: '若长度不等：return false',
+      apply() {
+        // nothing extra
+      }
+    });
+
+    // init map
+    out.push({
+      phase: 'init',
+      line: 4,
+      action: 'initMap',
+      msg: '初始化 Map count = {}',
+      apply() {
+        state.count = new Map();
+      }
+    });
+
+    // build count from s
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      out.push({
+        phase: 'build',
+        line: 5,
+        action: 'loopS',
+        i, ch,
+        msg: `遍历 s：读取 c='${escapeHtml(ch)}'`,
+        apply() {
+          state.i = i; state.j = -1; state.ch = ch;
+        }
+      });
+      out.push({
+        phase: 'build',
+        line: 6,
+        action: 'inc',
+        i, ch,
+        msg: `count['${escapeHtml(ch)}'] = (count['${escapeHtml(ch)}'] ?? 0) + 1`,
+        apply() {
+          const prev = state.count.has(ch) ? state.count.get(ch) : 0;
+          state.count.set(ch, prev + 1);
+        }
+      });
+    }
+
+    // consume t
+    for (let j = 0; j < t.length; j++) {
+      const ch = t[j];
+      out.push({
+        phase: 'consume',
+        line: 9,
+        action: 'loopT',
+        j, ch,
+        msg: `遍历 t：读取 c='${escapeHtml(ch)}'`,
+        apply() {
+          state.j = j; state.i = -1; state.ch = ch;
+        }
+      });
+
+      out.push({
+        phase: 'consume',
+        line: 10,
+        action: 'containsKey',
+        j, ch,
+        msg: `检查 count.containsKey('${escapeHtml(ch)}')`,
+        apply() {
+          if (!state.count.has(ch)) {
+            state.failed = true;
+            state.result = false;
+            state.failReason = `count 不包含 '${ch}'，直接 false`;
+          }
+        }
+      });
+
+      out.push({
+        phase: 'consume',
+        line: 11,
+        action: 'dec',
+        j, ch,
+        msg: `count['${escapeHtml(ch)}'] = count['${escapeHtml(ch)}'] - 1`,
+        apply() {
+          if (state.failed) return;
+          const prev = state.count.get(ch);
+          state.count.set(ch, prev - 1);
+        }
+      });
+
+      out.push({
+        phase: 'consume',
+        line: 12,
+        action: 'checkNeg',
+        j, ch,
+        msg: `若 count['${escapeHtml(ch)}'] < 0：return false`,
+        apply() {
+          if (state.failed) return;
+          const v = state.count.get(ch);
+          if (v < 0) {
+            state.failed = true;
+            state.result = false;
+            state.failReason = `扣减后 '${ch}' 计数变为 ${v}（< 0），直接 false`;
+          }
+        }
+      });
+
+      // early stop marker
+      out.push({
+        phase: 'consume',
+        line: 9,
+        action: 'earlyStopHint',
+        j, ch,
+        msg: `若已失败，后续步骤将不再改变结果`,
+        apply() { /* no-op */ }
+      });
+    }
+
+    // return true
+    out.push({
+      phase: 'final',
+      line: 15,
+      action: 'returnTrue',
+      msg: '全部检查通过：return true',
+      apply() {
+        if (!state.failed) state.result = true;
+      }
+    });
+
+    return out;
+  }
+
+  function escapeHtml(s){
+    return (s+'')
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","'");
+  }
+
+  // ====== Step runner ======
+  function updatePills() {
+    stepPill.textContent = `step ${Math.min(idxStep, steps.length)}/${steps.length}`;
+    const ph = steps[idxStep]?.phase ?? steps[steps.length-1]?.phase ?? '-';
+    phasePill.textContent = 'phase: ' + ph;
+  }
+
+  function updateStatusAfterStep() {
+    if (state.result === true) setStatus('TRUE ✅', 'good');
+    else if (state.result === false) setStatus('FALSE ❌', 'bad');
+    else setStatus('RUNNING…', 'warn');
+  }
+
+  function applyStep(step) {
+    // If length mismatch already decided, keep result false and avoid heavy steps
+    if (state.failed && state.result === false) {
+      // allow UI highlight to move, but do not mutate map
+      if (step.action === 'loopS' || step.action === 'loopT') {
+        // still show cursor movement
+        step.apply();
+      } else {
+        // no-op for mutation
+      }
+    } else {
+      step.apply();
+    }
+
+    renderCode(step.line ?? null);
+    highlightChars();
+    renderMap(step.ch ?? step.highlightKey ?? null);
+
+    const title = `[${step.phase}] ${step.action}`;
+    let detail = step.msg;
+
+    if (step.action === 'checkLength') {
+      if (state.failed) detail += `<br/><b style="color:var(--bad)">失败：</b>${escapeHtml(state.failReason)}`;
+      else detail += `<br/><b style="color:var(--good)">通过：</b>长度相等，继续`;
+    }
+
+    if (step.action === 'containsKey') {
+      if (state.failed) detail += `<br/><b style="color:var(--bad)">失败：</b>${escapeHtml(state.failReason)}`;
+      else detail += `<br/><b style="color:var(--good)">通过：</b>存在 key，继续扣减`;
+    }
+
+    if (step.action === 'checkNeg') {
+      if (state.failed) detail += `<br/><b style="color:var(--bad)">失败：</b>${escapeHtml(state.failReason)}`;
+      else detail += `<br/><b style="color:var(--good)">通过：</b>count 仍 ≥ 0`;
+    }
+
+    if (step.action === 'returnTrue') {
+      if (state.result === true) detail += `<br/><b style="color:var(--good)">结果：</b>true`;
+      else detail += `<br/><b style="color:var(--bad)">结果：</b>false（已在前面失败）`;
+    }
+
+    log('info', title, detail);
+    updatePills();
+    updateStatusAfterStep();
+
+    // enable/disable
+    btnStep.disabled = idxStep >= steps.length || state.result !== null;
+    btnPlay.disabled = idxStep >= steps.length || state.result !== null;
+  }
+
+  function stepOnce() {
+    if (idxStep >= steps.length) return;
+    if (state.result !== null) return;
+
+    const step = steps[idxStep];
+    idxStep++;
+    applyStep(step);
+
+    if (idxStep >= steps.length && state.result === null) {
+      // if not finalized, finalize as true
+      state.result = !state.failed;
+      updateStatusAfterStep();
+    }
+
+    if (state.result !== null) {
+      btnStop.disabled = true;
+      btnPlay.disabled = true;
+      btnStep.disabled = true;
+    }
+  }
+
+  function play() {
+    if (playing) return;
+    playing = true;
+    btnStop.disabled = false;
+    btnPlay.disabled = true;
+    btnStep.disabled = true;
+
+    const tick = () => {
+      if (!playing) return;
+      if (state.result !== null || idxStep >= steps.length) {
+        stop();
+        return;
+      }
+      stepOnce();
+      timer = setTimeout(tick, Number(speed.value));
+    };
+    tick();
+  }
+
+  function stop() {
+    playing = false;
+    if (timer) clearTimeout(timer);
+    timer = null;
+
+    btnStop.disabled = true;
+    btnPlay.disabled = (state.result !== null || idxStep >= steps.length);
+    btnStep.disabled = (state.result !== null || idxStep >= steps.length);
+  }
+
+  function resetAll() {
+    stop();
+    idxStep = 0;
+    state.i = -1; state.j = -1; state.ch = null;
+    state.count = new Map();
+    state.failed = false;
+    state.result = null;
+    state.failReason = '';
+    renderStringBoxes();
+    renderMap(null);
+    highlightChars();
+    logEl.innerHTML = '';
+    setStatus('READY', 'pill');
+    renderCode(null);
+    updatePills();
+
+    btnStep.disabled = steps.length === 0;
+    btnPlay.disabled = steps.length === 0;
+    btnStop.disabled = true;
+    btnReset.disabled = steps.length === 0;
+
+    log('info', '[ready] init', '点击「单步」或「自动播放」开始推演。');
+  }
+
+  function build() {
+    stop();
+    const s = inS.value ?? '';
+    const t = inT.value ?? '';
+
+    // init state
+    state.s = s;
+    state.t = t;
+    state.i = -1;
+    state.j = -1;
+    state.ch = null;
+    state.count = new Map();
+    state.failed = false;
+    state.result = null;
+    state.failReason = '';
+
+    steps = buildSteps(s, t);
+    idxStep = 0;
+
+    resetRuntimeUI();
+    renderStringBoxes();
+    renderMap(null);
+    highlightChars();
+    renderCode(null);
+
+    btnStep.disabled = false;
+    btnPlay.disabled = false;
+    btnStop.disabled = true;
+    btnReset.disabled = false;
+
+    updatePills();
+    setStatus('READY', 'pill');
+    log('info', '[build] steps', `已生成 <b class="mono">${steps.length}</b> 个步骤。先做长度检查，再统计 s，再扣减 t。`);
+  }
+
+  // ====== events ======
+  btnBuild.addEventListener('click', build);
+  btnStep.addEventListener('click', stepOnce);
+  btnPlay.addEventListener('click', play);
+  btnStop.addEventListener('click', stop);
+  btnReset.addEventListener('click', resetAll);
+
+  speed.addEventListener('input', () => {
+    speedVal.textContent = speed.value + 'ms';
+  });
+
+  // init
+  speedVal.textContent = speed.value + 'ms';
+  resetRuntimeUI();
+  renderCode(null);
+})();
+</script>
+</body>
+</html>
