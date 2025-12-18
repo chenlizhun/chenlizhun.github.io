@@ -447,83 +447,6 @@ body {
     margin-right: 0.25rem;
 }
 
-/* Unified small action buttons in problem header */
-.action-link {
-    display: inline-flex;
-    align-items: center;
-    background-color: var(--primary-color);
-    color: #ffffff;
-    padding: 0.1rem 0.35rem;
-    border-radius: 9999px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    line-height: 1.1;
-}
-
-.action-link:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-1px);
-}
-
-.action-link:link,
-.action-link:visited {
-    background-color: var(--primary-color);
-    color: #ffffff;
-}
-
-.action-link:active {
-    background-color: var(--primary-dark);
-    color: #ffffff;
-}
-
-.action-link:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
-}
-
-/* Ensure legacy classes render the same small blue pills */
-.leetcode-link,
-.demo-link,
-.video-link {
-    display: inline-flex;
-    align-items: center;
-    background-color: var(--primary-color);
-    color: #ffffff;
-    padding: 0.1rem 0.35rem;
-    border-radius: 9999px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    line-height: 1.1;
-}
-
-.leetcode-link:hover,
-.demo-link:hover,
-.video-link:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-1px);
-}
-
-.leetcode-link:link,
-.leetcode-link:visited,
-.demo-link:link,
-.demo-link:visited,
-.video-link:link,
-.video-link:visited {
-    background-color: var(--primary-color);
-    color: #ffffff;
-}
-
-.leetcode-link:active,
-.demo-link:active,
-.video-link:active {
-    background-color: var(--primary-dark);
-    color: #ffffff;
-}
-
 /* Code block styles */
 .code-container {
     background-color: #ffffff;
@@ -542,6 +465,27 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #e2e8f0;
+}
+
+/* Problem link click styles */
+.problem-link {
+    transition: all 0.2s ease;
+}
+.problem-link.visited {
+    background-color: #f3f4f6 !important;
+    color: #4b5563 !important;
+    border: 1px solid #e5e7eb;
+}
+.problem-link.visited:hover {
+    background-color: #e5e7eb !important;
+}
+.problem-link.frequent {
+    background-color: #fff7ed !important;
+    color: #c2410c !important;
+    border: 1px solid #fed7aa;
+}
+.problem-link.frequent:hover {
+    background-color: #ffedd5 !important;
 }
 
 .code-container .code-header .copy-btn {

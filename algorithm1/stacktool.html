@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算法推演工具 - 栈可视化 (Stack Tool)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Microsoft YaHei', monospace;
+        }
+
+        body {
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        h1 {
+            color: #0f3460;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* 配置区域 */
+        .config-section {
+            margin-bottom: 1.5rem;
+            padding: 1.2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+
+        .config-title {
+            font-weight: 700;
+            color: #0f3460;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .input-control {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: white;
+            transition: border 0.3s;
+            min-width: 120px;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 2px rgba(15, 52, 96, 0.1);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .btn-primary { background: #0f3460; color: white; }
+        .btn-primary:hover { background: #1a508b; box-shadow: 0 3px 10px rgba(15, 52, 96, 0.3); transform: translateY(-1px); }
+
+        .btn-success { background: #16c79a; color: white; }
+        .btn-success:hover { background: #12a178; box-shadow: 0 3px 10px rgba(22, 199, 154, 0.3); transform: translateY(-1px); }
+
+        .btn-danger { background: #e63946; color: white; }
+        .btn-danger:hover { background: #c72c41; box-shadow: 0 3px 10px rgba(230, 57, 70, 0.3); transform: translateY(-1px); }
+
+        .btn-outline { background: transparent; border: 1px solid #ddd; color: #0f3460; }
+        .btn-outline:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+
+        /* 栈可视化区域 */
+        .visualization {
+            margin: 1.5rem 0;
+            position: relative;
+            min-height: 450px;
+            padding: 20px;
+            width: 100%;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 12px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 40px;
+            overflow-x: auto;
+        }
+
+        .stack-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .stack-label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #0f3460;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 15px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .stack-wrapper.active .stack-label {
+            background: #e0e7ff;
+            color: #1a508b;
+            border-color: #1a508b;
+        }
+
+        .stack-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            width: 160px;
+            min-height: 300px;
+            border-left: 4px solid #0f3460;
+            border-right: 4px solid #0f3460;
+            border-bottom: 4px solid #0f3460;
+            border-radius: 0 0 12px 12px;
+            background: rgba(255, 255, 255, 0.5);
+            padding-bottom: 4px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .stack-container.drag-over {
+            background: rgba(22, 199, 154, 0.2);
+            border-color: #16c79a;
+        }
+
+        .stack-item {
+            width: 140px;
+            height: 50px;
+            background: white;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f3460;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideIn 0.4s ease-out;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .stack-item:active {
+            cursor: grabbing;
+        }
+
+        .stack-item.popping {
+            transform: translateX(200px);
+            opacity: 0;
+            transition: all 0.4s ease-in;
+        }
+        
+        .stack-item.peeking {
+            background: #fff7ed;
+            border-color: #fb923c;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);
+            z-index: 10;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stack-index {
+            position: absolute;
+            left: -35px;
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        /* 栈顶指针 */
+        .top-pointer {
+            position: absolute;
+            right: -80px;
+            display: flex;
+            align-items: center;
+            color: #e63946;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: bottom 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .top-pointer::before {
+            content: "← Top";
+            margin-left: 8px;
+        }
+
+        /* 步骤记录 */
+        .steps {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 0.8rem;
+            background: white;
+        }
+
+        .step-item {
+            padding: 0.4rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #333;
+        }
+        
+        .step-item:last-child { border-bottom: none; }
+        .step-time { color: #999; font-size: 0.75rem; }
+
+        /* 布局分栏 */
+        .layout {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 1rem;
+        }
+        
+        /* 代码编辑器区域 - 仿照 arraytool.html */
+        .code-panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 0.75rem;
+            position: relative;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .code-container {
+            position: relative;
+            flex: 1;
+            margin-top: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .code-output {
+            margin: 0;
+            padding: 10px;
+            font-family: Consolas, monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            min-height: 100%;
+            pointer-events: none; /* 让点击穿透到 textarea */
+        }
+
+        .code-editor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            font-family: Consolas, monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            border: none;
+            background: transparent;
+            color: transparent; /* 文字透明，只显示光标 */
+            caret-color: #000;
+            resize: none;
+            outline: none;
+            z-index: 1;
+        }
+        
+        /* 修复 prism line-numbers 位置 */
+        pre.line-numbers {
+            padding-left: 3.8em !important;
+        }
+        
+        .code-editor-wrapper {
+            position: relative;
+            height: 100%;
+            overflow: auto;
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .visualization { min-height: 350px; }
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ 算法推演工具 - 栈可视化 (Stack Tool)</h1>
+        
+        <div class="layout">
+            <!-- 左侧：代码与控制 -->
+            <div class="left-panel">
+                <div class="config-section">
+                    <div class="config-header">
+                        <div class="config-title">操作控制 (当前选中栈: <span id="active-stack-name">Stack 1</span>)</div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="push-value" class="input-control" placeholder="输入值" value="10">
+                        <button class="btn btn-primary" id="btn-push">Push (入栈)</button>
+                        <button class="btn btn-danger" id="btn-pop">Pop (出栈)</button>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-success" id="btn-peek">Peek (查看)</button>
+                        <button class="btn btn-outline" id="btn-clear">清空当前栈</button>
+                    </div>
+                    <div class="input-group" style="border-top: 1px solid #eee; padding-top: 10px; width: 100%;">
+                        <button class="btn btn-outline" id="btn-add-stack">➕ 添加新栈</button>
+                        <button class="btn btn-outline" id="btn-remove-stack">➖ 删除末尾栈</button>
+                    </div>
+                     <div class="input-group">
+                         <div id="stack-status" style="font-size: 0.85rem; color: #666;">
+                             Size: 0 | IsEmpty: true
+                         </div>
+                    </div>
+                </div>
+
+                <div class="code-panel">
+                    <div class="config-title">Dart 算法模板</div>
+                    <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-outline" onclick="loadTemplate('basic')">基础</button>
+                        <button class="btn btn-outline" onclick="loadTemplate('validParentheses')">括号</button>
+                        <button class="btn btn-outline" onclick="loadTemplate('minStack')">最小栈</button>
+                        <button class="btn btn-outline" onclick="loadTemplate('rpn')">逆波兰</button>
+                        <button class="btn btn-outline" onclick="loadTemplate('hanoi')">汉诺塔</button>
+                        <button class="btn btn-outline" onclick="loadTemplate('queue')">栈实队列</button>
+                    </div>
+                    <div class="code-container">
+                        <div class="code-editor-wrapper">
+                            <pre class="code-output line-numbers"><code id="code-highlight" class="language-dart"></code></pre>
+                            <textarea id="code-editor" class="code-editor" spellcheck="false"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：可视化 -->
+            <div class="right-panel">
+                <div class="visualization" id="stacks-wrapper">
+                    <!-- 动态生成栈容器 -->
+                </div>
+
+                <div class="steps">
+                    <h3>📝 操作日志</h3>
+                    <ul class="step-list" id="step-list"></ul>
+                </div>
+                
+                <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                    💡 提示：点击栈标题可切换操作对象。拖拽栈顶元素可移动到其他栈（汉诺塔模式）。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 栈数据结构
+        class Stack {
+            constructor(id, name) {
+                this.id = id;
+                this.name = name;
+                this.items = [];
+            }
+
+            push(element) {
+                this.items.push(element);
+            }
+
+            pop() {
+                if (this.isEmpty()) return null;
+                return this.items.pop();
+            }
+
+            peek() {
+                if (this.isEmpty()) return null;
+                return this.items[this.items.length - 1];
+            }
+
+            isEmpty() {
+                return this.items.length === 0;
+            }
+
+            size() {
+                return this.items.length;
+            }
+
+            clear() {
+                this.items = [];
+            }
+        }
+
+        // 应用状态
+        const state = {
+            stacks: [],
+            activeStackId: 0,
+            nextId: 1
+        };
+
+        // DOM 元素
+        const stacksWrapper = document.getElementById('stacks-wrapper');
+        const activeStackNameEl = document.getElementById('active-stack-name');
+        const statusEl = document.getElementById('stack-status');
+        const pushInput = document.getElementById('push-value');
+        const stepList = document.getElementById('step-list');
+        const codeEditor = document.getElementById('code-editor');
+        const codeHighlight = document.getElementById('code-highlight');
+
+        // 初始化
+        init();
+
+        function init() {
+            addStack(); // 默认一个栈
+            loadTemplate('basic');
+            
+            // 绑定事件
+            document.getElementById('btn-push').addEventListener('click', () => handlePush());
+            document.getElementById('btn-pop').addEventListener('click', () => handlePop());
+            document.getElementById('btn-peek').addEventListener('click', () => handlePeek());
+            document.getElementById('btn-clear').addEventListener('click', () => handleClear());
+            document.getElementById('btn-add-stack').addEventListener('click', addStack);
+            document.getElementById('btn-remove-stack').addEventListener('click', removeStack);
+            
+            pushInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handlePush();
+            });
+
+            // 代码编辑器同步
+            codeEditor.addEventListener('input', () => {
+                updateHighlight(codeEditor.value);
+            });
+            codeEditor.addEventListener('scroll', () => {
+                document.querySelector('.code-output').scrollTop = codeEditor.scrollTop;
+                document.querySelector('.code-output').scrollLeft = codeEditor.scrollLeft;
+            });
+        }
+
+        // 栈管理
+        function addStack() {
+            if (state.stacks.length >= 5) {
+                alert('最多支持 5 个栈');
+                return;
+            }
+            const id = state.nextId++;
+            const name = `Stack ${state.stacks.length + 1}`;
+            const stack = new Stack(id, name);
+            state.stacks.push(stack);
+            
+            // 如果是第一个栈，自动激活
+            if (state.stacks.length === 1) {
+                setActiveStack(0);
+            } else {
+                renderAllStacks();
+            }
+            
+            // 汉诺塔模板特殊处理：如果刚加载了汉诺塔，可能需要重置
+        }
+
+        function removeStack() {
+            if (state.stacks.length <= 1) return;
+            state.stacks.pop();
+            if (state.activeStackId >= state.stacks.length) {
+                setActiveStack(state.stacks.length - 1);
+            } else {
+                renderAllStacks();
+            }
+        }
+
+        function setActiveStack(index) {
+            state.activeStackId = index;
+            renderAllStacks();
+            updateStatus();
+        }
+
+        function getActiveStack() {
+            return state.stacks[state.activeStackId];
+        }
+
+        // 操作处理
+        function handlePush(val = null) {
+            const value = val !== null ? val : pushInput.value.trim();
+            if (!value) return;
+
+            const stack = getActiveStack();
+            stack.push(value);
+            addLog(`${stack.name}: Push ${value}`);
+            renderAllStacks(); // 重新渲染最简单
+            
+            if (val === null) {
+                pushInput.value = '';
+                pushInput.focus();
+            }
+        }
+
+        function handlePop() {
+            const stack = getActiveStack();
+            if (stack.isEmpty()) {
+                addLog(`${stack.name}: Pop failed (Empty)`, true);
+                return;
+            }
+
+            const val = stack.pop();
+            addLog(`${stack.name}: Pop ${val}`);
+            
+            // 简单动画效果：先找到元素，加 class，然后重新渲染
+            const container = document.querySelector(`.stack-wrapper[data-id="${stack.id}"] .stack-container`);
+            const items = container.querySelectorAll('.stack-item');
+            if (items.length > 0) {
+                // column-reverse，DOM 最后一个是栈顶
+                const topItem = items[items.length - 1];
+                topItem.classList.add('popping');
+                setTimeout(() => {
+                    renderAllStacks();
+                }, 300);
+            } else {
+                renderAllStacks();
+            }
+        }
+
+        function handlePeek() {
+            const stack = getActiveStack();
+            if (stack.isEmpty()) {
+                addLog(`${stack.name}: Peek failed (Empty)`, true);
+                return;
+            }
+            const val = stack.peek();
+            addLog(`${stack.name}: Peek ${val}`);
+            
+            // 高亮
+            const container = document.querySelector(`.stack-wrapper[data-id="${stack.id}"] .stack-container`);
+            const items = container.querySelectorAll('.stack-item');
+            if (items.length > 0) {
+                const topItem = items[items.length - 1];
+                topItem.classList.add('peeking');
+                setTimeout(() => topItem.classList.remove('peeking'), 1000);
+            }
+        }
+
+        function handleClear() {
+            const stack = getActiveStack();
+            stack.clear();
+            addLog(`${stack.name}: Cleared`);
+            renderAllStacks();
+        }
+
+        // 渲染逻辑
+        function renderAllStacks() {
+            stacksWrapper.innerHTML = '';
+            
+            state.stacks.forEach((stack, index) => {
+                const isActive = index === state.activeStackId;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = `stack-wrapper ${isActive ? 'active' : ''}`;
+                wrapper.dataset.id = stack.id;
+                
+                // 标题/点击切换
+                const label = document.createElement('div');
+                label.className = 'stack-label';
+                label.textContent = stack.name;
+                label.onclick = () => setActiveStack(index);
+                wrapper.appendChild(label);
+
+                // 容器
+                const container = document.createElement('div');
+                container.className = 'stack-container';
+                container.dataset.stackIndex = index;
+                
+                // 拖放事件
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // 允许 drop
+                    container.classList.add('drag-over');
+                });
+                container.addEventListener('dragleave', () => {
+                    container.classList.remove('drag-over');
+                });
+                container.addEventListener('drop', (e) => handleDrop(e, index));
+
+                // 渲染元素
+                stack.items.forEach((itemVal, itemIdx) => {
+                    const item = document.createElement('div');
+                    item.className = 'stack-item';
+                    item.textContent = itemVal;
+                    
+                    // 只有栈顶元素可以拖拽
+                    if (itemIdx === stack.items.length - 1) {
+                        item.draggable = true;
+                        item.style.cursor = 'grab';
+                        item.addEventListener('dragstart', (e) => handleDragStart(e, index, itemVal));
+                    } else {
+                        item.style.cursor = 'default';
+                    }
+
+                    const idxSpan = document.createElement('span');
+                    idxSpan.className = 'stack-index';
+                    idxSpan.textContent = itemIdx;
+                    item.appendChild(idxSpan);
+
+                    container.appendChild(item);
+                });
+
+                wrapper.appendChild(container);
+                
+                // 栈顶指针
+                if (!stack.isEmpty()) {
+                    const pointer = document.createElement('div');
+                    pointer.className = 'top-pointer';
+                    // 计算位置：(size - 1) * 54 + 4 + 25 - 11
+                    const bottomPos = (stack.size() - 1) * 54 + 4 + 14; 
+                    pointer.style.bottom = `${bottomPos}px`;
+                    container.appendChild(pointer);
+                }
+
+                stacksWrapper.appendChild(wrapper);
+            });
+
+            updateStatus();
+        }
+
+        function updateStatus() {
+            const stack = getActiveStack();
+            if (stack) {
+                activeStackNameEl.textContent = stack.name;
+                statusEl.textContent = `Size: ${stack.size()} | IsEmpty: ${stack.isEmpty()}`;
+            }
+        }
+
+        // 拖拽逻辑
+        function handleDragStart(e, fromIndex, value) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                fromIndex: fromIndex,
+                value: value
+            }));
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDrop(e, toIndex) {
+            e.preventDefault();
+            document.querySelectorAll('.stack-container').forEach(el => el.classList.remove('drag-over'));
+            
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const fromIndex = data.fromIndex;
+                const value = data.value;
+                
+                if (fromIndex === toIndex) return; // 同栈不移动
+
+                const fromStack = state.stacks[fromIndex];
+                const toStack = state.stacks[toIndex];
+
+                // 验证：必须是源栈的栈顶（其实 UI 限制了只能拖栈顶，但为了安全再次检查）
+                if (fromStack.peek() != value) return;
+
+                // 汉诺塔规则检查（可选，这里暂不强制，只做提示）
+                // if (!toStack.isEmpty() && toStack.peek() < value) { ... }
+
+                // 执行移动
+                fromStack.pop();
+                toStack.push(value);
+                
+                addLog(`Moved ${value} from ${fromStack.name} to ${toStack.name}`);
+                
+                // 激活目标栈
+                setActiveStack(toIndex);
+            } catch (err) {
+                console.error('Drop error', err);
+            }
+        }
+
+        function addLog(msg, isError = false) {
+            const time = new Date().toLocaleTimeString();
+            const li = document.createElement('li');
+            li.className = 'step-item';
+            if (isError) li.style.color = '#e63946';
+            li.innerHTML = `<span>${msg}</span><span class="step-time">${time}</span>`;
+            stepList.insertBefore(li, stepList.firstChild);
+        }
+
+        // 模板代码
+        function updateHighlight(code) {
+            codeHighlight.textContent = code;
+            if (window.Prism) Prism.highlightElement(codeHighlight);
+        }
+
+        function loadTemplate(type) {
+            let code = '';
+            // 清空栈并根据模板初始化
+            // 简单的保留当前栈，或者提示用户
+            
+            switch(type) {
+                case 'basic':
+                    code = `// Dart 栈基础操作
+void main() {
+  List<int> stack = [];
+  stack.add(10); // Push
+  stack.add(20);
+  print(stack.last); // Peek -> 20
+  stack.removeLast(); // Pop -> 20
+}`;
+                    break;
+                case 'validParentheses':
+                    code = `// 有效括号
+bool isValid(String s) {
+  List<String> stack = [];
+  Map<String, String> map = {')':'(', '}':'{', ']':'['};
+  
+  for (int i=0; i<s.length; i++) {
+    String c = s[i];
+    if (map.containsKey(c)) {
+      if (stack.isEmpty || stack.last != map[c]) return false;
+      stack.removeLast();
+    } else {
+      stack.add(c);
+    }
+  }
+  return stack.isEmpty;
+}`;
+                    break;
+                case 'minStack':
+                    code = `// 最小栈 (需辅助栈)
+class MinStack {
+  List<int> s = [], minS = [];
+  void push(int x) {
+    s.add(x);
+    if(minS.isEmpty || x <= minS.last) minS.add(x);
+  }
+  void pop() {
+    if(s.last == minS.last) minS.removeLast();
+    s.removeLast();
+  }
+  int getMin() => minS.last;
+}`;
+                    // 演示：重置为两个栈
+                    resetStacks(2, ['Main Stack', 'Min Stack']);
+                    break;
+                case 'rpn':
+                    code = `// 逆波兰表达式求值
+int evalRPN(List<String> tokens) {
+  List<int> stack = [];
+  for (String t in tokens) {
+    if (['+','-','*','/'].contains(t)) {
+      int b = stack.removeLast();
+      int a = stack.removeLast();
+      if(t=='+') stack.add(a+b);
+      else if(t=='-') stack.add(a-b);
+      else if(t=='*') stack.add(a*b);
+      else if(t=='/') stack.add(a~/b);
+    } else {
+      stack.add(int.parse(t));
+    }
+  }
+  return stack.last;
+}`;
+                    break;
+                case 'hanoi':
+                    code = `// 汉诺塔 (递归/栈模拟)
+void hanoi(int n, String A, String B, String C) {
+  if (n == 1) {
+    print("Move $n from $A to $C");
+    return;
+  }
+  hanoi(n-1, A, C, B);
+  print("Move $n from $A to $C");
+  hanoi(n-1, B, A, C);
+}`;
+                    resetStacks(3, ['A (Source)', 'B (Aux)', 'C (Target)']);
+                    // 初始化盘子
+                    state.stacks[0].items = [3, 2, 1];
+                    renderAllStacks();
+                    addLog('Initialized Hanoi Towers with 3 disks');
+                    break;
+                case 'queue':
+                    code = `// 用栈实现队列
+class MyQueue {
+  List<int> s1 = [], s2 = [];
+  void push(int x) => s1.add(x);
+  int pop() {
+    if(s2.isEmpty) {
+      while(s1.isNotEmpty) s2.add(s1.removeLast());
+    }
+    return s2.removeLast();
+  }
+}`;
+                    resetStacks(2, ['In Stack', 'Out Stack']);
+                    break;
+            }
+            codeEditor.value = code;
+            updateHighlight(code);
+        }
+
+        function resetStacks(count, names) {
+            state.stacks = [];
+            state.nextId = 1;
+            for(let i=0; i<count; i++) {
+                state.stacks.push(new Stack(state.nextId++, names[i] || `Stack ${i+1}`));
+            }
+            state.activeStackId = 0;
+            renderAllStacks();
+        }
+    </script>
+</body>
+</html>

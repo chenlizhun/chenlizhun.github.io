@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算法推演工具 - 队列可视化 (Queue Tool)</title>
+    <!-- 引入 Prism.js 用于代码高亮 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Microsoft YaHei', monospace;
+        }
+
+        body {
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        h1 {
+            color: #0f3460;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* 配置区域 */
+        .config-section {
+            margin-bottom: 1.5rem;
+            padding: 1.2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+
+        .config-title {
+            font-weight: 700;
+            color: #0f3460;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .input-control {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: white;
+            transition: border 0.3s;
+            min-width: 120px;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 2px rgba(15, 52, 96, 0.1);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .btn-primary { background: #0f3460; color: white; }
+        .btn-primary:hover { background: #1a508b; box-shadow: 0 3px 10px rgba(15, 52, 96, 0.3); transform: translateY(-1px); }
+
+        .btn-success { background: #16c79a; color: white; }
+        .btn-success:hover { background: #12a178; box-shadow: 0 3px 10px rgba(22, 199, 154, 0.3); transform: translateY(-1px); }
+
+        .btn-danger { background: #e63946; color: white; }
+        .btn-danger:hover { background: #c72c41; box-shadow: 0 3px 10px rgba(230, 57, 70, 0.3); transform: translateY(-1px); }
+
+        .btn-outline { background: transparent; border: 1px solid #ddd; color: #0f3460; }
+        .btn-outline:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+
+        /* 队列可视化区域 */
+        .visualization {
+            margin: 1.5rem 0;
+            position: relative;
+            min-height: 350px;
+            padding: 20px;
+            width: 100%;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 12px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column; /* 改为纵向排列多个队列 */
+            align-items: center;
+            gap: 40px;
+            overflow-x: auto;
+        }
+
+        .queue-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 标题靠左 */
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .queue-label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #0f3460;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 15px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .queue-wrapper.active .queue-label {
+            background: #e0e7ff;
+            color: #1a508b;
+            border-color: #1a508b;
+        }
+
+        .queue-container {
+            display: flex;
+            flex-direction: row; /* 横向排列 */
+            align-items: center;
+            width: 100%;
+            height: 100px;
+            border-top: 4px solid #0f3460;
+            border-bottom: 4px solid #0f3460;
+            /* 左右留空，表示管道 */
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0 20px;
+            position: relative;
+            transition: all 0.3s;
+            overflow-x: auto; /* 允许横向滚动 */
+        }
+        
+        /* 管道效果 */
+        .queue-container::before {
+            content: 'OUT';
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: #0f3460;
+            font-weight: bold;
+        }
+
+        .queue-container::after {
+            content: 'IN';
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: #0f3460;
+            font-weight: bold;
+        }
+
+        .queue-container.drag-over {
+            background: rgba(22, 199, 154, 0.2);
+            border-color: #16c79a;
+        }
+
+        .queue-item {
+            min-width: 60px;
+            height: 60px;
+            background: white;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            margin-right: 10px; /* 元素间隔 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f3460;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideInRight 0.4s ease-out;
+            cursor: grab;
+            user-select: none;
+            flex-shrink: 0; /* 防止挤压 */
+        }
+
+        .queue-item:active {
+            cursor: grabbing;
+        }
+
+        /* 出队动画：向左移动并消失 */
+        .queue-item.dequeuing {
+            transform: translateX(-100px);
+            opacity: 0;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* 指针样式 */
+        .pointer-label {
+            position: absolute;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #e63946;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            pointer-events: none; /* 不干扰点击 */
+            z-index: 10;
+        }
+
+        .pointer-label span {
+            background: #e63946;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+
+        .pointer-label::after {
+            content: '↓';
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .pointer-label.up-arrow::after {
+            content: none;
+        }
+
+        .pointer-label.up-arrow::before {
+            content: '↑';
+            font-size: 1.2rem;
+            line-height: 1;
+            display: block; /* 确保换行 */
+        }
+        
+        .pointer-label.up-arrow {
+            flex-direction: column-reverse; /* 让箭头在文字上面 */
+        }
+
+        /* 布局调整：代码和控制区 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .control-panel {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .code-panel {
+            background: #2d2d2d;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            position: relative;
+        }
+
+        .code-header {
+            background: #1e1e1e;
+            padding: 0.5rem 1rem;
+            color: #ddd;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .code-editor-container {
+            position: relative;
+            flex: 1;
+            overflow: auto;
+        }
+
+        /* 编辑器样式 */
+        #code-editor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: transparent;
+            caret-color: white;
+            z-index: 2;
+            padding: 1em;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre; 
+        }
+
+        pre[class*="language-"] {
+            margin: 0 !important;
+            height: 100%;
+            padding: 1em !important;
+            z-index: 1;
+            pointer-events: none; /* 让点击穿透到 textarea */
+        }
+        
+        /* 调整行号插件的样式以匹配 */
+        .line-numbers .line-numbers-rows {
+            border-right: 1px solid #444;
+        }
+
+        .log-panel {
+            margin-top: 1rem;
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 8px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>队列可视化 (Queue Visualization)</h1>
+
+        <!-- 配置区域 -->
+        <div class="config-section">
+            <div class="config-header">
+                <span class="config-title">操作控制</span>
+                <div class="input-group">
+                    <button class="btn btn-primary" onclick="addQueue()">➕ 添加新队列</button>
+                    <select id="algorithm-select" class="input-control" onchange="loadAlgorithm()">
+                        <option value="basic">基础操作 (Basic)</option>
+                        <option value="queueToStack">用队列实现栈 (Queue to Stack)</option>
+                        <option value="recentCalls">最近请求次数 (Recent Calls)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="element-input" class="input-control" placeholder="输入值" onkeypress="handleKeyPress(event)">
+                <button class="btn btn-success" onclick="executeEnqueue()">入队 (Enqueue)</button>
+                <button class="btn btn-danger" onclick="executeDequeue()">出队 (Dequeue)</button>
+                <button class="btn btn-primary" onclick="executePeek()">查看队头 (Front)</button>
+                <button class="btn btn-outline" onclick="executeClear()">清空 (Clear)</button>
+                <button class="btn btn-outline" onclick="generateRandom()">随机生成</button>
+            </div>
+        </div>
+
+        <!-- 布局：左侧可视化，右侧代码 -->
+        <div class="main-layout">
+            <div>
+                <div class="visualization" id="queue-area">
+                    <!-- 队列将动态生成在这里 -->
+                </div>
+                <div class="log-panel" id="log-panel">
+                    <div class="log-entry">> 系统就绪</div>
+                </div>
+            </div>
+
+            <div class="code-panel">
+                <div class="code-header">
+                    <span>Dart 代码 (可编辑)</span>
+                    <button class="btn btn-outline" style="color: #aaa; border-color: #555; font-size: 0.7rem;" onclick="resetCode()">重置代码</button>
+                </div>
+                <div class="code-editor-container">
+                    <textarea id="code-editor" spellcheck="false" oninput="syncCode()"></textarea>
+                    <pre id="code-highlight" class="line-numbers"><code class="language-dart" id="code-content"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+    <script>
+        // 队列类定义
+        class Queue {
+            constructor(id) {
+                this.id = id;
+                this.items = [];
+            }
+
+            enqueue(element) {
+                this.items.push(element);
+            }
+
+            dequeue() {
+                if (this.isEmpty()) return null;
+                return this.items.shift();
+            }
+
+            front() {
+                if (this.isEmpty()) return null;
+                return this.items[0];
+            }
+            
+            rear() {
+                if (this.isEmpty()) return null;
+                return this.items[this.items.length - 1];
+            }
+
+            isEmpty() {
+                return this.items.length === 0;
+            }
+
+            size() {
+                return this.items.length;
+            }
+
+            clear() {
+                this.items = [];
+            }
+        }
+
+        // 全局状态
+        let queues = [];
+        let activeQueueIndex = 0;
+        let draggedItem = null;
+
+        // 算法模板
+        const algorithms = {
+            basic: `class Queue {
+  List<int> _items = [];
+
+  // 入队
+  void enqueue(int element) {
+    _items.add(element);
+  }
+
+  // 出队
+  int? dequeue() {
+    if (isEmpty()) return null;
+    return _items.removeAt(0);
+  }
+
+  // 查看队头
+  int? front() {
+    if (isEmpty()) return null;
+    return _items.first;
+  }
+
+  bool isEmpty() => _items.isEmpty;
+}`,
+            queueToStack: `class MyStack {
+  Queue<int> q1 = Queue();
+  Queue<int> q2 = Queue();
+
+  // Push element x onto stack.
+  void push(int x) {
+    q2.add(x);
+    while (q1.isNotEmpty) {
+      q2.add(q1.removeFirst());
+    }
+    Queue<int> temp = q1;
+    q1 = q2;
+    q2 = temp;
+  }
+
+  // Removes the element on top of the stack.
+  int pop() {
+    return q1.removeFirst();
+  }
+
+  // Get the top element.
+  int top() {
+    return q1.first;
+  }
+
+  bool empty() {
+    return q1.isEmpty;
+  }
+}`,
+            recentCalls: `class RecentCounter {
+  Queue<int> q = Queue();
+
+  int ping(int t) {
+    q.add(t);
+    while (q.first < t - 3000) {
+      q.removeFirst();
+    }
+    return q.length;
+  }
+}`
+        };
+
+        // 初始化
+        window.onload = function() {
+            addQueue(); // 默认添加一个队列
+            loadAlgorithm();
+        };
+
+        function addQueue() {
+            const id = queues.length + 1;
+            const queue = new Queue(id);
+            queues.push(queue);
+            renderAllQueues();
+            log(`已创建 Queue ${id}`);
+        }
+
+        function setActiveQueue(index) {
+            activeQueueIndex = index;
+            renderAllQueues();
+        }
+
+        function getActiveQueue() {
+            return queues[activeQueueIndex];
+        }
+
+        function executeEnqueue() {
+            const input = document.getElementById('element-input');
+            const value = input.value.trim();
+            if (value === '') return;
+            
+            const queue = getActiveQueue();
+            queue.enqueue(value);
+            log(`Enqueue: ${value} to Queue ${queue.id}`);
+            
+            // 动画渲染
+            renderQueue(activeQueueIndex, true); // true indicates enqueue animation
+            input.value = '';
+            input.focus();
+        }
+
+        function executeDequeue() {
+            const queue = getActiveQueue();
+            if (queue.isEmpty()) {
+                log(`Queue ${queue.id} is empty!`);
+                return;
+            }
+
+            const container = document.getElementById(`queue-container-${activeQueueIndex}`);
+            const firstItem = container.firstElementChild; // 队头在左侧
+            
+            if (firstItem) {
+                firstItem.classList.add('dequeuing');
+                setTimeout(() => {
+                    const val = queue.dequeue();
+                    log(`Dequeue: ${val} from Queue ${queue.id}`);
+                    renderQueue(activeQueueIndex);
+                }, 400); // Wait for animation
+            }
+        }
+
+        function executePeek() {
+            const queue = getActiveQueue();
+            const val = queue.front();
+            if (val !== null) {
+                log(`Front of Queue ${queue.id}: ${val}`);
+                // 高亮队头
+                const container = document.getElementById(`queue-container-${activeQueueIndex}`);
+                if (container.firstElementChild) {
+                    container.firstElementChild.style.backgroundColor = '#e0e7ff';
+                    container.firstElementChild.style.borderColor = '#1a508b';
+                    setTimeout(() => {
+                        container.firstElementChild.style.backgroundColor = 'white';
+                        container.firstElementChild.style.borderColor = '#0f3460';
+                    }, 1000);
+                }
+            } else {
+                log(`Queue ${queue.id} is empty!`);
+            }
+        }
+
+        function executeClear() {
+            const queue = getActiveQueue();
+            queue.clear();
+            log(`Queue ${queue.id} cleared`);
+            renderQueue(activeQueueIndex);
+        }
+
+        function generateRandom() {
+            const val = Math.floor(Math.random() * 100);
+            document.getElementById('element-input').value = val;
+            executeEnqueue();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeEnqueue();
+            }
+        }
+
+        function renderAllQueues() {
+            const area = document.getElementById('queue-area');
+            area.innerHTML = ''; // Clear all
+            
+            queues.forEach((queue, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = `queue-wrapper ${index === activeQueueIndex ? 'active' : ''}`;
+                
+                const label = document.createElement('div');
+                label.className = 'queue-label';
+                label.innerText = `Queue ${queue.id}`;
+                label.onclick = () => setActiveQueue(index);
+                wrapper.appendChild(label);
+
+                const container = document.createElement('div');
+                container.className = 'queue-container';
+                container.id = `queue-container-${index}`;
+                
+                // 拖放事件支持
+                container.ondragover = (e) => {
+                    e.preventDefault();
+                    container.classList.add('drag-over');
+                };
+                container.ondragleave = () => container.classList.remove('drag-over');
+                container.ondrop = (e) => handleDrop(e, index);
+
+                wrapper.appendChild(container);
+                
+                // Front Pointer (Left)
+                const frontPointer = document.createElement('div');
+                frontPointer.className = 'pointer-label';
+                frontPointer.innerHTML = '<span>Front</span>';
+                frontPointer.style.display = 'none'; // Initially hidden
+                frontPointer.id = `front-pointer-${index}`;
+                wrapper.appendChild(frontPointer);
+
+                // Rear Pointer (Right)
+                const rearPointer = document.createElement('div');
+                rearPointer.className = 'pointer-label';
+                rearPointer.innerHTML = '<span>Rear</span>';
+                rearPointer.style.display = 'none';
+                rearPointer.id = `rear-pointer-${index}`;
+                wrapper.appendChild(rearPointer);
+
+                area.appendChild(wrapper);
+                
+                renderQueue(index); // Render items
+            });
+        }
+
+        function renderQueue(index, isEnqueue = false) {
+            const queue = queues[index];
+            const container = document.getElementById(`queue-container-${index}`);
+            if (!container) return; // Guard
+            
+            // 清空容器内容重新渲染（对于简单实现，这比 diff DOM 更容易保证一致性，除非为了保留出队动画）
+            // 注意：为了保留出队动画，executeDequeue 是先操作 DOM 再操作数据。
+            // 这里 renderQueue 主要用于 Enqueue 或初始化。
+            
+            // 如果不是 enqueue 动画，或者容器为空，我们完全重建
+            // 如果是 enqueue，我们只 append 最后一个元素
+            
+            if (isEnqueue && queue.size() > 0) {
+                // 仅添加最后一个元素
+                const item = createQueueItem(queue.items[queue.items.length - 1]);
+                container.appendChild(item);
+            } else {
+                container.innerHTML = '';
+                queue.items.forEach(val => {
+                    container.appendChild(createQueueItem(val));
+                });
+            }
+
+            updatePointers(index);
+        }
+
+        function createQueueItem(val) {
+            const div = document.createElement('div');
+            div.className = 'queue-item';
+            div.innerText = val;
+            div.draggable = true;
+            div.ondragstart = (e) => {
+                draggedItem = val;
+                // 仅为了视觉效果，这里不真正移除，只有 drop 成功才移除
+                e.dataTransfer.effectAllowed = 'copy';
+            };
+            return div;
+        }
+
+        function updatePointers(index) {
+            const queue = queues[index];
+            const container = document.getElementById(`queue-container-${index}`);
+            const frontPointer = document.getElementById(`front-pointer-${index}`);
+            const rearPointer = document.getElementById(`rear-pointer-${index}`);
+            
+            if (queue.isEmpty()) {
+                frontPointer.style.display = 'none';
+                rearPointer.style.display = 'none';
+                return;
+            }
+
+            const items = container.children;
+            if (items.length === 0) return;
+
+            // 定位 Front (第一个元素)
+            const firstItem = items[0];
+            frontPointer.style.display = 'flex';
+            // 计算相对位置：需要获取 container 和 item 的相对坐标
+            // 由于 pointer 是 absolute to wrapper，我们需要计算 item 在 wrapper 中的位置
+            // 简单起见，我们假设 item 位置相对固定，但因为有 scroll，最好动态计算
+            
+            const wrapperRect = container.parentElement.getBoundingClientRect();
+            const firstRect = firstItem.getBoundingClientRect();
+            
+            // 水平居中于 item
+            const frontLeft = firstRect.left - wrapperRect.left + (firstRect.width / 2) - (frontPointer.offsetWidth / 2);
+            frontPointer.style.left = `${frontLeft}px`;
+            frontPointer.style.top = `${firstItem.offsetTop - 40}px`; // 放在上面
+
+            // 定位 Rear (最后一个元素)
+            const lastItem = items[items.length - 1];
+            rearPointer.style.display = 'flex';
+            const lastRect = lastItem.getBoundingClientRect();
+            
+            const rearLeft = lastRect.left - wrapperRect.left + (lastRect.width / 2) - (rearPointer.offsetWidth / 2);
+            rearPointer.style.left = `${rearLeft}px`;
+            rearPointer.style.top = `${lastItem.offsetTop - 40}px`;
+            
+            // 如果只有一个元素，Front 和 Rear 指向同一个，为了避免重叠，可以将 Rear 放在下面
+            if (queue.size() === 1) {
+                rearPointer.style.top = `${lastItem.offsetTop + lastItem.offsetHeight + 10}px`;
+                // 修改箭头方向
+                rearPointer.innerHTML = '<span>Rear</span>';
+                rearPointer.classList.add('up-arrow'); 
+            } else {
+                rearPointer.classList.remove('up-arrow');
+            }
+        }
+
+        function handleDrop(e, targetIndex) {
+            e.preventDefault();
+            const targetContainer = document.getElementById(`queue-container-${targetIndex}`);
+            targetContainer.classList.remove('drag-over');
+
+            if (draggedItem !== null) {
+                // 将元素添加到目标队列
+                const targetQueue = queues[targetIndex];
+                targetQueue.enqueue(draggedItem);
+                
+                log(`Moved/Copied ${draggedItem} to Queue ${targetQueue.id}`);
+                renderQueue(targetIndex, true);
+                
+                // 注意：这里我们实现了“复制”或“移动”逻辑。
+                // 真正的拖拽移动通常意味着从源队列移除。
+                // 为了简单演示，我们假设是从外部或仅仅是添加。
+                // 如果要实现从源队列移除，需要知道 sourceIndex。
+                // 暂时保留为“拖入即入队”。
+                
+                draggedItem = null;
+            }
+        }
+
+        function log(msg) {
+            const panel = document.getElementById('log-panel');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> ${msg}`;
+            panel.prepend(entry);
+        }
+
+        // 代码编辑器相关
+        function loadAlgorithm() {
+            const select = document.getElementById('algorithm-select');
+            const code = algorithms[select.value];
+            const editor = document.getElementById('code-editor');
+            editor.value = code;
+            syncCode();
+            
+            // 如果选择了特定的算法，可以预设一些队列状态（可选）
+            if (select.value === 'queueToStack') {
+                log('已加载“用队列实现栈”模板。请尝试使用两个队列模拟栈操作。');
+                if (queues.length < 2) addQueue();
+            }
+        }
+
+        function syncCode() {
+            const code = document.getElementById('code-editor').value;
+            document.getElementById('code-content').textContent = code;
+            Prism.highlightElement(document.getElementById('code-content'));
+        }
+
+        function resetCode() {
+            loadAlgorithm();
+        }
+    </script>
+</body>
+</html>

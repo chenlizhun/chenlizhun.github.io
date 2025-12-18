@@ -68,7 +68,7 @@ function createChapterCard(chapter, chapterIndex) {
     const card = document.createElement('div');
     card.className = 'chapter-card';
     const problemsHTML = (chapter.problems || []).map((p, i) => (
-        `<button class="px-2 py-1 text-sm bg-indigo-50 hover:bg-indigo-100 rounded text-indigo-700 text-left problem-link" data-index="${i + 1}">题目${i + 1}：${p.title}</button>`
+        `<button class="px-2 py-1 text-sm bg-indigo-50 hover:bg-indigo-100 rounded text-indigo-700 text-left problem-link" data-index="${i + 1}" data-key="${chapter.title}::${p.title}">题目${i + 1}：${p.title}</button>`
     )).join('');
     card.innerHTML = `
         <div class="p-6">
@@ -93,9 +93,13 @@ function createChapterCard(chapter, chapterIndex) {
 
     // 每个算法按钮进入单算法详情页
     card.querySelectorAll('.problem-link').forEach(btn => {
+        const key = btn.getAttribute('data-key') || '';
+        applyProblemLinkStyle(btn, getClickCount(key));
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const idx = Number(btn.getAttribute('data-index')) || 1;
+            incrementClickCount(key);
+            applyProblemLinkStyle(btn, getClickCount(key));
             showAlgorithmDetail(chapter.title, idx);
         });
     });
@@ -790,4 +794,35 @@ function showMotivationQuote() {
     ];
     const q = quotes[Math.floor(Math.random() * quotes.length)];
     el.textContent = q;
+}
+function loadClickMap() {
+    try {
+        const raw = localStorage.getItem('algorithm1_click_counts');
+        return raw ? JSON.parse(raw) || {} : {};
+    } catch(_) { return {}; }
+}
+
+function saveClickMap(map) {
+    try { localStorage.setItem('algorithm1_click_counts', JSON.stringify(map || {})); } catch(_) {}
+}
+
+function getClickCount(key) {
+    if (!key) return 0;
+    const map = loadClickMap();
+    return Number(map[key] || 0);
+}
+
+function incrementClickCount(key) {
+    if (!key) return;
+    const map = loadClickMap();
+    map[key] = Number(map[key] || 0) + 1;
+    saveClickMap(map);
+}
+
+function applyProblemLinkStyle(btn, count) {
+    if (!btn) return;
+    btn.classList.remove('visited');
+    btn.classList.remove('frequent');
+    if (count > 0) btn.classList.add('visited');
+    if (count > 5) btn.classList.add('frequent');
 }
