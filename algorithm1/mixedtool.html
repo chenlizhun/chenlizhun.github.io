@@ -576,7 +576,7 @@
                 this.bodyElement.innerHTML = '';
                 this.items.forEach((val, idx) => {
                     const item = createItem(val, 'stack-item', this.id, idx);
-                    this.bodyElement.prepend(item);
+                    this.bodyElement.appendChild(item);
                 });
             }
 
