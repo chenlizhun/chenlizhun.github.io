@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>快乐数 · 算法推演</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1527;
+      --text:#d7e1ff;
+      --muted:#9fb0e6;
+      --line:#1b2b4b;
+      --accent:#7aa2ff;
+      --good:#41d392;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --code:#0b1326;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #172a57 0%, rgba(23,42,87,0) 55%),
+                  radial-gradient(900px 500px at 100% 20%, #2a1c57 0%, rgba(42,28,87,0) 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 18px 14px 40px; }
+    header{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom: 14px; }
+    .title{ display:flex; flex-direction:column; gap:6px; }
+    h1{ margin:0; font-size: 20px; letter-spacing:.2px; }
+    .sub{ color:var(--muted); font-size: 13px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 12px; border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.18);
+      font-weight: 800; letter-spacing:.4px;
+    }
+    .pill.good{ color: var(--good); border-color: rgba(65,211,146,.35); background: rgba(65,211,146,.10); }
+    .pill.bad{ color: var(--bad); border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.10); }
+    .pill.warn{ color: var(--warn); border-color: rgba(255,209,102,.35); background: rgba(255,209,102,.10); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 420px; gap: 12px; }
+    .card{ border:1px solid rgba(255,255,255,.10); background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.18)); border-radius: 14px; overflow:hidden; }
+    .card-head{ display:flex; align-items:center; justify-content:space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,.10); }
+    .card-body{ padding: 12px; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .inp{ display:flex; flex-direction:column; gap:6px; flex:1; }
+    .inp input{ height: 36px; border-radius: 10px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.14); color: var(--text); padding: 0 10px; }
+    .btns{ display:flex; align-items:center; gap:8px; }
+    button{ height: 34px; padding: 0 12px; border-radius: 10px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.12); color: var(--text); }
+    button.primary{ background: rgba(122,162,255,.20); border-color: rgba(122,162,255,.40); }
+    button.danger{ background: rgba(255,92,122,.20); border-color: rgba(255,92,122,.40); }
+    .slider{ display:flex; align-items:center; gap:8px; }
+    input[type="range"]{ width: 160px; }
+
+    .bigline{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    .stringBox{ border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.18); border-radius: 14px; padding: 10px 12px; }
+    .stringBox .cap{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 8px; }
+    .stringBox .cap b{ font-size: 13px; color: var(--muted); font-weight: 600; }
+    .stats{ display:flex; flex-wrap:wrap; gap:8px; }
+    .kv{ display:flex; align-items:center; gap:8px; border-radius: 10px; padding: 6px 10px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.14); }
+    .kv .key{ font-weight:700; color: var(--muted); }
+    .kv .val{ font-weight:800; }
+    .log{ border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.18); border-radius: 14px; padding: 10px 12px; min-height: 124px; max-height: 220px; overflow:auto; }
+    .log .item{ padding: 8px 8px; border-radius: 12px; }
+    .log .item .k{ color: var(--muted); font-size: 12px; margin-bottom: 2px; }
+    .log .item .v{ font-size: 13px; }
+
+    .code{ border:1px solid rgba(255,255,255,.10); background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.18)); border-radius: 14px; padding: 12px; overflow:auto; font-size: 12.5px; line-height: 1.6; }
+    .codeLine{ display:grid; grid-template-columns: 54px 1fr; padding: 2px 8px; border-radius: 10px; align-items:stretch; }
+    .codeLine.hl{ background: rgba(122,162,255,.14); outline: 1px solid rgba(122,162,255,.18); }
+    .ln{ color: rgba(159,176,230,.65); text-align:right; padding-right: 12px; border-right: 1px solid rgba(255,255,255,.10); user-select:none; }
+    .src{ padding-left: 12px; white-space: pre; }
+    .kw{ color: #9dffb3; font-weight: 700; }
+    .type{ color: #7aa2ff; }
+    .fn{ color: #ffd166; font-weight: 700; }
+    .str{ color: #ff89b0; }
+    .cm{ color: #7aa0c8; font-style: italic; }
+    .num{ color: #b4f0ff; }
+    .op{ color: #cfd8ff; }
+    .hint{ color: var(--muted); font-size: 12px; line-height: 1.45; margin-top: 8px; }
+    
+    /* Sequence visualization */
+    .seq-box { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; }
+    .seq-item { 
+      min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; 
+      border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 8px; 
+      font-weight: bold; position: relative; padding: 0 10px;
+    }
+    .seq-item.active { background: rgba(122,162,255,0.3); border-color: rgba(122,162,255,0.6); }
+    .seq-item.duplicate { border: 1px solid var(--bad); color: var(--bad); }
+    .seq-item.happy { border: 1px solid var(--good); color: var(--good); }
+    .seq-arrow { display: flex; align-items: center; color: var(--muted); font-size: 18px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>快乐数 · 算法推演</h1>
+      <div class="sub">思路：使用哈希集合检测循环，计算各位平方和。</div>
+    </div>
+    <div class="pill mono" id="statusPill">READY</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head">
+        <h2>输入与控制</h2>
+        <div class="row">
+          <span class="pill mono" id="stepPill">step 0/0</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row" style="margin-bottom:10px;">
+          <div class="inp">
+            <label>输入整数 n</label>
+            <input id="inNumber" type="number" value="19" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:10px;">
+          <div class="btns">
+            <button class="primary" id="btnBuild">生成推演</button>
+            <button id="btnStep" disabled>单步 ▶</button>
+            <button id="btnPlay" disabled>自动播放 ⏵</button>
+            <button class="danger" id="btnStop" disabled>停止 ⏹</button>
+            <button id="btnReset" disabled>重置 ↺</button>
+          </div>
+
+          <div class="slider">
+            <span>速度</span>
+            <input id="speed" type="range" min="100" max="2000" value="500" />
+            <span class="mono" id="speedVal">500ms</span>
+          </div>
+        </div>
+
+        <div class="bigline">
+           <div class="stringBox">
+             <div class="cap">
+               <b>数值序列 (Seen)</b>
+             </div>
+             <div class="seq-box" id="seqBox"></div>
+           </div>
+
+          <div class="stringBox">
+            <div class="cap">
+              <b>当前计算</b>
+              <span class="idx mono" id="curInfo">n = -, sum = -</span>
+            </div>
+            <div class="stats" id="stats"></div>
+          </div>
+
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <div class="card-head">
+        <h2>Dart 代码</h2>
+        <span class="pill mono" id="linePill">line -</span>
+      </div>
+      <div class="card-body">
+        <div class="code mono" id="codeBox"></div>
+        <div class="hint">如果 n 最终变为 1，则是快乐数；如果进入循环且不含 1，则不是。</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const inNumber = document.getElementById('inNumber');
+  const btnBuild = document.getElementById('btnBuild');
+  const btnStep  = document.getElementById('btnStep');
+  const btnPlay  = document.getElementById('btnPlay');
+  const btnStop  = document.getElementById('btnStop');
+  const btnReset = document.getElementById('btnReset');
+  const speed = document.getElementById('speed');
+  const speedVal = document.getElementById('speedVal');
+  const statusPill = document.getElementById('statusPill');
+  const stepPill = document.getElementById('stepPill');
+  const linePill = document.getElementById('linePill');
+  const codeBox = document.getElementById('codeBox');
+  const stats = document.getElementById('stats');
+  const logEl = document.getElementById('log');
+  const seqBox = document.getElementById('seqBox');
+  
+  const CODE = [
+    'class Solution {',
+    '  bool isHappy(int n) {',
+    '    Set seen = {};',
+    '',
+    '    int getNext(int x) {',
+    '      int sum = 0;',
+    '      while (x > 0) {',
+    '        int d = x % 10;',
+    '        sum += d * d;',
+    '        x ~/= 10;',
+    '      }',
+    '      return sum;',
+    '    }',
+    '',
+    '    while (n != 1 && !seen.contains(n)) {',
+    '      seen.add(n);',
+    '      n = getNext(n);',
+    '    }',
+    '    return n == 1;',
+    '  }',
+    '}'
+  ];
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+  }
+
+  function highlightDart(line){
+    const text = escapeHtml(line);
+    const re = /\/\/.*$|'([^'\\]|\\.)*'|\b(class|while|var|in|if|else|return|true|false)\b|\b(Solution|String|List|Set|Map|bool|int)\b|\b(isHappy|getNext|seen|sum|n)\b|\b(\d+)\b|(\|\||!=|==|<=|>=|=|\+|\-|\*|\/|<<|%|~\/=)|[()\[\]{}]/g;
+
+    return text.replace(re, (m, _s1, kw, type, fn, num, op) => {
+      if (m.startsWith('//')) return `<span class="cm">${m}</span>`;
+      if (m.startsWith("'"))  return `<span class="str">${m}</span>`;
+      if (kw)   return `<span class="kw">${m}</span>`;
+      if (type) return `<span class="type">${m}</span>`;
+      if (fn)   return `<span class="fn">${m}</span>`;
+      if (num)  return `<span class="num">${m}</span>`;
+      if (op)   return `<span class="op">${m}</span>`;
+      return `<span class="br">${m}</span>`;
+    });
+  }
+
+  function renderCode(activeLineIdx) {
+    codeBox.innerHTML = '';
+    CODE.forEach((line, i) => {
+      const row = document.createElement('div');
+      row.className = 'codeLine' + (i === activeLineIdx ? ' hl' : '');
+      const ln = document.createElement('div');
+      ln.className = 'ln';
+      ln.textContent = i + 1;
+      const src = document.createElement('div');
+      src.className = 'src';
+      src.innerHTML = highlightDart(line === '' ? ' ' : line);
+      row.appendChild(ln);
+      row.appendChild(src);
+      codeBox.appendChild(row);
+    });
+    linePill.textContent = 'line ' + (activeLineIdx == null ? '-' : (activeLineIdx + 1));
+  }
+
+  let steps = [];
+  let idxStep = 0;
+  let playing = false;
+  let timer = null;
+  const state = { n: null, seen: [], sum: null, x: null, calc: '' };
+
+  function log(title, detail){
+    const div = document.createElement('div'); div.className = 'item';
+    const k = document.createElement('div'); k.className = 'k mono'; k.textContent = title;
+    const v = document.createElement('div'); v.className = 'v'; v.innerHTML = detail;
+    div.appendChild(k); div.appendChild(v); logEl.prepend(div);
+  }
+
+  function renderStats(){
+    stats.innerHTML = '';
+    
+    // Key-Value stats
+    const items = [
+        ['n', state.n ?? '-'], 
+        ['x', state.x ?? '-'], 
+        ['sum', state.sum ?? '-']
+    ];
+    
+    if (state.calc) {
+        const el = document.createElement('div'); el.className = 'kv';
+        el.style.width = '100%';
+        const val = document.createElement('div'); val.className = 'val mono'; 
+        val.textContent = state.calc;
+        el.appendChild(val);
+        stats.appendChild(el);
+    }
+
+    items.forEach(([k,v]) => {
+      if (v === null || v === undefined) return;
+      const el = document.createElement('div'); el.className = 'kv';
+      const left = document.createElement('div'); left.className = 'key mono'; left.textContent = k;
+      const right = document.createElement('div'); right.className = 'val mono'; right.textContent = String(v);
+      el.appendChild(left); el.appendChild(right); stats.appendChild(el);
+    });
+    
+    document.getElementById('curInfo').textContent = `n = ${state.n ?? '-'}, sum = ${state.sum ?? '-'}`;
+    
+    // Render Sequence
+    seqBox.innerHTML = '';
+    state.seen.forEach((val, i) => {
+      if (i > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'seq-arrow';
+          arrow.innerHTML = '→';
+          seqBox.appendChild(arrow);
+      }
+      
+      const el = document.createElement('div');
+      el.className = 'seq-item';
+      if (val === 1) el.classList.add('happy');
+      // Highlight if it matches current n and we are checking duplicate
+      // But here seen is just history.
+      el.textContent = val;
+      seqBox.appendChild(el);
+    });
+    
+    // Show current n if not in seen yet
+    if (state.n !== null && !state.seen.includes(state.n)) {
+       if (state.seen.length > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'seq-arrow';
+          arrow.innerHTML = '→';
+          seqBox.appendChild(arrow);
+       }
+       const el = document.createElement('div');
+       el.className = 'seq-item active';
+       el.textContent = state.n;
+       seqBox.appendChild(el);
+    }
+  }
+
+  function buildSteps(initialN){
+    const ret = [];
+    let n = initialN;
+    let seen = new Set();
+    
+    ret.push({ 
+        line: 2, 
+        msg: `开始: n = ${n}`, 
+        apply: st => { st.n = n; st.seen = []; st.calc = ''; st.sum = null; st.x = null; } 
+    });
+    
+    ret.push({ 
+        line: 3, 
+        msg: `初始化集合 seen = {}`, 
+        apply: st => { st.seen = []; } 
+    });
+
+    while (n !== 1 && !seen.has(n)) {
+        const currentN = n;
+        ret.push({ 
+            line: 15, 
+            msg: `检查 n=${n} != 1 且不在 seen 中 -> 真` 
+        });
+
+        seen.add(n);
+        const currentSeen = Array.from(seen); // snapshot
+        ret.push({ 
+            line: 16, 
+            msg: `将 ${n} 加入 seen`, 
+            apply: st => { st.seen = currentSeen; } 
+        });
+
+        ret.push({ 
+            line: 17, 
+            msg: `计算 getNext(${n})` 
+        });
+
+        // getNext simulation
+        let x = n;
+        let sum = 0;
+        let calcStrParts = [];
+        
+        ret.push({ line: 6, msg: `[getNext] sum = 0, x = ${x}`, apply: st => { st.sum = 0; st.x = x; st.calc = ''; } });
+
+        while (x > 0) {
+            ret.push({ line: 7, msg: `[getNext] x > 0 (${x}) -> 真` });
+            let d = x % 10;
+            ret.push({ line: 8, msg: `[getNext] d = ${x} % 10 = ${d}` });
+            
+            let oldSum = sum;
+            sum += d * d;
+            calcStrParts.push(`${d}²`);
+            let partialCalc = calcStrParts.join(' + ') + ` = ${sum}`;
+            
+            ret.push({ 
+                line: 9, 
+                msg: `[getNext] sum += ${d}*${d} (${oldSum} -> ${sum})`, 
+                apply: st => { st.sum = sum; st.calc = partialCalc; } 
+            });
+            
+            let oldX = x;
+            x = Math.floor(x / 10);
+            ret.push({ line: 10, msg: `[getNext] x = ${oldX} ~/= 10 -> ${x}`, apply: st => { st.x = x; } });
+        }
+        ret.push({ line: 7, msg: `[getNext] x > 0 (${x}) -> 假` });
+        
+        ret.push({ line: 12, msg: `[getNext] 返回 sum = ${sum}` });
+
+        n = sum;
+        ret.push({ 
+            line: 17, 
+            msg: `n 更新为 ${n}`, 
+            apply: st => { st.n = n; st.sum = null; st.calc = ''; st.x = null; } 
+        });
+    }
+
+    if (n === 1) {
+        ret.push({ line: 15, msg: `检查 n=${n} == 1 -> 循环结束` });
+    } else {
+        ret.push({ line: 15, msg: `检查 n=${n} 已在 seen 中 -> 循环结束 (发现循环)` });
+    }
+
+    const result = n === 1;
+    ret.push({ 
+        line: 19, 
+        done: true, 
+        msg: `返回 ${result} (${result ? '是快乐数' : '不是快乐数'})`, 
+        result: result, 
+        final: true 
+    });
+
+    return ret;
+  }
+
+  function updatePills(){ stepPill.textContent = `step ${Math.min(idxStep+1, steps.length)}/${steps.length}`; }
+  function setBadge(type,text){ statusPill.className='pill mono'; if(type==='good')statusPill.classList.add('good'); if(type==='bad')statusPill.classList.add('bad'); if(type==='warn')statusPill.classList.add('warn'); statusPill.textContent=text; }
+  
+  function renderAt(i){
+    const stp = steps[Math.max(0, Math.min(i, steps.length-1))];
+    renderCode((stp.line-1)>=0 ? (stp.line-1) : null);
+    if (stp.apply) stp.apply(state);
+    renderStats();
+    if (stp.msg) log(`[step ${i+1}]`, stp.msg);
+    if (stp.done){
+      state.result = stp.result;
+      setBadge(stp.result ? 'good' : 'bad', `结果：${stp.result}`);
+    } else { setBadge('warn','推演中…'); }
+    updatePills();
+  }
+
+  function stepOnce(){ if (steps.length===0) return; if (idxStep>=steps.length) return; renderAt(idxStep); idxStep++; if (idxStep>=steps.length) stop(); }
+  function play(){ if (playing) return; playing=true; btnStop.disabled=false; btnPlay.disabled=true; btnStep.disabled=true; const tick=()=>{ if(!playing)return; if(idxStep>=steps.length){ stop(); return; } stepOnce(); timer=setTimeout(tick, Number(speed.value)); }; tick(); }
+  function stop(){ playing=false; if(timer)clearTimeout(timer); timer=null; btnStop.disabled=true; btnPlay.disabled=(idxStep>=steps.length); btnStep.disabled=(idxStep>=steps.length); }
+  function resetUI(){ stats.innerHTML=''; logEl.innerHTML=''; document.getElementById('curInfo').textContent='n = -, sum = -'; stepPill.textContent='step 0/0'; statusPill.className='pill mono'; statusPill.textContent='READY'; renderCode(null); seqBox.innerHTML=''; }
+  
+  function build(){
+    stop();
+    const val = parseInt(inNumber.value);
+    if (isNaN(val)) { alert('请输入有效整数'); return; }
+    
+    state.n = null; state.seen = []; state.sum = null; state.x = null; state.calc = ''; state.result=null;
+    steps = buildSteps(val); idxStep = 0;
+    resetUI(); renderStats(); renderCode(null);
+    btnStep.disabled = false; btnPlay.disabled = false; btnStop.disabled = true; btnReset.disabled = false;
+    updatePills(); setBadge('warn','READY'); log('构建', `生成 ${steps.length} 个步骤。`);
+  }
+
+  btnBuild.addEventListener('click', build);
+  btnStep.addEventListener('click', stepOnce);
+  btnPlay.addEventListener('click', play);
+  btnStop.addEventListener('click', stop);
+  btnReset.addEventListener('click', () => { stop(); idxStep=0; state.n=null; state.seen=[]; state.sum=null; state.x=null; state.calc=''; state.result=null; resetUI(); renderStats(); });
+  speed.addEventListener('input', () => { speedVal.textContent = speed.value + 'ms'; });
+  speedVal.textContent = speed.value + 'ms';
+  resetUI(); renderCode(null);
+})();
+</script>
+</body>
+</html>
