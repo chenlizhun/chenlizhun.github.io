@@ -49,9 +49,7 @@
                 <div class="toolbar-column">
                     <div class="toolbar">
                         <button data-target="simplePanel">🎲 简洁抽签</button>
-                        <button data-target="groupPanel">👥 分组抽签</button>
                         <button data-target="racePanel">🏃 赛跑抽签</button>
-                        <button data-target="wheelPanel">🎡 转盘抽签</button>
                         <button data-target="slotPanel">🎰 老虎机</button>
                         <button data-target="lotteryPanel">🎫 抽奖箱</button>
                         <button data-target="cardPanel">🃏 卡片翻牌</button>
@@ -83,19 +81,6 @@
                 <div class="result" id="simpleResult"></div>
             </div>
 
-            <!-- 分组抽签 -->
-            <div id="groupPanel" class="panel">
-                <div class="panel-left">
-                    <h2><span class="emoji">👥</span>分组抽签</h2>
-                    <div class="panel-tip">随机生成候选名单，再从候选中选出最终幸运者。</div>
-                </div>
-                <div class="panel-right">
-                    <button id="btnGroup" class="btn-primary">开始抽签</button>
-                </div>
-                <div class="group-container" id="groupContainer"></div>
-                <div class="result" id="groupResult"></div>
-            </div>
-
             <!-- 赛跑抽签 -->
             <div id="racePanel" class="panel">
                 <div class="panel-left">
@@ -109,23 +94,6 @@
                     <div id="raceContainer"></div>
                 </div>
                 <div class="result" id="raceResult"></div>
-            </div>
-
-            <!-- 转盘抽签 -->
-            <div id="wheelPanel" class="panel">
-                <div class="panel-left">
-                    <h2><span class="emoji">🎡</span>转盘抽签</h2>
-                    <div class="panel-tip">转盘旋转，指针指向谁，谁就是被抽中的学生。</div>
-                </div>
-                <div class="panel-right">
-                    <button id="btnWheel" class="btn-primary">开始转盘</button>
-                </div>
-                <div class="wheel-container" id="wheelContainer">
-                    <div class="wheel" id="wheel">
-                        <div class="wheel-center"></div>
-                    </div>
-                </div>
-                <div class="result" id="wheelResult"></div>
             </div>
 
             <!-- 老虎机 -->
@@ -228,9 +196,7 @@
 <script src="ui.js"></script>
 <script src="game-base.js"></script>
 <script src="games/simple.js"></script>
-<script src="games/group.js"></script>
 <script src="games/race.js"></script>
-<script src="games/wheel.js"></script>
 <script src="games/slot.js"></script>
 <script src="games/lottery.js"></script>
 <script src="games/card.js"></script>

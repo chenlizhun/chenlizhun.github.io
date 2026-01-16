@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>世友的肉肉仓库</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo">🥩</div>
+      <div class="titles">
+        <h1>世友的肉肉仓库</h1>
+        <p>冻肉类产品展示 · 业务演示</p>
+      </div>
+    </div>
+    <div class="actions">
+      <input id="search-input" class="search" type="search" placeholder="搜索：名称、产地、标签" />
+      <button id="refresh-btn" class="btn primary">刷新数据</button>
+    </div>
+  </header>
+
+  <nav id="category-tabs" class="tabs"></nav>
+
+  <main class="content">
+    <section id="product-list" class="grid"></section>
+  </main>
+
+  <div id="detail-overlay" class="overlay hidden">
+    <div class="detail">
+      <button id="close-detail" class="btn icon close">✕</button>
+      <div class="detail-body">
+        <div class="detail-image">
+          <img id="detail-image" alt="" />
+        </div>
+        <div class="detail-info">
+          <h2 id="detail-name"></h2>
+          <div id="detail-tags" class="tags"></div>
+          <div class="kv">
+            <div><span>类别</span><strong id="detail-category"></strong></div>
+            <div><span>部位/品类</span><strong id="detail-cut"></strong></div>
+            <div><span>产地</span><strong id="detail-origin"></strong></div>
+            <div><span>等级</span><strong id="detail-grade"></strong></div>
+            <div><span>包装规格</span><strong id="detail-packaging"></strong></div>
+            <div><span>重量选项</span><strong id="detail-weights"></strong></div>
+            <div><span>价格区间</span><strong id="detail-price"></strong></div>
+            <div><span>存储温度</span><strong id="detail-temp"></strong></div>
+            <div><span>库存</span><strong id="detail-stock"></strong></div>
+            <div><span>认证</span><strong id="detail-cert"></strong></div>
+          </div>
+          <p id="detail-desc" class="desc"></p>
+          <ul id="detail-highlights" class="highlights"></ul>
+        </div>
+      </div>
+      <div class="detail-controls">
+        <button id="prev-btn" class="btn large">上一款</button>
+        <button id="next-btn" class="btn large">下一款</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
+
