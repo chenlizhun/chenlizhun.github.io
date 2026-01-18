@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fef2f2"/>
+      <stop offset="1" stop-color="#fee2e2"/>
+    </linearGradient>
+    <linearGradient id="meat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f97373"/>
+      <stop offset="1" stop-color="#fb7185"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#bg)"/>
+  <rect x="70" y="90" width="260" height="220" rx="28" fill="#fef2f2" stroke="#fecaca" stroke-width="4"/>
+  <rect x="96" y="130" width="210" height="36" rx="16" fill="url(#meat)"/>
+  <rect x="96" y="172" width="210" height="36" rx="16" fill="#fecaca"/>
+  <rect x="96" y="214" width="210" height="36" rx="16" fill="url(#meat)"/>
+  <rect x="96" y="256" width="210" height="32" rx="16" fill="#fecaca"/>
+  <rect x="350" y="110" width="230" height="44" rx="12" fill="#111827" opacity="0.96"/>
+  <text x="465" y="138" text-anchor="middle" font-size="18" fill="#f9fafb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">丹麦猪五花片 · DEMO</text>
+  <text x="350" y="188" font-size="16" fill="#4b5563" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    片装猪五花 · 肥瘦分明
+  </text>
+  <text x="350" y="214" font-size="14" fill="#6b7280" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    适合烧烤、自助餐、快餐档口
+  </text>
+  <text x="350" y="244" font-size="13" fill="#6b7280" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    · 500g/片 · 20片/箱
+  </text>
+</svg>
+

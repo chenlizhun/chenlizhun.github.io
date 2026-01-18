@@ -9,7 +9,9 @@
 <body>
   <header class="app-header">
     <div class="brand">
-      <div class="logo">🥩</div>
+      <div class="logo">
+        <img src="assets/images/logo.png" alt="世友" class="logo-img" />
+      </div>
       <div class="titles">
         <h1>世友的肉肉仓库</h1>
         <p>冻肉类产品展示 · 业务演示</p>
@@ -31,8 +33,10 @@
     <div class="detail">
       <button id="close-detail" class="btn icon close">✕</button>
       <div class="detail-body">
-        <div class="detail-image">
-          <img id="detail-image" alt="" />
+        <div class="detail-image" id="detail-image-box">
+          <div class="detail-image-main">
+            <img id="detail-image" alt="" />
+          </div>
         </div>
         <div class="detail-info">
           <h2 id="detail-name"></h2>
@@ -51,11 +55,8 @@
           </div>
           <p id="detail-desc" class="desc"></p>
           <ul id="detail-highlights" class="highlights"></ul>
+          <div id="detail-thumbs" class="detail-thumbs"></div>
         </div>
-      </div>
-      <div class="detail-controls">
-        <button id="prev-btn" class="btn large">上一款</button>
-        <button id="next-btn" class="btn large">下一款</button>
       </div>
     </div>
   </div>
@@ -63,4 +64,3 @@
   <script src="js/app.js"></script>
 </body>
 </html>
-

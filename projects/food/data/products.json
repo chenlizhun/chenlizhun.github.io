@@ -17,8 +17,11 @@
       "highlights": ["谷饲风味", "块状分割", "适合餐饮批量出品"],
       "certificates": ["MSA"],
       "tags": ["澳洲", "谷饲", "牛腩", "热销"],
-      "thumb": "assets/images/beef/au_brisket_thumb.jpg",
-      "images": ["assets/images/beef/au_brisket_1.jpg", "assets/images/beef/au_brisket_2.jpg"]
+      "thumb": "assets/images/beef/澳洲牛腩块1.png",
+      "images": [
+        "assets/images/beef/澳洲牛腩块1.png",
+        "assets/images/beef/澳洲牛腩块2.png"
+      ]
     },
     {
       "id": "beef-br-shin-20kg",
@@ -36,8 +39,11 @@
       "highlights": ["筋膜丰富", "卤味首选", "出品稳定"],
       "certificates": ["出口合规"],
       "tags": ["巴西", "牛腱", "性价比"],
-      "thumb": "assets/images/beef/br_shin_thumb.jpg",
-      "images": ["assets/images/beef/br_shin_1.jpg"]
+      "thumb": "assets/images/beef/巴西牛前腱1.png",
+      "images": [
+        "assets/images/beef/巴西牛前腱1.png",
+        "assets/images/beef/巴西牛前腱2.png"
+      ]
     },
     {
       "id": "pork-dk-belly-slice",
@@ -55,8 +61,8 @@
       "highlights": ["肥瘦均衡", "片装省工", "适合连锁餐饮"],
       "certificates": ["出口合规"],
       "tags": ["丹麦", "五花", "片装"],
-      "thumb": "assets/images/pork/dk_belly_slice_thumb.jpg",
-      "images": ["assets/images/pork/dk_belly_slice_1.jpg"]
+      "thumb": "assets/images/pork/丹麦猪五花1.png",
+      "images": ["assets/images/pork/丹麦猪五花1.png"]
     },
     {
       "id": "pork-import-hock",
@@ -74,8 +80,8 @@
       "highlights": ["胶原丰富", "多场景适配", "口感Q弹"],
       "certificates": ["出口合规"],
       "tags": ["猪肘", "烤制", "卤味"],
-      "thumb": "assets/images/pork/import_hock_thumb.jpg",
-      "images": ["assets/images/pork/import_hock_1.jpg"]
+      "thumb": "assets/images/pork/进口猪肘1.png",
+      "images": ["assets/images/pork/进口猪肘1.png"]
     },
     {
       "id": "chicken-tyson-drumstick",
@@ -93,8 +99,8 @@
       "highlights": ["连锁稳定", "炸烤皆宜", "出餐速度快"],
       "certificates": ["出口合规", "HACCP"],
       "tags": ["鸡腿", "连锁", "炸鸡"],
-      "thumb": "assets/images/chicken/tyson_drumstick_thumb.jpg",
-      "images": ["assets/images/chicken/tyson_drumstick_1.jpg"]
+      "thumb": "assets/images/chicken/泰森鸡腿1.png",
+      "images": ["assets/images/chicken/泰森鸡腿1.png"]
     },
     {
       "id": "lamb-nz-rack",
@@ -112,8 +118,8 @@
       "highlights": ["高端出品", "摆盘优选", "肉质细嫩"],
       "certificates": ["出口合规"],
       "tags": ["羔羊", "西餐", "法餐"],
-      "thumb": "assets/images/lamb/nz_rack_thumb.jpg",
-      "images": ["assets/images/lamb/nz_rack_1.jpg"]
+      "thumb": "assets/images/lamb/新西兰羔羊排1.png",
+      "images": ["assets/images/lamb/新西兰羔羊排1.png"]
     },
     {
       "id": "prepared-pepper-beef-strips",
@@ -131,9 +137,8 @@
       "highlights": ["节省后厨", "口味稳定", "即用型"],
       "certificates": ["QS"],
       "tags": ["预制菜", "快餐", "黑椒"],
-      "thumb": "assets/images/prepared/pepper_beef_strips_thumb.jpg",
-      "images": ["assets/images/prepared/pepper_beef_strips_1.jpg"]
+      "thumb": "assets/images/prepared/黑椒牛柳预制1.png",
+      "images": ["assets/images/prepared/黑椒牛柳预制1.png"]
     }
   ]
 }
-

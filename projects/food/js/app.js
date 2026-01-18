@@ -5,7 +5,8 @@ const state = {
   filtered: [],
   activeCategory: '全部',
   searchText: '',
-  currentIndex: -1
+  currentIndex: -1,
+  currentImageIndex: 0
 };
 
 const PLACEHOLDER_IMG = (function () {
@@ -36,14 +37,20 @@ function setImageWithFallback(imgEl, src) {
 }
 
 async function loadData() {
-  const res = await fetch('data/products.json?' + Date.now());
-  const data = await res.json();
-  state.raw = data;
-  state.categories = ['全部', ...data.categories];
-  state.products = data.products;
-  applyFilter();
-  renderCategories();
-  renderProducts();
+  try {
+    const res = await fetch('data/products.json?' + Date.now());
+    if (!res.ok) throw new Error('网络错误');
+    const data = await res.json();
+    state.raw = data;
+    state.categories = ['全部', ...data.categories];
+    state.products = data.products;
+    applyFilter();
+    renderCategories();
+    renderProducts();
+  } catch (e) {
+    console.error(e);
+    alert('产品数据加载失败，请稍后重试。');
+  }
 }
 
 function renderCategories() {
@@ -114,6 +121,7 @@ function renderProducts() {
 
 function openDetail(index) {
   state.currentIndex = index;
+  state.currentImageIndex = 0;
   const p = state.filtered[index];
   const overlay = document.getElementById('detail-overlay');
   overlay.classList.remove('hidden');
@@ -136,8 +144,33 @@ function openDetail(index) {
     li.textContent = x;
     hl.appendChild(li);
   });
-  const img = document.getElementById('detail-image');
-  setImageWithFallback(img, p.images && p.images.length ? p.images[0] : (p.thumb || ''));
+  renderDetailImages(p);
+}
+
+function renderDetailImages(p) {
+  const images = p.images && p.images.length ? p.images.slice() : [];
+  if (!images.length && p.thumb) images.push(p.thumb);
+  if (!images.length) images.push('');
+  if (state.currentImageIndex >= images.length) state.currentImageIndex = 0;
+  const main = document.getElementById('detail-image');
+  setImageWithFallback(main, images[state.currentImageIndex] || images[0]);
+  const wrap = document.getElementById('detail-thumbs');
+  wrap.innerHTML = '';
+  images.forEach((src, i) => {
+    const box = document.createElement('button');
+    box.type = 'button';
+    box.className = 'detail-thumb' + (i === state.currentImageIndex ? ' active' : '');
+    box.dataset.index = String(i);
+    const img = document.createElement('img');
+    img.alt = p.name + ' 图 ' + (i + 1);
+    setImageWithFallback(img, src);
+    box.onclick = () => {
+      state.currentImageIndex = i;
+      renderDetailImages(p);
+    };
+    box.appendChild(img);
+    wrap.appendChild(box);
+  });
 }
 
 function closeDetail() {
@@ -156,6 +189,26 @@ function showPrev() {
   openDetail(prev);
 }
 
+function showNextImage() {
+  if (state.currentIndex < 0) return;
+  const p = state.filtered[state.currentIndex];
+  if (!p) return;
+  const images = p.images && p.images.length ? p.images : (p.thumb ? [p.thumb] : []);
+  if (!images.length || images.length <= 1) return;
+  state.currentImageIndex = (state.currentImageIndex + 1) % images.length;
+  renderDetailImages(p);
+}
+
+function showPrevImage() {
+  if (state.currentIndex < 0) return;
+  const p = state.filtered[state.currentIndex];
+  if (!p) return;
+  const images = p.images && p.images.length ? p.images : (p.thumb ? [p.thumb] : []);
+  if (!images.length || images.length <= 1) return;
+  state.currentImageIndex = (state.currentImageIndex - 1 + images.length) % images.length;
+  renderDetailImages(p);
+}
+
 function bindEvents() {
   const search = document.getElementById('search-input');
   search.addEventListener('input', e => {
@@ -163,11 +216,18 @@ function bindEvents() {
     applyFilter();
     renderProducts();
   });
-  document.getElementById('refresh-btn').onclick = () => loadData();
-  document.getElementById('close-detail').onclick = () => closeDetail();
-  document.getElementById('next-btn').onclick = () => showNext();
-  document.getElementById('prev-btn').onclick = () => showPrev();
+  const refreshBtn = document.getElementById('refresh-btn');
+  const closeBtn = document.getElementById('close-detail');
+  if (refreshBtn) refreshBtn.onclick = () => loadData();
+  if (closeBtn) closeBtn.onclick = () => closeDetail();
+  const nextBtn = document.getElementById('next-btn');
+  const prevBtn = document.getElementById('prev-btn');
+  if (nextBtn) nextBtn.onclick = () => showNext();
+  if (prevBtn) prevBtn.onclick = () => showPrev();
   const overlay = document.getElementById('detail-overlay');
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeDetail();
+  });
   let startX = 0;
   let startY = 0;
   let tracking = false;
@@ -190,6 +250,37 @@ function bindEvents() {
       if (dx < 0) showNext(); else showPrev();
     }
   });
+  const imageBox = document.getElementById('detail-image-box');
+  if (imageBox) {
+    let ix = 0;
+    let iy = 0;
+    let moving = false;
+    imageBox.addEventListener('touchstart', e => {
+      if (!e.touches[0]) return;
+      const t = e.touches[0];
+      ix = t.clientX;
+      iy = t.clientY;
+      moving = true;
+      e.stopPropagation();
+    }, { passive: true });
+    imageBox.addEventListener('touchend', e => {
+      if (!moving) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - ix;
+      const dy = t.clientY - iy;
+      moving = false;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0) showNextImage(); else showPrevImage();
+      }
+      e.stopPropagation();
+    }, { passive: true });
+  }
+  const mainImage = document.getElementById('detail-image');
+  if (mainImage) {
+    mainImage.addEventListener('click', () => {
+      showNextImage();
+    });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {

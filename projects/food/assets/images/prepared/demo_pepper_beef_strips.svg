@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#fee2e2"/>
+    </linearGradient>
+    <linearGradient id="meat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b91c1c"/>
+      <stop offset="1" stop-color="#f97373"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#bg)"/>
+  <rect x="70" y="90" width="260" height="220" rx="28" fill="#fef2f2" stroke="#e5e7eb" stroke-width="4"/>
+  <rect x="96" y="150" width="200" height="18" rx="9" fill="url(#meat)"/>
+  <rect x="110" y="178" width="210" height="18" rx="9" fill="#fecaca"/>
+  <rect x="96" y="206" width="210" height="18" rx="9" fill="url(#meat)"/>
+  <rect x="110" y="234" width="200" height="18" rx="9" fill="#fecaca"/>
+  <circle cx="280" cy="154" r="4" fill="#111827" opacity="0.7"/>
+  <circle cx="260" cy="210" r="4" fill="#111827" opacity="0.7"/>
+  <rect x="350" y="110" width="240" height="44" rx="12" fill="#111827" opacity="0.96"/>
+  <text x="470" y="138" text-anchor="middle" font-size="18" fill="#f9fafb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">黑椒牛柳预制 · DEMO</text>
+  <text x="350" y="188" font-size="16" fill="#4b5563" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    预制牛柳 · 黑椒风味
+  </text>
+  <text x="350" y="214" font-size="14" fill="#6b7280" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    腌制入味 · 开袋即用 · 适合快餐与团餐
+  </text>
+  <text x="350" y="244" font-size="13" fill="#6b7280" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial">
+    · 1kg/袋 · 10袋/箱
+  </text>
+</svg>
+

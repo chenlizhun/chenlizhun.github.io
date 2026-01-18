@@ -1,11 +1,11 @@
 :root {
-  --bg: #f7f8fa;
+  --bg: #fdf4f4;
   --card: #ffffff;
-  --text: #1f2937;
+  --text: #111827;
   --muted: #6b7280;
   --primary: #b91c1c;
-  --primary-ink: #fff;
-  --border: #e5e7eb;
+  --primary-ink: #ffffff;
+  --border: #f3e2e2;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -26,8 +26,9 @@ body {
   background: var(--card);
   border-bottom: 1px solid var(--border);
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.logo { font-size: 28px; line-height: 1; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logo-img { height: 38px; max-width: 220px; width: auto; display: block; }
 .titles h1 { margin: 0; font-size: 22px; }
 .titles p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
 .actions { display: flex; align-items: center; gap: 10px; }
@@ -129,8 +130,49 @@ body {
   gap: 0;
   border-bottom: 1px solid var(--border);
 }
-.detail-image { background: #f3f4f6; display: grid; place-items: center; }
-.detail-image img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1 / 1; }
+.detail-image {
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+}
+.detail-image-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.detail-image-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+}
+.detail-thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px 12px;
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  background: #f9fafb;
+}
+.detail-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+.detail-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detail-thumb.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.25);
+}
 .detail-info { padding: 16px; display: grid; gap: 10px; }
 .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
 .kv div { display: flex; align-items: center; justify-content: space-between; }
@@ -148,4 +190,12 @@ body {
 @media (max-width: 900px) {
   .detail-body { grid-template-columns: 1fr; }
 }
-
+@media (min-width: 1024px) {
+  .app-header {
+    padding: 10px 32px;
+  }
+  .logo-img {
+    height: 34px;
+    max-width: 200px;
+  }
+}

@@ -1,0 +1,100 @@
+1. 客户需要动哪两样东西？
+
+- 文本和产品信息： projects/food/data/products.json
+- 图片文件： projects/food/assets/images
+只要会：
+
+- 用一个文本编辑器打开 products.json ；
+- 把图片复制到对应文件夹（牛肉/猪肉/鸡肉/羊肉/预制菜）， 他们就可以自己更新所有图片和文案。
+2. JSON 一条产品记录怎么改？
+
+以“澳洲牛腩块 2kg/袋”为例（已经帮你写好）： products.json
+
+关键字段解释（客户只需要记这些）：
+
+- name ：产品名称（列表和详情显示）
+- category ：类别（牛肉 / 猪肉 / 鸡肉 / 羊肉 / 预制菜）
+- cut ：部位/品类（比如 “牛腩块”、“猪肘”、“鸡琵琶腿”）
+- origin ：产地（国家/地区）
+- grade ：等级（例如 MSA、羔羊、标准级）
+- packaging ：包装规格（如 “2kg/袋，8袋/箱”）
+- weightOptions ：列表形式，写可选重量（如 ["2kg/袋","16kg/箱"]）
+- priceRange ：参考价格区间（文字，不是计算，方便业务口头讲）
+- temperature ：存储温度（如 "-18℃ 冷冻"）
+- stockStatus ：库存状态（现货 / 期货 / 定制）
+- description ：一段整体描述
+- highlights ：卖点数组（每一条在详情页是一个小点）
+- certificates ：认证（如 MSA、HACCP、QS）
+- tags ：标签（用于列表显示和搜索）
+- thumb ：列表缩略图图片路径
+- images ：详情页大图列表（可以多张）
+客户要做的事非常简单：
+
+- 想改文字：找到对应产品的那一段，把 above 这些字段改成自己的内容。
+- 想新增产品：复制一段完整的 { ... } ，粘贴到数组最后，改字段内容即可（注意 id 不要重复）。
+改完 products.json 后：
+
+1. 保存文件。
+2. 回到 iPad 页面，点右上角“刷新数据”按钮（已经实现 loadData() 重新加载 JSON）。 不用重装 APP，数据就会更新。
+3. 客户如何维护图片？
+
+目录已经按类别帮你规划好：
+
+- 牛肉图： assets/images/beef/
+- 猪肉图： assets/images/pork/
+- 鸡肉图： assets/images/chicken/
+- 羊肉图： assets/images/lamb/
+- 预制菜图： assets/images/prepared/
+客户只需要：
+
+1. 把对应产品的图片文件拷贝到合适的文件夹。 例如：
+   
+   - 澳洲牛腩块： assets/images/beef/au_brisket_1.jpg
+   - 泰森鸡腿： assets/images/chicken/tyson_drumstick_1.jpg
+2. 在 products.json 中，修改对应产品的 thumb 和 images ：
+   
+   ```
+   "thumb": "assets/images/beef/
+   au_brisket_1.jpg",
+   "images": [
+     "assets/images/beef/au_brisket_1.
+     jpg",
+     "assets/images/beef/au_brisket_2.jpg"
+   ]
+   ```
+一些建议，方便客户后续长期维护：
+
+- 命名规则简单统一 ：
+  - 英文+下划线，比如 au_brisket_1.jpg , au_brisket_2.jpg 。
+  - 不要用空格和中文文件名，减少路径出错概率。
+- 缩略图与大图 ：
+  - thumb 通常用一张清晰但体积稍小的图；
+  - images 里可以放 1~3 张细节图（整箱、单袋、拆包）。
+如果路径写错了，前端会自动用占位图显示，不会“爆红”，但为了不浪费带宽，建议客户按上面方式拷贝和命名。
+
+4. 客户操作流程可以总结成四步
+
+你可以直接给客户说：
+
+以后你们要自己维护内容，就记住两个地方： 1） products.json 管文字和价格 2） assets/images 管图片。 操作流程是：
+
+- 把图片丢到对应文件夹；
+- 在 JSON 里改路径和文字；
+- 保存后，iPad 里点“刷新数据”，就更新了。
+
+完整四步：
+
+1. 拷贝图片到 assets/images/... 里对应分类文件夹。
+2. 打开 projects/food/data/products.json 。
+3. 找到产品，修改：
+   - 文本内容（名称、描述、价格区间等）
+   - 图片路径（thumb + images）
+4. 回到页面，点击“刷新数据”按钮，确认展示正确。
+5. 防呆建议（你内部可以帮客户把控）
+
+- 建议客户用 VS Code / WebStorm 之类的编辑器打开 JSON，有语法高亮和错误提示，避免漏逗号。
+- 告知客户：
+  - 每两条产品之间用逗号分隔；
+  - 最后一条产品后面不要加逗号；
+  - 路径大小写必须与文件名完全一致（区分大小写的系统上会出错）。
+- 可以让他们先在测试 iPad 或测试浏览器上改一两条，熟悉流程，再大批量调整。
