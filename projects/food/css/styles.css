@@ -116,6 +116,7 @@ body {
 .overlay.hidden { display: none; }
 .detail {
   width: min(980px, 92vw);
+  height: 90vh;
   max-height: 90vh;
   background: var(--card);
   border-radius: 16px;
@@ -129,23 +130,36 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 0;
   border-bottom: 1px solid var(--border);
+  flex: 1;
+  min-height: 0;
 }
 .detail-image {
   background: #f3f4f6;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 .detail-image-main {
   flex: 1;
   min-height: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  overflow: hidden;
+  position: relative;
 }
 .detail-image-main img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  aspect-ratio: 1 / 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  height: auto;
+  max-width: calc(100% - 20px);
+  max-height: calc(100% - 20px);
+  object-fit: contain;
+  border-radius: 4px;
 }
 .detail-thumbs {
   display: flex;
@@ -189,6 +203,12 @@ body {
 .close { position: absolute; top: 10px; right: 10px; }
 @media (max-width: 900px) {
   .detail-body { grid-template-columns: 1fr; }
+}
+.detail-body.image-only {
+  grid-template-columns: 1fr;
+}
+.detail-body.image-only .detail-info {
+  display: none;
 }
 @media (min-width: 1024px) {
   .app-header {

@@ -6,7 +6,8 @@ const state = {
   activeCategory: '全部',
   searchText: '',
   currentIndex: -1,
-  currentImageIndex: 0
+  currentImageIndex: 0,
+  showingInfo: false
 };
 
 const PLACEHOLDER_IMG = (function () {
@@ -122,6 +123,8 @@ function renderProducts() {
 function openDetail(index) {
   state.currentIndex = index;
   state.currentImageIndex = 0;
+  state.showingInfo = false;
+  updateDetailLayout();
   const p = state.filtered[index];
   const overlay = document.getElementById('detail-overlay');
   overlay.classList.remove('hidden');
@@ -173,6 +176,15 @@ function renderDetailImages(p) {
   });
 }
 
+function updateDetailLayout() {
+  const body = document.querySelector('.detail-body');
+  if (state.showingInfo) {
+    body.classList.remove('image-only');
+  } else {
+    body.classList.add('image-only');
+  }
+}
+
 function closeDetail() {
   const overlay = document.getElementById('detail-overlay');
   overlay.classList.add('hidden');
@@ -193,11 +205,27 @@ function showNextImage() {
   if (state.currentIndex < 0) return;
   const p = state.filtered[state.currentIndex];
   if (!p) return;
-  const images = p.images && p.images.length ? p.images : (p.thumb ? [p.thumb] : []);
-  if (!images.length || images.length <= 1) return;
-  state.currentImageIndex = (state.currentImageIndex + 1) % images.length;
-  renderDetailImages(p);
+  
+  const images = p.images && p.images.length ? p.images.slice() : [];
+  if (!images.length && p.thumb) images.push(p.thumb);
+  if (!images.length) images.push('');
+
+  if (state.showingInfo) {
+    state.showingInfo = false;
+    state.currentImageIndex = 0;
+    updateDetailLayout();
+    renderDetailImages(p);
+  } else {
+    if (state.currentImageIndex >= images.length - 1) {
+      state.showingInfo = true;
+      updateDetailLayout();
+    } else {
+      state.currentImageIndex++;
+      renderDetailImages(p);
+    }
+  }
 }
+
 
 function showPrevImage() {
   if (state.currentIndex < 0) return;
