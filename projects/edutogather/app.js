@@ -209,10 +209,10 @@ function render() {
                 ${state.currentTab === 'dashboard' ? renderDashboardView() : ''}
                 ${state.currentTab === 'points' ? renderPointsView() : ''}
                 ${state.currentTab === 'stats' ? renderStatsView() : ''}
-                ${state.currentTab === 'review' ? renderReviewView() : ''}
-                ${state.currentTab === 'display' ? '' : ''}
-                ${state.currentTab === 'settings' ? renderSettingsView() : ''}
-            </div>
+                ${state.currentTab === 'display' ? renderDisplayView() : ''}
+                 ${state.currentTab === 'review' ? renderReviewView() : ''}
+                 ${state.currentTab === 'settings' ? renderSettingsView() : ''}
+             </div>
 
             ${renderBottomNav()}
             ${renderLoginModal()} <!-- Legacy modal for pin entry if needed -->
@@ -348,11 +348,23 @@ window.selectFamily = (familyId) => {
         // Fix: Check if we have fresher info in allFamilies (directory) and update cache
         // This solves the issue where directory shows new name but entering family shows old name
         const freshInfo = state.allFamilies.find(f => f._id === familyId);
-        if (freshInfo && freshInfo.name !== family.info.name) {
-            console.log(`Updating family name from directory cache: ${family.info.name} -> ${freshInfo.name}`);
-            family.info.name = freshInfo.name;
-            // Persist the update to local cache
-            FamilyCache.save(state.availableFamilies);
+        if (freshInfo) {
+            let changed = false;
+            if (freshInfo.name !== family.info.name) {
+                console.log(`Updating family name from directory cache: ${family.info.name} -> ${freshInfo.name}`);
+                family.info.name = freshInfo.name;
+                changed = true;
+            }
+            if (freshInfo.display_series !== undefined && freshInfo.display_series !== family.info.display_series) {
+                console.log(`Updating family series from directory cache: ${family.info.display_series} -> ${freshInfo.display_series}`);
+                family.info.display_series = freshInfo.display_series;
+                changed = true;
+            }
+            
+            if (changed) {
+                // Persist the update to local cache
+                FamilyCache.save(state.availableFamilies);
+            }
         }
 
         DataStore.selectFamily(family);
@@ -605,14 +617,12 @@ window.handleLogout = async () => {
         return;
     }
 
-    if (confirm('确定要退出当前家庭登录吗？')) {
-        await DataStore.logout();
-        state.user = null;
-        state.family = null;
-        state.kids = [];
-        state.authMode = 'login';
-        render();
-    }
+    await DataStore.logout();
+    state.user = null;
+    state.family = null;
+    state.kids = [];
+    state.authMode = 'login';
+    render();
 }
 
 function renderBottomNav() {
@@ -620,6 +630,7 @@ function renderBottomNav() {
         { id: 'home', label: '首页', icon: '🏠' },
         { id: 'points', label: '加减分', icon: '✨' },
         { id: 'dashboard', label: '报表', icon: '📊' },
+        { id: 'display', label: '展示', icon: '📺' },
         { id: 'settings', label: '设置', icon: '⚙️' }
     ];
     return `
@@ -687,14 +698,12 @@ function renderHomeSimple() {
     // Special layout for single kid to maximize visibility
     if (state.kids.length === 1) {
         const kid = state.kids[0];
-        const icon = getSeriesIcon(kid.current_points);
         return `
             <div class="mb-4">
                 <div class="bg-white rounded-3xl shadow-lg p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[50vh]">
                     <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-r ${kid.gender === 'girl' ? 'from-pink-400 to-pink-200' : 'from-blue-400 to-blue-200'}"></div>
                     <div class="text-3xl text-gray-500 mb-6 font-bold tracking-wider">${kid.name}</div>
                     <div class="flex-1 flex flex-col items-center justify-center w-full my-4">
-                        ${icon ? `<div class="text-[8rem] mb-4 animate-bounce">${icon}</div>` : ''}
                         <div class="font-extrabold tracking-tighter ${kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}" 
                              style="font-size: clamp(6rem, 40vw, 12rem); line-height: 0.9; text-shadow: 2px 2px 0px rgba(0,0,0,0.05);">
                             ${kid.current_points}
@@ -709,13 +718,11 @@ function renderHomeSimple() {
     return `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             ${state.kids.map(kid => {
-                const icon = getSeriesIcon(kid.current_points);
                 return `
                 <div class="bg-white rounded-2xl shadow p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[240px]">
                     <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r ${kid.gender === 'girl' ? 'from-pink-400 to-pink-200' : 'from-blue-400 to-blue-200'}"></div>
                     <div class="text-xl text-gray-500 mb-2 font-bold">${kid.name}</div>
                     <div class="flex-1 flex flex-col items-center justify-center w-full">
-                        ${icon ? `<div class="text-6xl mb-2">${icon}</div>` : ''}
                         <div class="font-extrabold tracking-tight ${kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}" style="font-size: clamp(3rem, 15vw, 6rem); line-height: 1;">
                             ${kid.current_points}
                         </div>
@@ -903,6 +910,7 @@ window.handleUpdateFamilyPin = async () => {
 }
 
 function getSeriesIcon(points) {
+    // Fix: Read from info object
     const seriesId = (state.family && state.family.display_series) || 3;
     const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
     
@@ -923,10 +931,12 @@ function getSeriesIcon(points) {
 }
 
 function renderDisplayView() {
+    // Fix: Read from info object
     const currentSeriesId = (state.family && state.family.display_series) || 3;
     
     return `
         <div class="space-y-6">
+            <!-- Series Settings -->
             <div class="bg-white rounded-xl shadow p-6">
                 <h3 class="text-lg font-bold mb-4">展示系列设置</h3>
                 <p class="text-sm text-gray-500 mb-6">选择不同的主题系列，孩子的积分将展示为对应的图标。</p>
@@ -960,7 +970,24 @@ window.handleSetSeries = async (seriesId) => {
     if (state.isDemo) return alert('这仅为示例，无法修改。');
     
     // Optimistic update
-    state.family.display_series = seriesId;
+    // Update the correct path: state.family.display_series
+    if (state.family) {
+        state.family.display_series = seriesId;
+    }
+    
+    // Also update the directory cache (state.allFamilies) so Poster View sees it immediately
+    const dirFamily = state.allFamilies.find(f => f._id === state.family._id);
+    if (dirFamily) {
+        dirFamily.display_series = seriesId;
+    }
+
+    // Also update availableFamilies cache
+    const availFamily = state.availableFamilies.find(f => f.info._id === state.family._id);
+    if (availFamily && availFamily.info) {
+        availFamily.info.display_series = seriesId;
+        FamilyCache.save(state.availableFamilies);
+    }
+    
     render();
     
     const res = await DataStore.updateFamilySeries(seriesId);
@@ -974,8 +1001,20 @@ window.handleSetSeries = async (seriesId) => {
 // --- Poster Logic ---
 
 window.openPoster = (familyId) => {
-    // Try to find in directory first
-    const family = state.allFamilies.find(f => f._id === familyId);
+    // Prefer current active family if ID matches, to get latest unsaved/optimistic changes
+    let family = null;
+    if (state.family && state.family._id === familyId) {
+        // Construct a flat family object compatible with renderPosterView
+        // Note: state.family is already flat (info object), we just need to attach kids
+        family = {
+            ...state.family,
+            kids: state.kids // Use current kids state
+        };
+    } else {
+        // Otherwise find in directory
+        family = state.allFamilies.find(f => f._id === familyId);
+    }
+
     if (family) {
         state.posterFamily = family;
         state.showPoster = true;
@@ -1018,31 +1057,49 @@ function renderPosterView() {
                 <div class="flex-1 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-8 content-center">
                     ${family.kids.map(kid => {
                         const icons = getSeriesIconsDecomposed(kid.current_points, series);
+                        const icons1 = icons.filter(i => i.val === 1);
+                        const icons10 = icons.filter(i => i.val === 10);
+                        const icons100 = icons.filter(i => i.val === 100);
+                        const icons1000 = icons.filter(i => i.val === 1000);
+                        
                         return `
-                        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-10 border border-white/20 shadow-2xl flex flex-col items-center">
-                            <div class="text-2xl md:text-4xl font-bold mb-4 ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'}">
-                                ${kid.name}
-                            </div>
-                            
-                            <div class="text-5xl md:text-7xl font-black mb-8 font-mono tracking-wider text-yellow-400 drop-shadow-lg">
-                                ${kid.current_points}
+                        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="text-3xl md:text-4xl font-bold ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'}">${kid.name}</div>
+                                <div class="bg-yellow-400/20 px-4 py-2 rounded-xl text-yellow-300 font-mono font-bold text-2xl">
+                                    ${kid.current_points}
+                                </div>
                             </div>
 
-                            <div class="w-full bg-black/20 rounded-2xl p-6 min-h-[200px] flex flex-wrap justify-center content-center gap-4">
-                                ${icons.length > 0 ? icons.map(icon => `
-                                    <div class="text-5xl md:text-7xl animate-bounce-slow filter drop-shadow-md transform hover:scale-110 transition duration-300 cursor-default" title="${icon.val}">
-                                        ${icon.char}
+                            <div class="w-full bg-black/20 rounded-2xl flex flex-col overflow-hidden">
+                                <!-- Row 1: 1s -->
+                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
+                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1</div>
+                                    <div class="flex-1 flex flex-wrap gap-2">
+                                        ${icons1.map(i => `<span class="text-3xl md:text-4xl animate-bounce-slow">${i.char}</span>`).join('')}
                                     </div>
-                                `).join('') : '<div class="text-gray-400 text-xl">继续加油！</div>'}
-                            </div>
-                            
-                            <!-- Legend -->
-                            <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-400">
-                                ${icons.length > 0 ? `
-                                    <div class="flex gap-2">
-                                       ${Object.values(series.icons).map((char, i) => `<span>${char}=${LEVEL_THRESHOLDS[i]}</span>`).join(' ')}
+                                </div>
+                                <!-- Row 2: 10s -->
+                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
+                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">10</div>
+                                    <div class="flex-1 flex flex-wrap gap-2">
+                                        ${icons10.map(i => `<span class="text-4xl md:text-5xl animate-bounce-slow">${i.char}</span>`).join('')}
                                     </div>
-                                ` : ''}
+                                </div>
+                                <!-- Row 3: 100s -->
+                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
+                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">100</div>
+                                    <div class="flex-1 flex flex-wrap gap-2">
+                                        ${icons100.map(i => `<span class="text-5xl md:text-6xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                    </div>
+                                </div>
+                                <!-- Row 4: 1000s -->
+                                <div class="flex items-center p-3 gap-3 min-h-[70px]">
+                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1k</div>
+                                    <div class="flex-1 flex flex-wrap gap-2">
+                                        ${icons1000.map(i => `<span class="text-6xl md:text-7xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         `;
@@ -1106,7 +1163,7 @@ function renderSettingsView() {
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">家庭名称</label>
                     <div class="flex gap-2">
-                        <input type="text" id="setting-family-name" value="${state.family.info.name}" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
+                        <input type="text" id="setting-family-name" value="${state.family.name}" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
                         <button onclick="handleEditFamilyName()" class="px-4 py-2 bg-primary text-white rounded hover:bg-indigo-700">修改</button>
                     </div>
                 </div>
@@ -1121,35 +1178,6 @@ function renderSettingsView() {
                 </div>
             </div>
         </div>
-
-        <div class="bg-white rounded-xl shadow p-6 mb-6">
-            <h3 class="text-lg font-bold mb-4">展示系列设置</h3>
-            <p class="text-sm text-gray-500 mb-6">选择不同的主题系列，展示页面将使用对应的图标。</p>
-            
-            <div class="space-y-4">
-                ${Object.values(SERIES_CONFIG).map(s => {
-                    const currentSeriesId = state.family.display_series || 3;
-                    return `
-                    <div onclick="handleSetSeries(${s.id})" 
-                            class="border-2 rounded-xl p-4 cursor-pointer transition relative ${currentSeriesId == s.id ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-blue-300'}">
-                        
-                        ${currentSeriesId == s.id ? '<div class="absolute top-2 right-2 text-primary">✅</div>' : ''}
-                        
-                        <div class="font-bold text-lg mb-2">${s.name}</div>
-                        <div class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm">
-                            ${s.icons.map((icon, idx) => `
-                                <div class="flex flex-col items-center">
-                                    <span class="text-2xl mb-1">${icon}</span>
-                                    <span class="text-xs text-gray-400">≥${LEVEL_THRESHOLDS[idx]}</span>
-                                </div>
-                            `).join('<div class="text-gray-300">→</div>')}
-                        </div>
-                        <div class="mt-2 text-xs text-gray-500">${s.desc}</div>
-                    </div>
-                `}).join('')}
-            </div>
-        </div>
-
 
             <div class="bg-white rounded-xl shadow p-6">
                 <h3 class="text-lg font-bold mb-4">添加孩子</h3>

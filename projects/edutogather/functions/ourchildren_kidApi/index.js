@@ -396,6 +396,7 @@ async function handleGetAllFamilies(openId, payload) {
             name: f.name,
             created_at: f.created_at,
             owner_id: f.owner_id,
+            display_series: f.display_series,
             kids: kidsRes.data.map(k => ({
                 name: k.name,
                 gender: k.gender,
