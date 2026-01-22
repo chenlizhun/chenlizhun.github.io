@@ -737,12 +737,23 @@ function renderHeader() {
                 <div class="text-2xl font-black tracking-tight text-gray-900">${state.family.name}</div>
                 <div class="text-xs text-gray-500">ID: ${state.family._id}</div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-col items-end gap-1">
                 <span class="text-sm text-gray-600">${state.user.nickname}</span>
-                <button onclick="handleLogout()" class="text-xs text-gray-500 hover:text-danger">退出</button>
+                <div class="flex gap-2">
+                    <button onclick="handleBackToFamilyList()" class="text-xs text-gray-500 hover:text-primary">返回家庭列表</button>
+                    <button onclick="handleLogout()" class="text-xs text-gray-500 hover:text-danger">退出</button>
+                </div>
             </div>
         </div>
     `;
+}
+
+window.handleBackToFamilyList = () => {
+    state.user = null;
+    state.family = null;
+    state.kids = [];
+    state.currentTab = 'home';
+    render();
 }
 
 window.handleLogout = async () => {
