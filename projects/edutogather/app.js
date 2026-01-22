@@ -434,26 +434,72 @@ window.handleAuthSubmit = async (mode) => {
         let familyToEnter = res.newFamily;
         
         // Fallback for old backend or if newFamily is missing but we have ID
-        if (!familyToEnter && res.familyId && mode === 'register') {
-            console.warn('Backend did not return full family object, constructing locally...');
-            const familyName = document.getElementById('auth-family-name').value;
-            familyToEnter = {
-                info: {
-                    _id: res.familyId,
-                    name: familyName,
-                    admin_pin: pin,
-                    owner_id: state.currentOpenId, // Best guess
-                    created_at: new Date().toISOString()
-                },
-                user: {
-                    family_id: res.familyId,
-                    nickname: nickname,
-                    role: 'admin',
-                    _openid: state.currentOpenId,
-                    joined_at: new Date().toISOString()
-                },
-                kids: []
-            };
+        if (!familyToEnter && res.familyId) {
+            if (mode === 'register') {
+                console.warn('Backend did not return full family object, constructing locally...');
+                const familyName = document.getElementById('auth-family-name').value;
+                familyToEnter = {
+                    info: {
+                        _id: res.familyId,
+                        name: familyName,
+                        admin_pin: pin,
+                        owner_id: state.currentOpenId, // Best guess
+                        created_at: new Date().toISOString()
+                    },
+                    user: {
+                        family_id: res.familyId,
+                        nickname: nickname,
+                        role: 'admin',
+                        _openid: state.currentOpenId,
+                        joined_at: new Date().toISOString()
+                    },
+                    kids: []
+                };
+            } else if (mode === 'join') {
+                 // Try to construct from backend response (Best)
+                 if (res.family) {
+                     console.log('Constructing local family object from backend response...', res.family);
+                     familyToEnter = {
+                         info: {
+                             _id: res.family.info._id,
+                             name: res.family.info.name,
+                             owner_id: res.family.info.owner_id,
+                             created_at: res.family.info.created_at
+                         },
+                         user: {
+                             family_id: res.familyId,
+                             nickname: nickname,
+                             role: 'member',
+                             _openid: state.currentOpenId,
+                             joined_at: new Date().toISOString()
+                         },
+                         kids: res.family.kids || []
+                     };
+                 } 
+                 // Fallback: Try to find in directory
+                 else {
+                     const dirFamily = state.allFamilies.find(f => f._id === res.familyId);
+                     if (dirFamily) {
+                         console.log('Constructing local family object from directory cache for join...');
+                         familyToEnter = {
+                             info: {
+                                 _id: dirFamily._id,
+                                 name: dirFamily.name,
+                                 owner_id: dirFamily.owner_id,
+                                 created_at: dirFamily.created_at
+                             },
+                             user: {
+                                 family_id: res.familyId,
+                                 nickname: nickname,
+                                 role: 'member',
+                                 _openid: state.currentOpenId,
+                                 joined_at: new Date().toISOString()
+                             },
+                             kids: dirFamily.kids || [] 
+                         };
+                     }
+                 }
+            }
         }
 
         if (familyToEnter) {

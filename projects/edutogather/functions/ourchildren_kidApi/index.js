@@ -190,8 +190,21 @@ async function handleJoinFamily(openId, payload) {
       family_id: familyId
   }).count()
   
+  // Get Kids for this family to return full object
+  const kidsRes = await db.collection(COLLECTIONS.KIDS).where({
+      family_id: familyId
+  }).get()
+
   if (existCount.total > 0) {
-      return { success: true, message: 'Already joined', familyId }
+      return { 
+          success: true, 
+          message: 'Already joined', 
+          familyId,
+          family: {
+              info: familyRes.data,
+              kids: kidsRes.data || []
+          }
+      }
   }
   
   await db.collection(COLLECTIONS.USERS).add({
@@ -204,7 +217,14 @@ async function handleJoinFamily(openId, payload) {
       }
   })
   
-  return { success: true, familyId }
+  return { 
+      success: true, 
+      familyId,
+      family: {
+          info: familyRes.data,
+          kids: kidsRes.data || []
+      }
+  }
 }
 
 // 4. Add Kid

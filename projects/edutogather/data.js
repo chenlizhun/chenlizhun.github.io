@@ -171,8 +171,9 @@ const DataStore = (() => {
         async joinFamily(familyId, pin, nickname) {
             const res = await callApi('join_family', { familyId, adminPin: pin, nickname });
             if (res.success) {
-                await checkLoginStatus();
-                return { success: true };
+                // Do NOT call checkLoginStatus immediately to avoid stale read (eventual consistency)
+                // We rely on optimistic update in app.js
+                return { success: true, familyId };
             }
             return res;
         },
