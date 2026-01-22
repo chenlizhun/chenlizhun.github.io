@@ -5,6 +5,10 @@ const state = {
     family: null,
     kids: [], // Array of kid objects
     
+    // State
+    showPoster: false,
+    posterFamily: null,
+
     // UI State
     currentTab: 'home',
     dashboardRange: '7d',
@@ -75,6 +79,14 @@ const DEMO_FAMILY_DATA = {
 // Default Data
 const DEFAULT_REASONS_ADD = ['认真作业', '阅读打卡', '作业按时完成', '做家务', '早睡早起'];
 const DEFAULT_REASONS_USE = ['买玩具', '看电视', '吃零食', '买文具', '去游乐场'];
+
+// Series Data
+const SERIES_CONFIG = {
+    3: { id: 3, name: '宇宙系列', icons: ['🌙', '🌍', '⭐️', '🌞'], desc: '月亮、地球、星星、太阳' },
+    1: { id: 1, name: '动物系列', icons: ['🐭', '🦁', '🐷', '🐲'], desc: '老鼠、狮子、猪、龙' },
+    2: { id: 2, name: '植物系列', icons: ['🌱', '🌸', '💐', '🌳'], desc: '芽苗、小花、花簇、大树花' }
+};
+const LEVEL_THRESHOLDS = [1, 10, 100, 1000];
 
 // DOM Elements
 const app = document.getElementById('app');
@@ -167,6 +179,11 @@ function render() {
         return;
     }
 
+    if (state.showPoster && state.posterFamily) {
+        app.innerHTML = renderPosterView();
+        return;
+    }
+
     if (!state.user || !state.family) {
         // If not in a family, show family list (directory)
         // If we haven't loaded the directory yet, trigger load
@@ -193,6 +210,7 @@ function render() {
                 ${state.currentTab === 'points' ? renderPointsView() : ''}
                 ${state.currentTab === 'stats' ? renderStatsView() : ''}
                 ${state.currentTab === 'review' ? renderReviewView() : ''}
+                ${state.currentTab === 'display' ? '' : ''}
                 ${state.currentTab === 'settings' ? renderSettingsView() : ''}
             </div>
 
@@ -263,8 +281,16 @@ function renderFamilyListView() {
                     <div onclick="${isJoined ? `selectFamily('${f._id}')` : ''}" class="border ${isJoined ? 'border-green-200 bg-green-50' : 'border-gray-200'} rounded-xl p-4 ${isJoined ? 'cursor-pointer hover:bg-green-100' : ''} transition relative">
                         ${isJoined ? '<div class="absolute top-2 right-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">已加入</div>' : ''}
                         
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg text-gray-800">${f.name}</span>
+                        <div class="flex justify-between items-center mb-2 ${isJoined ? 'pr-14' : ''}">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-lg text-gray-800">${f.name}</span>
+                                <button onclick="
+                                    openPoster('${f._id}');
+                                    event.stopPropagation();
+                                " class="text-xs text-gray-400 hover:text-purple-600 border border-transparent hover:border-purple-200 rounded px-1.5 py-0.5 transition">
+                                    展示
+                                </button>
+                            </div>
                             ${state.currentOpenId && f.owner_id === state.currentOpenId ? 
                                 `<button onclick="handleDeleteFamily('${f._id}'); event.stopPropagation();" class="text-xs text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">删除</button>` 
                                 : ''}
@@ -661,14 +687,16 @@ function renderHomeSimple() {
     // Special layout for single kid to maximize visibility
     if (state.kids.length === 1) {
         const kid = state.kids[0];
+        const icon = getSeriesIcon(kid.current_points);
         return `
             <div class="mb-4">
                 <div class="bg-white rounded-3xl shadow-lg p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[50vh]">
                     <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-r ${kid.gender === 'girl' ? 'from-pink-400 to-pink-200' : 'from-blue-400 to-blue-200'}"></div>
                     <div class="text-3xl text-gray-500 mb-6 font-bold tracking-wider">${kid.name}</div>
-                    <div class="flex-1 flex items-center justify-center w-full my-4">
+                    <div class="flex-1 flex flex-col items-center justify-center w-full my-4">
+                        ${icon ? `<div class="text-[8rem] mb-4 animate-bounce">${icon}</div>` : ''}
                         <div class="font-extrabold tracking-tighter ${kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}" 
-                             style="font-size: clamp(6rem, 40vw, 18rem); line-height: 0.9; text-shadow: 2px 2px 0px rgba(0,0,0,0.05);">
+                             style="font-size: clamp(6rem, 40vw, 12rem); line-height: 0.9; text-shadow: 2px 2px 0px rgba(0,0,0,0.05);">
                             ${kid.current_points}
                         </div>
                     </div>
@@ -680,17 +708,20 @@ function renderHomeSimple() {
     // Grid layout for multiple kids
     return `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            ${state.kids.map(kid => `
+            ${state.kids.map(kid => {
+                const icon = getSeriesIcon(kid.current_points);
+                return `
                 <div class="bg-white rounded-2xl shadow p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[240px]">
                     <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r ${kid.gender === 'girl' ? 'from-pink-400 to-pink-200' : 'from-blue-400 to-blue-200'}"></div>
                     <div class="text-xl text-gray-500 mb-2 font-bold">${kid.name}</div>
-                    <div class="flex-1 flex items-center justify-center w-full">
-                        <div class="font-extrabold tracking-tight ${kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}" style="font-size: clamp(3rem, 15vw, 8rem); line-height: 1;">
+                    <div class="flex-1 flex flex-col items-center justify-center w-full">
+                        ${icon ? `<div class="text-6xl mb-2">${icon}</div>` : ''}
+                        <div class="font-extrabold tracking-tight ${kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}" style="font-size: clamp(3rem, 15vw, 6rem); line-height: 1;">
                             ${kid.current_points}
                         </div>
                     </div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
     `;
 }
@@ -819,9 +850,12 @@ window.doUpdatePoints = (kidId, delta) => {
 
 window.handleEditFamilyName = async () => {
     if (state.isDemo) return alert('这仅为示例，无法修改。');
+
+    const nameInput = document.getElementById('setting-family-name');
+    if (!nameInput) return;
     
     const currentName = state.family.name;
-    const newName = prompt('请输入新的家庭名称:', currentName);
+    const newName = nameInput.value;
     
     if (!newName || newName.trim() === '') return;
     if (newName === currentName) return;
@@ -845,11 +879,14 @@ window.handleEditFamilyName = async () => {
 window.handleUpdateFamilyPin = async () => {
     if (state.isDemo) return alert('这仅为示例，无法修改。');
     
-    const oldPin = prompt('请输入当前的 PIN 码进行验证:');
-    if (!oldPin) return;
+    const oldPinInput = document.getElementById('setting-family-pin-old');
+    const newPinInput = document.getElementById('setting-family-pin-new');
+    
+    const oldPin = oldPinInput ? oldPinInput.value : '';
+    const newPin = newPinInput ? newPinInput.value : '';
 
-    const newPin = prompt('验证通过，请输入新的 PIN 码:');
-    if (!newPin || newPin.trim() === '') return;
+    if (!oldPin) return alert('请输入旧密码');
+    if (!newPin || newPin.trim() === '') return alert('请输入新密码');
     
     if (newPin.length < 4) {
          return alert('PIN 码长度不能少于4位');
@@ -858,31 +895,261 @@ window.handleUpdateFamilyPin = async () => {
     const res = await DataStore.updateFamilyPin(oldPin, newPin);
     if (res.success) {
         alert('修改成功，请记住新的 PIN 码');
+        oldPinInput.value = '';
+        newPinInput.value = '';
     } else {
         alert('修改失败: ' + (res.message || '旧密码错误或网络问题'));
     }
 }
 
-function renderSettingsView() {
+function getSeriesIcon(points) {
+    const seriesId = (state.family && state.family.display_series) || 3;
+    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
+    
+    // Thresholds: 1, 10, 100, 1000
+    // Index 0: 1 <= p < 10
+    // Index 1: 10 <= p < 100
+    // Index 2: 100 <= p < 1000
+    // Index 3: p >= 1000
+    
+    let index = -1;
+    if (points >= 1000) index = 3;
+    else if (points >= 100) index = 2;
+    else if (points >= 10) index = 1;
+    else if (points >= 1) index = 0;
+    
+    if (index === -1) return null;
+    return series.icons[index];
+}
+
+function renderDisplayView() {
+    const currentSeriesId = (state.family && state.family.display_series) || 3;
+    
     return `
         <div class="space-y-6">
             <div class="bg-white rounded-xl shadow p-6">
-                <h3 class="text-lg font-bold mb-4">家庭信息</h3>
-                <div class="flex items-center justify-between mb-2">
-                    <div class="text-sm text-gray-600">
-                        家庭名称: <span class="font-medium text-gray-900">${state.family.name}</span>
-                    </div>
-                    <button onclick="handleEditFamilyName()" class="text-xs text-blue-500 underline">修改</button>
+                <h3 class="text-lg font-bold mb-4">展示系列设置</h3>
+                <p class="text-sm text-gray-500 mb-6">选择不同的主题系列，孩子的积分将展示为对应的图标。</p>
+                
+                <div class="space-y-4">
+                    ${Object.values(SERIES_CONFIG).map(s => `
+                        <div onclick="handleSetSeries(${s.id})" 
+                             class="border-2 rounded-xl p-4 cursor-pointer transition relative ${currentSeriesId == s.id ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-blue-300'}">
+                            
+                            ${currentSeriesId == s.id ? '<div class="absolute top-2 right-2 text-primary">✅</div>' : ''}
+                            
+                            <div class="font-bold text-lg mb-2">${s.name}</div>
+                            <div class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm">
+                                ${s.icons.map((icon, idx) => `
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-2xl mb-1">${icon}</span>
+                                        <span class="text-xs text-gray-400">≥${LEVEL_THRESHOLDS[idx]}</span>
+                                    </div>
+                                `).join('<div class="text-gray-300">→</div>')}
+                            </div>
+                            <div class="mt-2 text-xs text-gray-500">${s.desc}</div>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="flex items-center justify-between mb-2">
-                    <div class="text-sm text-gray-600">
-                        管理密码: <span class="font-medium text-gray-900">******</span>
-                    </div>
-                    <button onclick="handleUpdateFamilyPin()" class="text-xs text-blue-500 underline">修改</button>
-                </div>
-                <div class="text-sm text-gray-600 mb-4">家庭ID: <span class="font-medium text-gray-900 select-all bg-gray-100 px-2 py-1 rounded">${state.family._id}</span></div>
-                <div class="text-xs text-gray-400">将家庭ID和管理密码分享给家人即可加入。</div>
             </div>
+        </div>
+    `;
+}
+
+window.handleSetSeries = async (seriesId) => {
+    if (state.isDemo) return alert('这仅为示例，无法修改。');
+    
+    // Optimistic update
+    state.family.display_series = seriesId;
+    render();
+    
+    const res = await DataStore.updateFamilySeries(seriesId);
+    if (!res.success) {
+        alert('设置失败: ' + res.message);
+        // Rollback or re-fetch
+        DataStore.refresh();
+    }
+}
+
+// --- Poster Logic ---
+
+window.openPoster = (familyId) => {
+    // Try to find in directory first
+    const family = state.allFamilies.find(f => f._id === familyId);
+    if (family) {
+        state.posterFamily = family;
+        state.showPoster = true;
+        render();
+    } else {
+        alert('未找到家庭数据');
+    }
+}
+
+window.closePoster = () => {
+    state.showPoster = false;
+    state.posterFamily = null;
+    render();
+}
+
+function renderPosterView() {
+    const family = state.posterFamily;
+    if (!family) return '';
+
+    // If we have display_series in the family directory object, use it.
+    // However, getAllFamilies might not return 'display_series' unless we update the backend.
+    // If not present, default to 3 (Universe).
+    const seriesId = family.display_series || 3;
+    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
+
+    return `
+        <div class="fixed inset-0 bg-gray-900 text-white z-50 overflow-y-auto">
+            <div class="min-h-screen flex flex-col p-4 md:p-8">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">
+                        ${family.name}
+                    </h1>
+                    <button onclick="closePoster()" class="bg-white/10 hover:bg-white/20 text-white rounded-full p-3 backdrop-blur-sm transition">
+                        ✕ 关闭
+                    </button>
+                </div>
+
+                <!-- Kids Grid -->
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-8 content-center">
+                    ${family.kids.map(kid => {
+                        const icons = getSeriesIconsDecomposed(kid.current_points, series);
+                        return `
+                        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-10 border border-white/20 shadow-2xl flex flex-col items-center">
+                            <div class="text-2xl md:text-4xl font-bold mb-4 ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'}">
+                                ${kid.name}
+                            </div>
+                            
+                            <div class="text-5xl md:text-7xl font-black mb-8 font-mono tracking-wider text-yellow-400 drop-shadow-lg">
+                                ${kid.current_points}
+                            </div>
+
+                            <div class="w-full bg-black/20 rounded-2xl p-6 min-h-[200px] flex flex-wrap justify-center content-center gap-4">
+                                ${icons.length > 0 ? icons.map(icon => `
+                                    <div class="text-5xl md:text-7xl animate-bounce-slow filter drop-shadow-md transform hover:scale-110 transition duration-300 cursor-default" title="${icon.val}">
+                                        ${icon.char}
+                                    </div>
+                                `).join('') : '<div class="text-gray-400 text-xl">继续加油！</div>'}
+                            </div>
+                            
+                            <!-- Legend -->
+                            <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-400">
+                                ${icons.length > 0 ? `
+                                    <div class="flex gap-2">
+                                       ${Object.values(series.icons).map((char, i) => `<span>${char}=${LEVEL_THRESHOLDS[i]}</span>`).join(' ')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center text-gray-500 mt-8 text-sm">
+                    EduTogether Points Display System • ${series.name}
+                </div>
+            </div>
+            
+            <style>
+                @keyframes bounce-slow {
+                    0%, 100% { transform: translateY(-5%); }
+                    50% { transform: translateY(5%); }
+                }
+                .animate-bounce-slow {
+                    animation: bounce-slow 3s infinite ease-in-out;
+                }
+            </style>
+        </div>
+    `;
+}
+
+function getSeriesIconsDecomposed(points, series) {
+    // Thresholds: 1, 10, 100, 1000
+    // Icons: [0]=1, [1]=10, [2]=100, [3]=1000
+    
+    let remaining = points;
+    const result = [];
+    
+    // 1000s (Index 3)
+    const count1000 = Math.floor(remaining / 1000);
+    for(let i=0; i<count1000; i++) result.push({char: series.icons[3], val: 1000});
+    remaining %= 1000;
+    
+    // 100s (Index 2)
+    const count100 = Math.floor(remaining / 100);
+    for(let i=0; i<count100; i++) result.push({char: series.icons[2], val: 100});
+    remaining %= 100;
+    
+    // 10s (Index 1)
+    const count10 = Math.floor(remaining / 10);
+    for(let i=0; i<count10; i++) result.push({char: series.icons[1], val: 10});
+    remaining %= 10;
+    
+    // 1s (Index 0)
+    const count1 = remaining;
+    for(let i=0; i<count1; i++) result.push({char: series.icons[0], val: 1});
+    
+    return result;
+}
+
+function renderSettingsView() {
+    return `
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">家庭设置</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">家庭名称</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="setting-family-name" value="${state.family.info.name}" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
+                        <button onclick="handleEditFamilyName()" class="px-4 py-2 bg-primary text-white rounded hover:bg-indigo-700">修改</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">管理密码 (PIN)</label>
+                    <div class="flex gap-2">
+                         <input type="password" id="setting-family-pin-old" placeholder="旧密码" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
+                         <input type="tel" maxlength="6" id="setting-family-pin-new" placeholder="新密码" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
+                        <button onclick="handleUpdateFamilyPin()" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">修改</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <h3 class="text-lg font-bold mb-4">展示系列设置</h3>
+            <p class="text-sm text-gray-500 mb-6">选择不同的主题系列，展示页面将使用对应的图标。</p>
+            
+            <div class="space-y-4">
+                ${Object.values(SERIES_CONFIG).map(s => {
+                    const currentSeriesId = state.family.display_series || 3;
+                    return `
+                    <div onclick="handleSetSeries(${s.id})" 
+                            class="border-2 rounded-xl p-4 cursor-pointer transition relative ${currentSeriesId == s.id ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-blue-300'}">
+                        
+                        ${currentSeriesId == s.id ? '<div class="absolute top-2 right-2 text-primary">✅</div>' : ''}
+                        
+                        <div class="font-bold text-lg mb-2">${s.name}</div>
+                        <div class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm">
+                            ${s.icons.map((icon, idx) => `
+                                <div class="flex flex-col items-center">
+                                    <span class="text-2xl mb-1">${icon}</span>
+                                    <span class="text-xs text-gray-400">≥${LEVEL_THRESHOLDS[idx]}</span>
+                                </div>
+                            `).join('<div class="text-gray-300">→</div>')}
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500">${s.desc}</div>
+                    </div>
+                `}).join('')}
+            </div>
+        </div>
+
 
             <div class="bg-white rounded-xl shadow p-6">
                 <h3 class="text-lg font-bold mb-4">添加孩子</h3>

@@ -238,6 +238,20 @@ const DataStore = (() => {
                 newPin
             });
         },
+        async updateFamilySeries(seriesId) {
+            if (!_currentFamily) return { success: false, message: 'Not in a family' };
+            
+            const res = await callApi('update_family_series', {
+                familyId: _currentFamily._id,
+                seriesId
+            });
+            
+            if (res.success) {
+                _currentFamily.display_series = seriesId;
+                notifyChange();
+            }
+            return res;
+        },
         // Points
         async updatePoints(kidId, delta, reason, operator) {
             if (!_currentFamily) return;
