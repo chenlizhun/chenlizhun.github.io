@@ -8,6 +8,7 @@ const DataStore = (() => {
     let _kids = [];
     let _onDataChange = null;
     let _loading = true;
+    let _pollingInterval = null;
 
     // Initialize CloudBase
     async function init({ env, onDataChange }) {
@@ -133,8 +134,49 @@ const DataStore = (() => {
         }
     }
 
+    function startPolling(intervalMs = 5000) {
+        if (_pollingInterval) clearInterval(_pollingInterval);
+        console.log('Starting polling...');
+        _pollingInterval = setInterval(async () => {
+            if (_currentFamily) {
+                try {
+                    // Use silent call if possible, but our callApi doesn't support options.
+                    // Just call get_family_data directly.
+                    const res = await app.callFunction({
+                        name: 'ourchildren_kidApi',
+                        data: { action: 'get_family_data', payload: { familyId: _currentFamily._id } }
+                    });
+                    
+                    if (res.result && res.result.success) {
+                        const newKids = res.result.data.kids;
+                        const oldKidsJson = JSON.stringify(_kids);
+                        const newKidsJson = JSON.stringify(newKids);
+                        
+                        if (oldKidsJson !== newKidsJson) {
+                            console.log('Data changed via polling, updating...');
+                            _kids = newKids;
+                            notifyChange();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Polling failed', e);
+                }
+            }
+        }, intervalMs);
+    }
+
+    function stopPolling() {
+        if (_pollingInterval) {
+            console.log('Stopping polling...');
+            clearInterval(_pollingInterval);
+            _pollingInterval = null;
+        }
+    }
+
     return {
         init,
+        startPolling,
+        stopPolling,
         // Auth / Family Mgmt
         async getAllFamilies(page = 1) {
             return await callApi('get_all_families', { page });

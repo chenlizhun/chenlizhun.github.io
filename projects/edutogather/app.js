@@ -49,7 +49,19 @@ const state = {
     history: [],
     historyLoading: false,
     historyPage: 1,
-    historyHasMore: false
+    historyHasMore: false,
+    
+    // Global Modal
+    modal: {
+        visible: false,
+        title: '',
+        content: '',
+        showInput: false,
+        inputValue: '',
+        inputType: 'text',
+        placeholder: '',
+        onConfirm: null
+    }
 };
 
 // Constants
@@ -87,6 +99,41 @@ const SERIES_CONFIG = {
     2: { id: 2, name: '植物系列', icons: ['🌱', '🌸', '💐', '🌳'], desc: '芽苗、小花、花簇、大树花' }
 };
 const LEVEL_THRESHOLDS = [1, 10, 100, 1000];
+
+// Manual Content
+const USER_MANUAL_HTML = `
+<div class="text-left space-y-4 max-h-[60vh] overflow-y-auto p-2">
+    <p class="text-gray-600">欢迎使用 <b>EduTogether</b>！本系统分为管理场景（手机）和展示场景（大屏）。</p>
+    
+    <div class="border-b border-gray-100 pb-2">
+        <h4 class="font-bold text-lg text-primary mb-2">📱 管理场景 (家长)</h4>
+        <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+            <li><b>注册/登录</b>：创建或加入家庭，需使用PIN码。</li>
+            <li><b>✨ 加减分</b>：点击“加减分”标签，选择孩子和模式（奖励/支出），点击预设理由或输入理由，再点击分值。</li>
+            <li><b>📊 报表</b>：查看所有积分变动流水。</li>
+            <li><b>⚙️ 设置</b>：管理孩子信息、修改家庭名称/PIN码。</li>
+        </ul>
+    </div>
+
+    <div class="border-b border-gray-100 pb-2">
+        <h4 class="font-bold text-lg text-primary mb-2">📺 展示场景 (大屏)</h4>
+        <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+            <li><b>进入方式</b>：登录后点击底部“展示”图标。</li>
+            <li><b>功能</b>：大字号显示积分，实时自动同步（约3秒延迟），无需刷新。</li>
+            <li><b>建议</b>：使用iPad或电脑全屏展示，作为家庭激励看板。</li>
+        </ul>
+    </div>
+
+    <div>
+        <h4 class="font-bold text-lg text-gray-800 mb-2">❓ 常见问题</h4>
+        <ul class="list-none text-sm text-gray-600 space-y-2">
+            <li><b>Q: 忘记PIN码？</b><br>A: 需联系管理员重置，请妥善保管。</li>
+            <li><b>Q: 体验模式数据会保存吗？</b><br>A: 不会，刷新即丢失。请注册正式账号。</li>
+            <li><b>Q: 多人同时管理？</b><br>A: 支持，使用相同ID和PIN码登录即可同步。</li>
+        </ul>
+    </div>
+</div>
+`;
 
 // DOM Elements
 const app = document.getElementById('app');
@@ -171,6 +218,81 @@ function formatDate(timestamp) {
     return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
 }
 
+// Global Modal Helpers
+function renderGlobalModal() {
+    if (!state.modal || !state.modal.visible) return '';
+    
+    return `
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 transform transition-all animate-scale-in">
+                <h3 class="text-xl font-bold mb-4 text-gray-900">${state.modal.title || '提示'}</h3>
+                ${state.modal.content ? `<div class="mb-4 text-gray-600">${state.modal.content}</div>` : ''}
+                
+                ${state.modal.showInput ? `
+                    <input type="${state.modal.inputType || 'text'}" 
+                           id="global-modal-input" 
+                           class="w-full p-3 border border-gray-300 rounded-xl mb-6 focus:ring-2 focus:ring-primary outline-none"
+                           value="${state.modal.inputValue || ''}"
+                           placeholder="${state.modal.placeholder || ''}"
+                           onkeydown="if(event.key === 'Enter') handleModalConfirm()">
+                ` : ''}
+                
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeModal()" class="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg transition">取消</button>
+                    <button onclick="handleModalConfirm()" class="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-indigo-700 shadow-lg transition">确定</button>
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+                .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+                .animate-scale-in { animation: scaleIn 0.2s ease-out forwards; }
+            </style>
+        </div>
+    `;
+}
+
+window.showModal = (options) => {
+    state.modal = {
+        visible: true,
+        title: options.title || '提示',
+        content: options.content || '',
+        showInput: options.showInput || false,
+        inputValue: options.inputValue || '',
+        placeholder: options.placeholder || '',
+        inputType: options.inputType || 'text',
+        onConfirm: options.onConfirm
+    };
+    render();
+    
+    if (options.showInput) {
+        setTimeout(() => {
+            const input = document.getElementById('global-modal-input');
+            if (input) {
+                input.focus();
+                if (input.value) input.select();
+            }
+        }, 100);
+    }
+}
+
+window.closeModal = () => {
+    state.modal = { visible: false };
+    render();
+}
+
+window.handleModalConfirm = () => {
+    const input = document.getElementById('global-modal-input');
+    const value = input ? input.value : null;
+    
+    const callback = state.modal.onConfirm;
+    closeModal();
+    
+    if (callback) {
+        callback(value);
+    }
+}
+
 // --- Views ---
 
 function render() {
@@ -216,6 +338,7 @@ function render() {
 
             ${renderBottomNav()}
             ${renderLoginModal()} <!-- Legacy modal for pin entry if needed -->
+            ${renderGlobalModal()}
         </div>
     `;
     
@@ -335,7 +458,10 @@ function renderFamilyListView() {
                  </button>
             </div>
             ` : ''}
+            
+            ${renderManualLink()}
         </div>
+        ${renderGlobalModal()}
     `;
 }
 
@@ -377,18 +503,30 @@ window.selectFamily = (familyId) => {
 window.handleDeleteFamily = async (familyId) => {
     if (state.isDemo || familyId === DEMO_FAMILY_ID) return alert('这仅为示例，无法删除。');
 
-    const pin = prompt('请输入管理密码(PIN)以确认删除此家庭:');
-    if (!pin) return;
-    
-    if (confirm('警告：删除操作不可恢复！将删除所有家庭成员、孩子和积分记录。确定要删除吗？')) {
-        const res = await DataStore.deleteFamily(familyId, pin);
-        if (res.success) {
-            alert('删除成功');
-            loadAllFamilies();
-        } else {
-            alert('删除失败: ' + res.message);
+    showModal({
+        title: '删除家庭',
+        content: '请输入管理密码(PIN)以确认删除此家庭:',
+        showInput: true,
+        inputType: 'password',
+        placeholder: 'PIN',
+        onConfirm: (pin) => {
+            if (!pin) return;
+            
+            showModal({
+                title: '最终确认',
+                content: '警告：删除操作不可恢复！将删除所有家庭成员、孩子和积分记录。确定要删除吗？',
+                onConfirm: async () => {
+                    const res = await DataStore.deleteFamily(familyId, pin);
+                    if (res.success) {
+                        alert('删除成功');
+                        loadAllFamilies();
+                    } else {
+                        alert('删除失败: ' + res.message);
+                    }
+                }
+            });
         }
-    }
+    });
 }
 
 function renderAuthView() {
@@ -441,6 +579,7 @@ function renderAuthView() {
                 </div>
             `}
         </div>
+        ${renderGlobalModal()}
     `;
 }
 
@@ -621,6 +760,8 @@ window.handleLogout = async () => {
     state.user = null;
     state.family = null;
     state.kids = [];
+    state.availableFamilies = [];
+    FamilyCache.save([]); // Clear local cache to ensure true logout
     state.authMode = 'login';
     render();
 }
@@ -659,6 +800,8 @@ window.switchTab = (tab) => {
 }
 
 window.loadHistory = async (append = false) => {
+    if (state.isDemo) return;
+
     if (!append) state.historyPage = 1;
     state.historyLoading = true;
     render();
@@ -684,6 +827,23 @@ window.loadMoreHistory = () => {
     loadHistory(true);
 }
 
+
+window.showUserManual = () => {
+    showModal({
+        title: '📖 用户手册',
+        content: USER_MANUAL_HTML
+    });
+}
+
+function renderManualLink() {
+    return `
+        <div class="text-center mt-8 mb-8 opacity-60 hover:opacity-100 transition">
+            <button onclick="showUserManual()" class="text-xs text-gray-400 hover:text-gray-600 underline inline-block">
+                使用手册
+            </button>
+        </div>
+    `;
+}
 
 function renderHomeSimple() {
     if (state.kids.length === 0) {
@@ -824,8 +984,14 @@ window.setReason = (kidId, reason) => {
 }
 
 window.addCustomReason = (type) => {
-    const r = prompt('请输入新理由:');
-    if (r) ReasonManager.add(type, r);
+    showModal({
+        title: '添加新理由',
+        showInput: true,
+        placeholder: '请输入理由内容',
+        onConfirm: (r) => {
+            if (r) ReasonManager.add(type, r);
+        }
+    });
 }
 
 window.toggleDeleteReasonMode = () => {
@@ -834,9 +1000,13 @@ window.toggleDeleteReasonMode = () => {
 }
 
 window.deleteReason = (type, reason) => {
-    if (confirm(`确定要删除理由“${reason}”吗？`)) {
-        ReasonManager.remove(type, reason);
-    }
+    showModal({
+        title: '删除理由',
+        content: `确定要删除理由“${reason}”吗？`,
+        onConfirm: () => {
+            ReasonManager.remove(type, reason);
+        }
+    });
 }
 
 window.doUpdatePoints = (kidId, delta) => {
@@ -845,14 +1015,24 @@ window.doUpdatePoints = (kidId, delta) => {
     const reasonInput = document.getElementById(`reason-${kidId}`);
     const reason = (reasonInput ? reasonInput.value : '').trim();
     
-    if (!reason && !confirm('确定不写原因直接加减分吗？')) return;
-    
-    DataStore.updatePoints(kidId, delta, reason, state.user.nickname);
-    
-    if (reasonInput) {
-        reasonInput.value = '';
-        state.reasonQuery[kidId] = '';
+    const executeUpdate = (r) => {
+        DataStore.updatePoints(kidId, delta, r, state.user.nickname);
+        if (reasonInput) {
+            reasonInput.value = '';
+            state.reasonQuery[kidId] = '';
+        }
+    };
+
+    if (!reason) {
+        showModal({
+            title: '提示',
+            content: '确定不写原因直接加减分吗？',
+            onConfirm: () => executeUpdate('')
+        });
+        return;
     }
+    
+    executeUpdate(reason);
 }
 
 window.handleEditFamilyName = async () => {
@@ -1018,6 +1198,12 @@ window.openPoster = (familyId) => {
     if (family) {
         state.posterFamily = family;
         state.showPoster = true;
+        
+        // Start polling for real-time updates if we are viewing the current family
+        if (state.family && state.family._id === family._id) {
+            DataStore.startPolling(3000); // Poll every 3 seconds
+        }
+        
         render();
     } else {
         alert('未找到家庭数据');
@@ -1027,14 +1213,22 @@ window.openPoster = (familyId) => {
 window.closePoster = () => {
     state.showPoster = false;
     state.posterFamily = null;
+    DataStore.stopPolling();
     render();
 }
 
 function renderPosterView() {
-    const family = state.posterFamily;
+    let family = state.posterFamily;
     if (!family) return '';
 
-    // If we have display_series in the family directory object, use it.
+    // If we are viewing the poster of the currently logged-in family,
+    // always use the latest state data (kids, name, etc.) to ensure real-time updates.
+    if (state.family && state.family._id === family._id) {
+        family = {
+            ...state.family,
+            kids: state.kids
+        };
+    }
     // However, getAllFamilies might not return 'display_series' unless we update the backend.
     // If not present, default to 3 (Universe).
     const seriesId = family.display_series || 3;
@@ -1159,7 +1353,7 @@ function renderSettingsView() {
         <div class="bg-white rounded-xl shadow p-6 mb-6">
             <h2 class="text-xl font-bold mb-4">家庭设置</h2>
             
-            <div class="space-y-4">
+            <div class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">家庭名称</label>
                     <div class="flex gap-2">
@@ -1169,54 +1363,53 @@ function renderSettingsView() {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">管理密码 (PIN)</label>
-                    <div class="flex gap-2">
-                         <input type="password" id="setting-family-pin-old" placeholder="旧密码" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
-                         <input type="tel" maxlength="6" id="setting-family-pin-new" placeholder="新密码" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary outline-none">
-                        <button onclick="handleUpdateFamilyPin()" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">修改</button>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">管理密码 (PIN)</label>
+                    <div class="flex flex-col gap-3">
+                         <input type="password" id="setting-family-pin-old" placeholder="请输入旧密码" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                         <input type="tel" maxlength="6" id="setting-family-pin-new" placeholder="请输入新密码 (6位数字)" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                        <button onclick="handleUpdateFamilyPin()" class="w-full py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 shadow-sm">确认修改密码</button>
                     </div>
                 </div>
             </div>
         </div>
 
-            <div class="bg-white rounded-xl shadow p-6">
-                <h3 class="text-lg font-bold mb-4">添加孩子</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">孩子昵称</label>
-                        <input type="text" id="add-kid-name" class="w-full p-3 border rounded-lg" placeholder="例如：大宝">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">性别</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center"><input type="radio" name="add-kid-gender" value="boy" checked class="mr-2"> 男孩</label>
-                            <label class="flex items-center"><input type="radio" name="add-kid-gender" value="girl" class="mr-2"> 女孩</label>
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+             <h3 class="text-lg font-bold mb-4">已有成员</h3>
+             <div class="space-y-2">
+                ${state.kids.map(k => `
+                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="${k.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'} font-bold">${k.name}</span>
+                            <button onclick="handleUpdateKidName('${k._id}', '${k.name}')" class="text-xs text-gray-400 hover:text-blue-500">✏️</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500 text-sm">当前: ${k.current_points}</span>
+                            <button onclick="handleSetPoints('${k._id}', ${k.current_points})" class="text-xs text-blue-500 underline">修改</button>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">初始积分</label>
-                        <input type="number" id="add-kid-points" class="w-full p-3 border rounded-lg" value="0">
-                    </div>
-                    <button id="btn-add-kid" onclick="handleAddKid()" class="w-full py-3 bg-secondary text-white rounded-xl font-bold hover:bg-green-600 transition">添加孩子</button>
-                </div>
-            </div>
+                `).join('')}
+             </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow p-6">
-                 <h3 class="text-lg font-bold mb-4">已有成员</h3>
-                 <div class="space-y-2">
-                    ${state.kids.map(k => `
-                         <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center gap-2">
-                                <span class="${k.gender === 'girl' ? 'text-pink-600' : 'text-blue-600'} font-bold">${k.name}</span>
-                                <button onclick="handleUpdateKidName('${k._id}', '${k.name}')" class="text-xs text-gray-400 hover:text-blue-500">✏️</button>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-gray-500 text-sm">当前: ${k.current_points}</span>
-                                <button onclick="handleSetPoints('${k._id}', ${k.current_points})" class="text-xs text-blue-500 underline">修改</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                 </div>
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-bold mb-4">添加孩子</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">孩子昵称</label>
+                    <input type="text" id="add-kid-name" class="w-full p-3 border rounded-lg" placeholder="例如：大宝">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">性别</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center"><input type="radio" name="add-kid-gender" value="boy" checked class="mr-2"> 男孩</label>
+                        <label class="flex items-center"><input type="radio" name="add-kid-gender" value="girl" class="mr-2"> 女孩</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">初始积分</label>
+                    <input type="number" id="add-kid-points" class="w-full p-3 border rounded-lg" value="0">
+                </div>
+                <button id="btn-add-kid" onclick="handleAddKid()" class="w-full py-3 bg-secondary text-white rounded-xl font-bold hover:bg-green-600 transition">添加孩子</button>
             </div>
         </div>
     `;
@@ -1456,25 +1649,49 @@ window.enterDemoFamily = () => {
     state.family = DEMO_FAMILY_DATA.info;
     state.kids = JSON.parse(JSON.stringify(DEMO_FAMILY_DATA.kids));
     
-    // Generate Fake History for Demo to show nice charts
+    // Fix current points to 129 as requested
+    state.kids[0].current_points = 129;
+    
+    // Generate Rich Fake History for Demo
     const fakeHistory = [];
     const now = new Date();
     const kidId = state.kids[0]._id;
-    // Generate last 7 days activity
-    for (let i = 0; i < 15; i++) {
-        const time = new Date(now.getTime() - i * 86400000 / 2); // some points every half day
-        const isAdd = Math.random() > 0.3;
-        const delta = isAdd ? Math.floor(Math.random() * 5) + 1 : -Math.floor(Math.random() * 10) - 1;
+    
+    // Generate last 10 days activity to ensure dense chart
+    const daysSpan = 10;
+    const recordsCount = 30; // At least 20 records
+    
+    for (let i = 0; i < recordsCount; i++) {
+        // Distribute points over daysSpan
+        const daysAgo = (i / recordsCount) * daysSpan;
+        // Add some jitter
+        const time = new Date(now.getTime() - daysAgo * 86400000 - Math.random() * 3600000 * 5);
+        
+        const isAdd = Math.random() > 0.4; // Slightly more adds to show positive trend usually
+        let delta, reason;
+        
+        if (isAdd) {
+            delta = Math.floor(Math.random() * 5) + 1; // +1 to +5
+            const reasons = ['认真作业', '阅读打卡', '早睡早起', '做家务', '坚持运动', '练琴', '整理房间'];
+            reason = reasons[Math.floor(Math.random() * reasons.length)];
+        } else {
+            delta = -Math.floor(Math.random() * 15) - 5; // -5 to -20
+            const reasons = ['买玩具', '看电视', '吃零食', '买文具', '玩游戏', '去游乐场'];
+            reason = reasons[Math.floor(Math.random() * reasons.length)];
+        }
+
         fakeHistory.push({
             family_id: DEMO_FAMILY_ID,
             kid_id: kidId,
             delta: delta,
-            reason: isAdd ? '表现良好' : '兑换奖励',
-            operator_name: '访客',
+            reason: reason,
+            operator_name: Math.random() > 0.5 ? '爸爸' : '妈妈',
             timestamp: time.toISOString(),
             _openid: 'guest'
         });
     }
+    
+    // Sort descending
     state.history = fakeHistory.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
     state.historyLoading = false;
     state.historyHasMore = false;
@@ -1486,41 +1703,54 @@ window.enterDemoFamily = () => {
 window.handleSetPoints = (kidId, current) => {
     if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
     
-    const input = prompt('请输入新的总分:', current);
-    if (input === null) return;
-    
-    const newPoints = parseInt(input);
-    if (isNaN(newPoints)) return alert('请输入有效的数字');
-    
-    const delta = newPoints - current;
-    if (delta === 0) return;
-    
-    const reason = '管理员修正总分';
-    DataStore.updatePoints(kidId, delta, reason, state.user.nickname);
+    showModal({
+        title: '修改当前总分',
+        content: '直接修改总分通常用于纠正错误，建议平时使用加减分功能。',
+        showInput: true,
+        inputType: 'number',
+        inputValue: current,
+        onConfirm: (input) => {
+            if (input === null) return;
+            const newPoints = parseInt(input);
+            if (isNaN(newPoints)) return alert('请输入有效的数字');
+            
+            const delta = newPoints - current;
+            if (delta === 0) return;
+            
+            const reason = '管理员修正总分';
+            DataStore.updatePoints(kidId, delta, reason, state.user.nickname);
+        }
+    });
 }
 
 window.handleUpdateKidName = async (kidId, currentName) => {
     if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
 
-    const newName = prompt('请输入新的孩子昵称:', currentName);
-    if (!newName || !newName.trim()) return;
-    if (newName === currentName) return;
+    showModal({
+        title: '修改孩子昵称',
+        showInput: true,
+        inputValue: currentName,
+        placeholder: '请输入新的昵称',
+        onConfirm: async (newName) => {
+            if (!newName || !newName.trim()) return;
+            if (newName === currentName) return;
 
-    try {
-        const res = await DataStore.updateKidName(kidId, newName.trim());
-        if (res.success) {
-            alert('修改成功');
-            // update local state immediately for better ux, though datastore refresh will handle it
-            const kid = state.kids.find(k => k._id === kidId);
-            if (kid) kid.name = newName.trim();
-            render();
-        } else {
-            alert('修改失败: ' + res.message);
+            try {
+                const res = await DataStore.updateKidName(kidId, newName.trim());
+                if (res.success) {
+                    // update local state immediately for better ux
+                    const kid = state.kids.find(k => k._id === kidId);
+                    if (kid) kid.name = newName.trim();
+                    render();
+                } else {
+                    alert('修改失败: ' + res.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('修改出错');
+            }
         }
-    } catch (e) {
-        console.error(e);
-        alert('修改出错');
-    }
+    });
 }
 
 // Dummy Modal functions to prevent errors
