@@ -913,7 +913,7 @@ function renderPointsView() {
     if (!state.kids.length) return `<div class="text-center p-8 text-gray-500">请先在设置中添加孩子</div>`;
 
     return `
-        <div class="grid gap-6">
+        <div class="grid gap-4">
             ${state.kids.map(kid => {
                 // Init view state for kid if missing
                 if (!state.pointMode[kid._id]) state.pointMode[kid._id] = 'add';
@@ -923,30 +923,30 @@ function renderPointsView() {
                 const colorClass = kid.gender === 'girl' ? 'text-pink-600' : 'text-blue-600';
                 
                 return `
-                <div class="bg-white rounded-xl shadow p-6">
+                <div class="bg-white rounded-xl shadow p-4 overflow-hidden">
                     <!-- Header -->
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold ${colorClass}">${kid.name}</h2>
-                        <div class="text-4xl font-extrabold tracking-tight text-gray-900">${kid.current_points}<span class="ml-1 text-sm text-gray-400 font-semibold">分</span></div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold ${colorClass} truncate max-w-[50%]">${kid.name}</h2>
+                        <div class="text-3xl font-extrabold tracking-tight text-gray-900">${kid.current_points}<span class="ml-1 text-xs text-gray-400 font-semibold">分</span></div>
                     </div>
 
                     <!-- Mode Toggle -->
-                    <div class="flex bg-gray-100 p-1 rounded-lg mb-4">
-                        <button onclick="setPointMode('${kid._id}', 'add')" class="flex-1 py-2 text-sm font-bold rounded-md transition ${isAdd ? 'bg-white text-green-600 shadow' : 'text-gray-500 hover:text-gray-700'}">🌟 奖励</button>
-                        <button onclick="setPointMode('${kid._id}', 'use')" class="flex-1 py-2 text-sm font-bold rounded-md transition ${!isAdd ? 'bg-white text-red-600 shadow' : 'text-gray-500 hover:text-gray-700'}">🎁 支出</button>
+                    <div class="flex bg-gray-100 p-1 rounded-lg mb-3">
+                        <button onclick="setPointMode('${kid._id}', 'add')" class="flex-1 py-1.5 text-sm font-bold rounded-md transition ${isAdd ? 'bg-white text-green-600 shadow' : 'text-gray-500 hover:text-gray-700'}">🌟 奖励</button>
+                        <button onclick="setPointMode('${kid._id}', 'use')" class="flex-1 py-1.5 text-sm font-bold rounded-md transition ${!isAdd ? 'bg-white text-red-600 shadow' : 'text-gray-500 hover:text-gray-700'}">🎁 支出</button>
                     </div>
 
                     <!-- Reasons -->
-                    <div class="mb-4">
-                        <div class="flex flex-wrap gap-2 mb-3">
+                    <div class="mb-3">
+                        <div class="flex flex-wrap gap-2 mb-2">
                             ${(isAdd ? state.reasons.add : state.reasons.use).map(r => `
                                 <button onclick="${state.deletingReasonMode ? `deleteReason('${isAdd ? 'add' : 'use'}', '${r}')` : `setReason('${kid._id}', '${r}')`}" 
-                                        class="px-3 py-1 ${state.deletingReasonMode ? 'bg-gray-100 text-gray-400 border-gray-300 line-through' : (isAdd ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100')} border text-xs font-bold rounded-full hover:brightness-95 relative">
+                                        class="px-2 py-1 ${state.deletingReasonMode ? 'bg-gray-100 text-gray-400 border-gray-300 line-through' : (isAdd ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100')} border text-xs font-bold rounded-full hover:brightness-95 relative">
                                     ${r} ${state.deletingReasonMode ? '<span class="ml-1 text-red-500 font-bold">×</span>' : ''}
                                 </button>
                             `).join('')}
-                            <button onclick="addCustomReason('${isAdd ? 'add' : 'use'}')" class="px-3 py-1 border border-dashed border-gray-300 rounded-full text-xs text-gray-400" ${state.deletingReasonMode ? 'disabled style="opacity:0.3"' : ''}>+ 添加</button>
-                            <button onclick="toggleDeleteReasonMode()" class="px-3 py-1 border border-transparent rounded-full text-xs ${state.deletingReasonMode ? 'text-red-500 bg-red-50 font-bold' : 'text-gray-400 hover:text-gray-600'}">
+                            <button onclick="addCustomReason('${isAdd ? 'add' : 'use'}')" class="px-2 py-1 border border-dashed border-gray-300 rounded-full text-xs text-gray-400" ${state.deletingReasonMode ? 'disabled style="opacity:0.3"' : ''}>+ 添加</button>
+                            <button onclick="toggleDeleteReasonMode()" class="px-2 py-1 border border-transparent rounded-full text-xs ${state.deletingReasonMode ? 'text-red-500 bg-red-50 font-bold' : 'text-gray-400 hover:text-gray-600'}">
                                 ${state.deletingReasonMode ? '完成' : '- 删除'}
                             </button>
                         </div>
@@ -955,20 +955,20 @@ function renderPointsView() {
                             value="${state.reasonQuery[kid._id] || ''}"
                             oninput="onReasonInput('${kid._id}', this.value)"
                             placeholder="${isAdd ? '输入奖励理由...' : '输入支出用途...'}" 
-                            class="w-full p-3 border border-gray-200 rounded-lg text-sm mb-2 focus:ring-2 focus:ring-primary outline-none transition">
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-2 focus:ring-2 focus:ring-primary outline-none transition">
                         
                         <!-- Buttons -->
-                        <div class="mt-4 grid grid-cols-4 gap-2">
+                        <div class="mt-3 grid grid-cols-4 gap-2">
                             ${isAdd ? `
-                                <button onclick="doUpdatePoints('${kid._id}', 1)" class="bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 shadow-sm transition">+1</button>
-                                <button onclick="doUpdatePoints('${kid._id}', 2)" class="bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 shadow-sm transition">+2</button>
-                                <button onclick="doUpdatePoints('${kid._id}', 5)" class="bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 shadow-sm transition">+5</button>
-                                <button onclick="doUpdatePoints('${kid._id}', 10)" class="bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 shadow-sm transition">+10</button>
+                                <button onclick="doUpdatePoints('${kid._id}', 1)" class="bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600 shadow-sm transition text-sm">+1</button>
+                                <button onclick="doUpdatePoints('${kid._id}', 2)" class="bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600 shadow-sm transition text-sm">+2</button>
+                                <button onclick="doUpdatePoints('${kid._id}', 5)" class="bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600 shadow-sm transition text-sm">+5</button>
+                                <button onclick="handleCustomPoints('${kid._id}', true)" class="bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600 shadow-sm transition text-sm">+?</button>
                             ` : `
-                                <button onclick="doUpdatePoints('${kid._id}', -10)" class="bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 shadow-sm transition">-10</button>
-                                <button onclick="doUpdatePoints('${kid._id}', -50)" class="bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 shadow-sm transition">-50</button>
-                                <button onclick="doUpdatePoints('${kid._id}', -100)" class="bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 shadow-sm transition">-100</button>
-                                <button onclick="doUpdatePoints('${kid._id}', -200)" class="bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 shadow-sm transition">-200</button>
+                                <button onclick="doUpdatePoints('${kid._id}', -1)" class="bg-red-500 text-white font-bold py-2 rounded-lg hover:bg-red-600 shadow-sm transition text-sm">-1</button>
+                                <button onclick="doUpdatePoints('${kid._id}', -2)" class="bg-red-500 text-white font-bold py-2 rounded-lg hover:bg-red-600 shadow-sm transition text-sm">-2</button>
+                                <button onclick="doUpdatePoints('${kid._id}', -5)" class="bg-red-500 text-white font-bold py-2 rounded-lg hover:bg-red-600 shadow-sm transition text-sm">-5</button>
+                                <button onclick="handleCustomPoints('${kid._id}', false)" class="bg-red-500 text-white font-bold py-2 rounded-lg hover:bg-red-600 shadow-sm transition text-sm">-?</button>
                             `}
                         </div>
                     </div>
@@ -1044,6 +1044,24 @@ window.doUpdatePoints = (kidId, delta) => {
     }
     
     executeUpdate(reason);
+}
+
+window.handleCustomPoints = (kidId, isAdd) => {
+    showModal({
+        title: isAdd ? '自定义加分' : '自定义减分',
+        content: isAdd ? '请输入要增加的分数' : '请输入要扣除的分数',
+        showInput: true,
+        inputType: 'number',
+        placeholder: '请输入分值',
+        onConfirm: (val) => {
+            if (!val) return;
+            const points = parseInt(val);
+            if (isNaN(points) || points <= 0) return alert('请输入有效的正整数');
+            
+            const delta = isAdd ? points : -points;
+            doUpdatePoints(kidId, delta);
+        }
+    });
 }
 
 window.handleEditFamilyName = async () => {
