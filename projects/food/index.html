@@ -36,11 +36,28 @@
         <div class="detail-image" id="detail-image-box">
           <div class="detail-image-main">
             <img id="detail-image" alt="" />
+            <button id="img-prev" class="img-nav prev">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button id="img-next" class="img-nav next">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div id="img-counter" class="img-counter"></div>
           </div>
         </div>
         <div class="detail-info">
           <h2 id="detail-name"></h2>
           <div id="detail-tags" class="tags"></div>
+          <div class="price-block">
+            <div class="price-item wholesale">
+              <span class="label">批发价</span>
+              <strong class="value" id="detail-price-wholesale"></strong>
+            </div>
+            <div class="price-item retail">
+              <span class="label">零售价</span>
+              <strong class="value" id="detail-price-retail"></strong>
+            </div>
+          </div>
           <div class="kv">
             <div><span>类别</span><strong id="detail-category"></strong></div>
             <div><span>部位/品类</span><strong id="detail-cut"></strong></div>
@@ -48,7 +65,6 @@
             <div><span>等级</span><strong id="detail-grade"></strong></div>
             <div><span>包装规格</span><strong id="detail-packaging"></strong></div>
             <div><span>重量选项</span><strong id="detail-weights"></strong></div>
-            <div><span>价格区间</span><strong id="detail-price"></strong></div>
             <div><span>存储温度</span><strong id="detail-temp"></strong></div>
             <div><span>库存</span><strong id="detail-stock"></strong></div>
             <div><span>认证</span><strong id="detail-cert"></strong></div>
@@ -61,6 +77,7 @@
     </div>
   </div>
 
+  <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -30,15 +30,42 @@ const PLACEHOLDER_IMG = (function () {
 function setImageWithFallback(imgEl, src) {
   imgEl.loading = 'lazy';
   imgEl.decoding = 'async';
-  imgEl.src = src || PLACEHOLDER_IMG;
-  imgEl.onerror = () => {
-    imgEl.onerror = null;
-    imgEl.src = PLACEHOLDER_IMG;
+  imgEl.classList.remove('loaded');
+  
+  const actualSrc = src || PLACEHOLDER_IMG;
+  
+  const loader = new Image();
+  loader.src = actualSrc;
+  loader.onload = () => {
+    imgEl.src = actualSrc;
+    imgEl.classList.add('loaded');
   };
+  loader.onerror = () => {
+    imgEl.src = PLACEHOLDER_IMG;
+    imgEl.classList.add('loaded');
+  };
+  
+  // 如果没有设置src（第一次加载），先设为空或占位，避免显示破碎图标
+  if (!imgEl.src) {
+      imgEl.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 透明 gif
+  }
 }
 
 async function loadData() {
   try {
+    // 优先使用本地数据（js/data.js 中定义的 GLOBAL 变量）
+    if (typeof LOCAL_DATA !== 'undefined') {
+      const data = LOCAL_DATA;
+      state.raw = data;
+      state.categories = ['全部', ...data.categories];
+      state.products = data.products;
+      applyFilter();
+      renderCategories();
+      renderProducts();
+      return;
+    }
+
+    // 回退到 Fetch 模式（仅在 HTTP 环境下有效）
     const res = await fetch('data/products.json?' + Date.now());
     if (!res.ok) throw new Error('网络错误');
     const data = await res.json();
@@ -50,7 +77,7 @@ async function loadData() {
     renderProducts();
   } catch (e) {
     console.error(e);
-    alert('产品数据加载失败，请稍后重试。');
+    alert('产品数据加载失败，请检查网络或本地文件配置。');
   }
 }
 
@@ -87,6 +114,20 @@ function applyFilter() {
 function renderProducts() {
   const list = document.getElementById('product-list');
   list.innerHTML = '';
+  
+  if (state.filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3>没有找到相关产品</h3>
+        <p>试试其他关键词或分类</p>
+      </div>
+    `;
+    return;
+  }
+
   state.filtered.forEach((p, i) => {
     const card = document.createElement('article');
     card.className = 'card';
@@ -135,7 +176,8 @@ function openDetail(index) {
   document.getElementById('detail-grade').textContent = p.grade;
   document.getElementById('detail-packaging').textContent = p.packaging;
   document.getElementById('detail-weights').textContent = (p.weightOptions || []).join(' / ');
-  document.getElementById('detail-price').textContent = p.priceRange;
+  document.getElementById('detail-price-wholesale').textContent = p.priceWholesale || '询价';
+  document.getElementById('detail-price-retail').textContent = p.priceRetail || '询价';
   document.getElementById('detail-temp').textContent = p.temperature;
   document.getElementById('detail-stock').textContent = p.stockStatus;
   document.getElementById('detail-cert').textContent = (p.certificates || []).join('、');
@@ -157,6 +199,22 @@ function renderDetailImages(p) {
   if (state.currentImageIndex >= images.length) state.currentImageIndex = 0;
   const main = document.getElementById('detail-image');
   setImageWithFallback(main, images[state.currentImageIndex] || images[0]);
+
+  const prevBtn = document.getElementById('img-prev');
+  const nextBtn = document.getElementById('img-next');
+  const counter = document.getElementById('img-counter');
+
+  if (images.length > 1) {
+    prevBtn.style.display = 'flex';
+    nextBtn.style.display = 'flex';
+    counter.style.display = 'block';
+    counter.textContent = `${state.currentImageIndex + 1} / ${images.length}`;
+  } else {
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    counter.style.display = 'none';
+  }
+
   const wrap = document.getElementById('detail-thumbs');
   wrap.innerHTML = '';
   images.forEach((src, i) => {
@@ -306,6 +364,21 @@ function bindEvents() {
   const mainImage = document.getElementById('detail-image');
   if (mainImage) {
     mainImage.addEventListener('click', () => {
+      showNextImage();
+    });
+  }
+
+  const imgPrev = document.getElementById('img-prev');
+  const imgNext = document.getElementById('img-next');
+  if (imgPrev) {
+    imgPrev.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showPrevImage();
+    });
+  }
+  if (imgNext) {
+    imgNext.addEventListener('click', (e) => {
+      e.stopPropagation();
       showNextImage();
     });
   }

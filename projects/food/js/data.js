@@ -1,4 +1,4 @@
-{
+const LOCAL_DATA = {
   "categories": [
     "牛肉",
     "猪肉",
@@ -263,4 +263,4 @@
       "priceRetail": "¥68/kg"
     }
   ]
-}
+};
