@@ -1299,28 +1299,28 @@ function renderPosterView() {
                                 <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
                                     <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1.map(i => `<span class="text-3xl md:text-4xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                        ${icons1.map(i => `<span class="text-3xl md:text-4xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
                                     </div>
                                 </div>
                                 <!-- Row 2: 10s -->
                                 <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
                                     <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">10</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons10.map(i => `<span class="text-4xl md:text-5xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                        ${icons10.map(i => `<span class="text-4xl md:text-5xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
                                     </div>
                                 </div>
                                 <!-- Row 3: 100s -->
                                 <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
                                     <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">100</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons100.map(i => `<span class="text-5xl md:text-6xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                        ${icons100.map(i => `<span class="text-5xl md:text-6xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
                                     </div>
                                 </div>
                                 <!-- Row 4: 1000s -->
                                 <div class="flex items-center p-3 gap-3 min-h-[70px]">
                                     <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1k</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1000.map(i => `<span class="text-6xl md:text-7xl animate-bounce-slow">${i.char}</span>`).join('')}
+                                        ${icons1000.map(i => `<span class="text-6xl md:text-7xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -1336,12 +1336,12 @@ function renderPosterView() {
             </div>
             
             <style>
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(-5%); }
-                    50% { transform: translateY(5%); }
+                @keyframes spin-slow {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
-                .animate-bounce-slow {
-                    animation: bounce-slow 3s infinite ease-in-out;
+                .animate-spin-slow {
+                    animation: spin-slow 8s linear infinite;
                 }
             </style>
         </div>
