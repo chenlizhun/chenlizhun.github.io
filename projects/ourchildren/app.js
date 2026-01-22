@@ -251,12 +251,12 @@ function renderHomeSimple() {
            </div>`;
     return `
         <div class="space-y-2">
-            <div id="home-boxes" class="flex flex-col gap-2 items-center">
-                <div class="score-box bg-white rounded-2xl shadow p-4 flex flex-col items-center justify-center w-full">
+            <div id="home-boxes" class="flex flex-col md:flex-row gap-2 md:gap-4 items-center">
+                <div class="score-box bg-white rounded-2xl shadow p-4 flex flex-col items-center justify-center w-full md:flex-1">
                     <div class="text-sm text-gray-500 mb-2">猪姐姐总分</div>
                     <div class="score-number font-extrabold tracking-tight text-pink-600">${d.kids['猪姐姐'].points}</div>
                 </div>
-                <div class="score-box bg-white rounded-2xl shadow p-4 flex flex-col items-center justify-center w-full">
+                <div class="score-box bg-white rounded-2xl shadow p-4 flex flex-col items-center justify-center w-full md:flex-1">
                     <div class="text-sm text-gray-500 mb-2">牛弟弟总分</div>
                     <div class="score-number font-extrabold tracking-tight text-blue-600">${d.kids['牛弟弟'].points}</div>
                 </div>

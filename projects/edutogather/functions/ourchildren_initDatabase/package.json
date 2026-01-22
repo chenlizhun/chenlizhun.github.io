@@ -1,0 +1,9 @@
+{
+  "name": "ourchildren-init-database",
+  "version": "1.0.0",
+  "description": "Initialize database schema with sample data",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

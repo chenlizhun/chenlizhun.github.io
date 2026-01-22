@@ -1,0 +1,9 @@
+{
+  "name": "ourchildren-kid-api",
+  "version": "1.0.0",
+  "description": "Core API for Edutogather SaaS",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
