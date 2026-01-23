@@ -1230,7 +1230,7 @@ window.openPoster = (familyId) => {
         
         // Start polling for real-time updates if we are viewing the current family
         if (state.family && state.family._id === family._id) {
-            DataStore.startPolling(3000); // Poll every 3 seconds
+            DataStore.startPolling(1000); // Poll every 1 second
         }
         
         render();
