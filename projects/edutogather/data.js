@@ -9,6 +9,7 @@ const DataStore = (() => {
     let _onDataChange = null;
     let _loading = true;
     let _pollingInterval = null;
+    let _listeningFamilyId = null;
 
     // Initialize CloudBase
     async function init({ env, onDataChange }) {
@@ -134,11 +135,20 @@ const DataStore = (() => {
         }
     }
 
-    function startPolling(intervalMs = 5000) {
+    function startPolling(intervalMs = 5000, targetFamilyId = null) {
         if (_pollingInterval) clearInterval(_pollingInterval);
-        console.log('Starting polling...');
+        
+        if (targetFamilyId) {
+            _listeningFamilyId = targetFamilyId;
+        }
+
+        console.log('Starting polling...', _listeningFamilyId ? `for specific family: ${_listeningFamilyId}` : 'for current family');
+        
         _pollingInterval = setInterval(async () => {
-            if (_currentFamily) {
+            // Determine which family to poll: explicitly listened family OR current logged in family
+            const familyIdToPoll = _listeningFamilyId || (_currentFamily && _currentFamily._id);
+
+            if (familyIdToPoll) {
                 try {
                     // Use silent call if possible, but our callApi doesn't support options.
                     // Just call get_family_data directly.
@@ -147,7 +157,7 @@ const DataStore = (() => {
                         data: { 
                             action: 'get_family_data', 
                             payload: { 
-                                familyId: _currentFamily._id,
+                                familyId: familyIdToPoll,
                                 _t: Date.now() // Prevent caching
                             } 
                         }
@@ -155,13 +165,35 @@ const DataStore = (() => {
                     
                     if (res.result && res.result.success) {
                         const newKids = res.result.data.kids;
-                        const oldKidsJson = JSON.stringify(_kids);
-                        const newKidsJson = JSON.stringify(newKids);
+                        const newFamilyInfo = res.result.data.family; // Backend might return family info too? Usually just kids in get_family_data but let's check
                         
-                        if (oldKidsJson !== newKidsJson) {
-                            console.log('Data changed via polling, updating...');
-                            _kids = newKids;
-                            notifyChange();
+                        // Check if data changed
+                        // We need to compare against correct source.
+                        // If polling current family, compare with _kids.
+                        // If polling other family (poster view), we might not have local _kids to compare easily, 
+                        // unless we store it. For now, let's just notify always or check simplistic hash.
+                        
+                        const isCurrentFamily = _currentFamily && _currentFamily._id === familyIdToPoll;
+                        
+                        if (isCurrentFamily) {
+                            const oldKidsJson = JSON.stringify(_kids);
+                            const newKidsJson = JSON.stringify(newKids);
+                            
+                            if (oldKidsJson !== newKidsJson) {
+                                console.log('Data changed via polling (current family), updating...');
+                                _kids = newKids;
+                                notifyChange();
+                            }
+                        } else {
+                            // Polling for poster view (non-logged in or different family)
+                            // Always notify 'poster_update' so app.js can decide to re-render if changed
+                            if (_onDataChange) {
+                                _onDataChange({
+                                    type: 'poster_update',
+                                    familyId: familyIdToPoll,
+                                    kids: newKids
+                                });
+                            }
                         }
                     }
                 } catch (e) {
@@ -177,6 +209,7 @@ const DataStore = (() => {
             clearInterval(_pollingInterval);
             _pollingInterval = null;
         }
+        _listeningFamilyId = null;
     }
 
     return {

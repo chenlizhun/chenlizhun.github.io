@@ -61,12 +61,16 @@ const state = {
         inputType: 'text',
         placeholder: '',
         onConfirm: null
-    }
+    },
+    
+    // Kiosk Mode
+    hasAutoLaunched: false
 };
 
 // Constants
 const REASONS_KEY = 'kids_management_reasons';
 const FAMILIES_CACHE_KEY = 'kids_management_families_cache';
+const FOLLOWED_FAMILY_KEY = 'kids_management_followed_family';
 
 const DEMO_FAMILY_ID = 'demo_family_example';
 const DEMO_FAMILY_DATA = {
@@ -214,6 +218,10 @@ const FamilyCache = {
 };
 
 // Utils
+function isLargeScreen() {
+    return window.innerWidth > window.innerHeight;
+}
+
 function formatDate(timestamp) {
     return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
 }
@@ -355,6 +363,20 @@ async function loadAllFamilies() {
         const res = await DataStore.getAllFamilies();
         if (res.success) {
             state.allFamilies = res.data.families;
+
+            // Auto-launch Kiosk Mode if applicable
+            if (isLargeScreen() && !state.hasAutoLaunched) {
+                const followedId = localStorage.getItem(FOLLOWED_FAMILY_KEY);
+                if (followedId) {
+                    const target = state.allFamilies.find(f => f._id === followedId);
+                    if (target) {
+                        console.log('Auto-launching kiosk mode for:', target.name);
+                        state.hasAutoLaunched = true;
+                        openPoster(target._id);
+                        return;
+                    }
+                }
+            }
         }
     } catch (e) {
         console.error('Failed to load families', e);
@@ -383,9 +405,13 @@ function renderFamilyListView() {
         return 0;
     });
 
+    const isLarge = isLargeScreen();
+    // Check if we have a followed family
+    const followedId = localStorage.getItem(FOLLOWED_FAMILY_KEY);
+
     return `
         <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-            <h1 class="text-2xl font-bold text-center text-primary mb-6">选择家庭</h1>
+            <h1 class="text-2xl font-bold text-center text-primary mb-6">${isLarge ? '选择要展示的家庭' : '选择家庭'}</h1>
             
             <div onclick="enterDemoFamily()" class="mb-6 border-2 border-dashed border-blue-200 bg-blue-50 rounded-xl p-4 cursor-pointer hover:bg-blue-100 transition flex items-center justify-between">
                 <div>
@@ -400,21 +426,35 @@ function renderFamilyListView() {
             <div class="space-y-4 mb-8 max-h-[60vh] overflow-y-auto">
                 ${sortedFamilies.map(f => {
                     const isJoined = myFamilyIds.has(f._id);
+                    const isFollowed = f._id === followedId;
+                    
+                    // Large screen behavior: click card does nothing or maybe just follows?
+                    // User said: "Show Follow button".
+                    // Let's make the card click also trigger follow if large screen for better UX?
+                    // Or keep it simple.
+                    
+                    const clickAction = isLarge 
+                        ? `followAndDisplay('${f._id}')` 
+                        : (isJoined ? `selectFamily('${f._id}')` : '');
+
                     return `
-                    <div onclick="${isJoined ? `selectFamily('${f._id}')` : ''}" class="border ${isJoined ? 'border-green-200 bg-green-50' : 'border-gray-200'} rounded-xl p-4 ${isJoined ? 'cursor-pointer hover:bg-green-100' : ''} transition relative">
-                        ${isJoined ? '<div class="absolute top-2 right-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">已加入</div>' : ''}
+                    <div onclick="${clickAction}" class="border ${isFollowed ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-200' : (isJoined ? 'border-green-200 bg-green-50' : 'border-gray-200')} rounded-xl p-4 ${clickAction ? 'cursor-pointer hover:bg-opacity-80' : ''} transition relative">
+                        ${isJoined && !isLarge ? '<div class="absolute top-2 right-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">已加入</div>' : ''}
+                        ${isFollowed && isLarge ? '<div class="absolute top-2 right-2 text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">已关注</div>' : ''}
                         
-                        <div class="flex justify-between items-center mb-2 ${isJoined ? 'pr-14' : ''}">
+                        <div class="flex justify-between items-center mb-2 ${isJoined && !isLarge ? 'pr-14' : ''}">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-lg text-gray-800">${f.name}</span>
+                                ${!isLarge ? `
                                 <button onclick="
                                     openPoster('${f._id}');
                                     event.stopPropagation();
                                 " class="text-xs text-gray-400 hover:text-purple-600 border border-transparent hover:border-purple-200 rounded px-1.5 py-0.5 transition">
                                     展示
                                 </button>
+                                ` : ''}
                             </div>
-                            ${state.currentOpenId && f.owner_id === state.currentOpenId ? 
+                            ${state.currentOpenId && f.owner_id === state.currentOpenId && !isLarge ? 
                                 `<button onclick="handleDeleteFamily('${f._id}'); event.stopPropagation();" class="text-xs text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">删除</button>` 
                                 : ''}
                         </div>
@@ -429,29 +469,36 @@ function renderFamilyListView() {
                             `).join('') : '<span class="text-xs text-gray-400">暂无孩子信息</span>'}
                         </div>
 
-                        ${!isJoined && state.availableFamilies.length === 0 ? `
-                            <button onclick="
-                                state.prefillFamilyId='${f._id}';
-                                setAuthMode('join');
-                                event.stopPropagation();
-                            " class="w-full py-2 bg-white border border-primary text-primary text-sm rounded-lg font-bold hover:bg-blue-50">
-                                加入此家庭
-                            </button>
-                        ` : ''}
+                        ${!isLarge ? `
+                            ${!isJoined && state.availableFamilies.length === 0 ? `
+                                <button onclick="
+                                    state.prefillFamilyId='${f._id}';
+                                    setAuthMode('join');
+                                    event.stopPropagation();
+                                " class="w-full py-2 bg-white border border-primary text-primary text-sm rounded-lg font-bold hover:bg-blue-50">
+                                    加入此家庭
+                                </button>
+                            ` : ''}
 
-                        ${isJoined ? `
-                            <button class="w-full py-2 bg-white border border-green-500 text-green-600 text-sm rounded-lg font-bold hover:bg-green-50 flex items-center justify-center gap-1">
-                                <span>进入家庭</span>
-                                <span class="text-lg">➡️</span>
+                            ${isJoined ? `
+                                <button class="w-full py-2 bg-white border border-green-500 text-green-600 text-sm rounded-lg font-bold hover:bg-green-50 flex items-center justify-center gap-1">
+                                    <span>进入家庭</span>
+                                    <span class="text-lg">➡️</span>
+                                </button>
+                            ` : ''}
+                        ` : `
+                            <button onclick="followAndDisplay('${f._id}'); event.stopPropagation();" class="w-full py-2 ${isFollowed ? 'bg-purple-600 text-white' : 'bg-white border border-purple-500 text-purple-600'} text-sm rounded-lg font-bold hover:bg-purple-700 hover:text-white flex items-center justify-center gap-1 transition">
+                                <span>${isFollowed ? '正在展示' : '关注并展示'}</span>
+                                <span class="text-lg">📺</span>
                             </button>
-                        ` : ''}
+                        `}
                     </div>
                 `}).join('')}
                 
                 ${!state.allFamiliesLoading && sortedFamilies.length === 0 ? '<div class="text-center text-gray-400">暂无家庭，快去创建一个吧！</div>' : ''}
             </div>
 
-            ${state.availableFamilies.length === 0 ? `
+            ${!isLarge && state.availableFamilies.length === 0 ? `
             <div class="space-y-3 pt-4 border-t border-gray-100">
                  <button onclick="setAuthMode('register')" class="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-indigo-700 transition">
                     + 创建新家庭
@@ -463,6 +510,11 @@ function renderFamilyListView() {
         </div>
         ${renderGlobalModal()}
     `;
+}
+
+window.followAndDisplay = (familyId) => {
+    localStorage.setItem(FOLLOWED_FAMILY_KEY, familyId);
+    openPoster(familyId);
 }
 
 window.selectFamily = (familyId) => {
@@ -1228,10 +1280,9 @@ window.openPoster = (familyId) => {
         state.posterFamily = family;
         state.showPoster = true;
         
-        // Start polling for real-time updates if we are viewing the current family
-        if (state.family && state.family._id === family._id) {
-            DataStore.startPolling(1000); // Poll every 1 second
-        }
+        // Start polling for real-time updates for the poster family
+        // Even if not logged in, we want updates for this specific family
+        DataStore.startPolling(1000, family._id);
         
         render();
     } else {
@@ -1264,20 +1315,24 @@ function renderPosterView() {
     const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
 
     return `
-        <div class="fixed inset-0 bg-gray-900 text-white z-50 overflow-y-auto">
-            <div class="min-h-screen flex flex-col p-4 md:p-8">
+        <div class="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white z-50 overflow-y-auto font-sans">
+            <div class="min-h-screen flex flex-col p-6 md:p-12">
                 <!-- Header -->
-                <div class="flex justify-between items-center mb-8">
-                    <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">
-                        ${family.name}
-                    </h1>
-                    <button onclick="closePoster()" class="bg-white/10 hover:bg-white/20 text-white rounded-full p-3 backdrop-blur-sm transition">
-                        ✕ 关闭
+                <div class="flex justify-between items-center mb-10">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-1.5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.5)]"></div>
+                        <h1 class="text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-lg">
+                            ${family.name}
+                        </h1>
+                    </div>
+                    <button onclick="closePoster()" class="bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-full px-6 py-2 backdrop-blur-md transition flex items-center gap-2 group shadow-lg">
+                        <span class="group-hover:rotate-90 transition-transform duration-300">✕</span> 
+                        <span class="font-medium tracking-wide">退出展示</span>
                     </button>
                 </div>
 
                 <!-- Kids Grid -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-8 content-center">
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-8 content-center items-start">
                     ${family.kids.map(kid => {
                         const icons = getSeriesIconsDecomposed(kid.current_points, series);
                         const icons1 = icons.filter(i => i.val === 1);
@@ -1286,41 +1341,58 @@ function renderPosterView() {
                         const icons1000 = icons.filter(i => i.val === 1000);
                         
                         return `
-                        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl flex flex-col">
-                            <div class="flex justify-between items-center mb-6">
-                                <div class="text-3xl md:text-4xl font-bold ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'}">${kid.name}</div>
-                                <div class="bg-yellow-400/20 px-4 py-2 rounded-xl text-yellow-300 font-mono font-bold text-2xl">
-                                    ${kid.current_points}
+                        <div class="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/10 shadow-2xl overflow-hidden transition-all duration-500 hover:bg-white/10 hover:shadow-purple-500/10 hover:-translate-y-1">
+                            <!-- Background Decoration -->
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+                            
+                            <!-- Header Section: Name & Score -->
+                            <div class="relative flex flex-col items-center mb-10 pb-8 border-b border-white/5">
+                                <div class="text-4xl md:text-5xl font-bold ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'} mb-2 drop-shadow-md tracking-wide">
+                                    ${kid.name}
+                                </div>
+                                <div class="flex items-baseline justify-center gap-3">
+                                    <span class="text-8xl md:text-9xl font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)] leading-none">
+                                        ${kid.current_points}
+                                    </span>
+                                    <span class="text-xl text-white/40 font-medium uppercase tracking-[0.2em] mb-4">Points</span>
                                 </div>
                             </div>
 
-                            <div class="w-full bg-black/20 rounded-2xl flex flex-col overflow-hidden">
-                                <!-- Row 1: 1s -->
-                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
-                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1</div>
+                            <!-- Visualization Section -->
+                            <div class="relative space-y-3">
+                                <!-- Row 1000s -->
+                                ${icons1000.length > 0 ? `
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1.map(i => `<span class="text-3xl md:text-4xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
+                                        ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
                                     </div>
-                                </div>
-                                <!-- Row 2: 10s -->
-                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
-                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">10</div>
+                                </div>` : ''}
+
+                                <!-- Row 100s -->
+                                ${icons100.length > 0 || icons1000.length > 0 ? `
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons10.map(i => `<span class="text-4xl md:text-5xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
+                                        ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
                                     </div>
-                                </div>
-                                <!-- Row 3: 100s -->
-                                <div class="flex items-center p-3 gap-3 border-b border-white/10 min-h-[70px]">
-                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">100</div>
+                                </div>` : ''}
+
+                                <!-- Row 10s -->
+                                ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons100.map(i => `<span class="text-5xl md:text-6xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
+                                        ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
                                     </div>
-                                </div>
-                                <!-- Row 4: 1000s -->
-                                <div class="flex items-center p-3 gap-3 min-h-[70px]">
-                                    <div class="w-8 text-xs text-white/30 font-mono shrink-0 select-none text-center">1k</div>
-                                    <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1000.map(i => `<span class="text-6xl md:text-7xl animate-spin-slow inline-block">${i.char}</span>`).join('')}
+                                </div>` : ''}
+
+                                <!-- Row 1s -->
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
+                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
+                                    <div class="flex-1 flex flex-wrap gap-2 items-center">
+                                        ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
+                                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1330,20 +1402,12 @@ function renderPosterView() {
                 </div>
 
                 <!-- Footer -->
-                <div class="text-center text-gray-500 mt-8 text-sm">
-                    EduTogether Points Display System • ${series.name}
+                <div class="text-center mt-12 opacity-30 hover:opacity-80 transition duration-700">
+                    <p class="text-[10px] uppercase tracking-[0.3em] font-light text-white">
+                        EduTogether Dashboard • Theme: ${series.name}
+                    </p>
                 </div>
             </div>
-            
-            <style>
-                @keyframes spin-slow {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                .animate-spin-slow {
-                    animation: spin-slow 8s linear infinite;
-                }
-            </style>
         </div>
     `;
 }
@@ -1859,6 +1923,20 @@ const initApp = async () => {
                 state.availableFamilies = FamilyCache.load(); 
                 state.currentOpenId = event.openId;
                 render();
+                return;
+            }
+
+            // Handle Poster View Updates
+            if (event.type === 'poster_update') {
+                if (state.showPoster && state.posterFamily && state.posterFamily._id === event.familyId) {
+                    console.log('Updating poster view with new data', event.kids);
+                    // Update the posterFamily object with new kids data
+                    state.posterFamily = {
+                        ...state.posterFamily,
+                        kids: event.kids
+                    };
+                    render();
+                }
                 return;
             }
             
