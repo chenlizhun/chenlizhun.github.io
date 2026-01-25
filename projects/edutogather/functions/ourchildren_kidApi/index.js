@@ -48,8 +48,6 @@ exports.main = async (event, context) => {
         return await handleUpdateKidName(openId, payload)
       case 'update_family_pin':
         return await handleUpdateFamilyPin(openId, payload)
-      case 'update_family_series':
-        return await handleUpdateFamilySeries(openId, payload)
       default:
         return { success: false, message: 'Unknown action' }
     }
@@ -192,21 +190,8 @@ async function handleJoinFamily(openId, payload) {
       family_id: familyId
   }).count()
   
-  // Get Kids for this family to return full object
-  const kidsRes = await db.collection(COLLECTIONS.KIDS).where({
-      family_id: familyId
-  }).get()
-
   if (existCount.total > 0) {
-      return { 
-          success: true, 
-          message: 'Already joined', 
-          familyId,
-          family: {
-              info: familyRes.data,
-              kids: kidsRes.data || []
-          }
-      }
+      return { success: true, message: 'Already joined', familyId }
   }
   
   await db.collection(COLLECTIONS.USERS).add({
@@ -219,14 +204,7 @@ async function handleJoinFamily(openId, payload) {
       }
   })
   
-  return { 
-      success: true, 
-      familyId,
-      family: {
-          info: familyRes.data,
-          kids: kidsRes.data || []
-      }
-  }
+  return { success: true, familyId }
 }
 
 // 4. Add Kid
@@ -396,7 +374,6 @@ async function handleGetAllFamilies(openId, payload) {
             name: f.name,
             created_at: f.created_at,
             owner_id: f.owner_id,
-            display_series: f.display_series,
             kids: kidsRes.data.map(k => ({
                 name: k.name,
                 gender: k.gender,
@@ -447,30 +424,6 @@ async function handleUpdateFamilyName(openId, payload) {
     await db.collection(COLLECTIONS.FAMILIES).doc(familyId).update({
         data: {
             name: newName
-        }
-    })
-    
-    return { success: true }
-}
-
-// 13. Update Family Series
-async function handleUpdateFamilySeries(openId, payload) {
-    const { familyId, seriesId } = payload
-    
-    if (!familyId || !seriesId) throw new Error('Missing parameters')
-    
-    // 1. Permission Check: Must be member
-    const userRes = await db.collection(COLLECTIONS.USERS).where({
-        _openid: openId,
-        family_id: familyId
-    }).count()
-    
-    if (userRes.total === 0) throw new Error('Permission denied')
-    
-    // 2. Update
-    await db.collection(COLLECTIONS.FAMILIES).doc(familyId).update({
-        data: {
-            display_series: seriesId
         }
     })
     

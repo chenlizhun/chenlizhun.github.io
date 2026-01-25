@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 世友的肉肉仓库</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Admin Specific Styles */
+        body { background: #f9fafb; padding: 20px; }
+        .admin-container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        .login-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; width: 300px; text-align: center; }
+        
+        .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; background: #fff; }
+        .admin-tabs { display: flex; background: #f3f4f6; padding: 0 20px; }
+        .admin-tab { padding: 12px 20px; cursor: pointer; border-bottom: 2px solid transparent; color: #666; }
+        .admin-tab.active { border-bottom-color: #ef4444; color: #ef4444; font-weight: bold; background: white; }
+        
+        .tab-content { padding: 20px; }
+        .hidden { display: none !important; }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background: #f9fafb; font-weight: 600; color: #374151; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: 500; color: #374151; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        .form-textarea { height: 100px; resize: vertical; }
+        
+        /* Buttons */
+        .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-size: 14px; }
+        .btn.primary { background: #ef4444; color: white; }
+        .btn.secondary { background: #e5e7eb; color: #374151; }
+        .btn.small { padding: 4px 8px; font-size: 12px; }
+        .action-btn { margin-right: 5px; cursor: pointer; border: none; background: none; text-decoration: underline; }
+        .action-btn.edit { color: #3b82f6; }
+        .action-btn.delete { color: #ef4444; }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 500; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        
+        .cat-item { display: flex; align-items: center; padding: 10px; border: 1px solid #eee; margin-bottom: 10px; background: white; border-radius: 4px; }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="login-overlay hidden">
+        <div class="login-box">
+            <h3>管理员登录</h3>
+            <div class="form-group">
+                <input type="password" id="pin-input" class="form-input" placeholder="输入PIN码" style="text-align:center">
+            </div>
+            <button id="login-btn" class="btn primary" style="width:100%">进入系统</button>
+        </div>
+    </div>
+
+    <!-- Admin App -->
+    <div id="admin-app" class="admin-container hidden">
+        <header class="admin-header">
+            <h2 style="margin:0">肉肉仓库管理后台</h2>
+            <button id="logout-btn" class="btn secondary small">退出登录</button>
+        </header>
+        
+        <div class="admin-tabs">
+            <div class="admin-tab active" onclick="switchTab('products')">产品管理</div>
+            <div class="admin-tab" onclick="switchTab('categories')">分类排序</div>
+            <div class="admin-tab" onclick="switchTab('settings')">系统设置</div>
+        </div>
+
+        <!-- Tab: Products -->
+        <div id="tab-products" class="tab-content">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <div style="display:flex; gap:10px;">
+                    <select id="filter-category" class="form-select" style="width:120px">
+                        <option value="">所有分类</option>
+                    </select>
+                    <input type="text" id="search-product" class="form-input" placeholder="搜索产品名称..." style="width:200px">
+                </div>
+                <button class="btn primary" onclick="openProductModal()">+ 新增产品</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:60px">图片</th>
+                        <th>名称/ID</th>
+                        <th>分类</th>
+                        <th>规格</th>
+                        <th>状态</th>
+                        <th style="width:100px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="product-tbody">
+                    <!-- Products rendered here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab: Categories -->
+        <div id="tab-categories" class="tab-content hidden">
+            <div class="section-title">分类管理</div>
+            <div id="category-list" style="margin-bottom:20px">
+                <!-- Categories rendered here -->
+            </div>
+            <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee">
+                <button class="btn secondary" onclick="addCategory()">+ 添加分类</button>
+                <button class="btn primary" onclick="saveCategories()" style="margin-left:10px">保存分类排序与名称</button>
+            </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div id="tab-settings" class="tab-content hidden">
+            <div class="section-title">全站设置</div>
+            <div class="form-group">
+                <label class="form-label">网站主标题 (App Title)</label>
+                <input type="text" id="setting-title" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">副标题 (Subtitle)</label>
+                <input type="text" id="setting-subtitle" class="form-input">
+            </div>
+            <div class="form-group">
+                <button class="btn primary" onclick="saveSettings()">保存设置</button>
+            </div>
+            
+            <div class="section-title" style="margin-top:40px; color:#ef4444;">数据迁移 (危险操作)</div>
+            <p style="color:#666; font-size:14px; margin-bottom:10px;">
+                如果是新环境，请先点击“初始化数据库集合”以创建必要的存储表。<br>
+                然后点击“导入演示数据”将本地数据上传。
+            </p>
+            <div style="display:flex; gap:10px;">
+                <button class="btn secondary" onclick="initDB()" style="border:1px solid #3b82f6; color:#3b82f6;">初始化数据库集合</button>
+                <button class="btn secondary" onclick="importLocalData()" style="border:1px solid #ef4444; color:#ef4444;">从 data.js 导入演示数据</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-top:0">编辑产品</h3>
+            <form id="product-form" onsubmit="event.preventDefault(); saveProduct();">
+                <input type="hidden" id="p-id">
+                
+                <div style="display:flex; gap:20px;">
+                    <div style="flex:1">
+                        <div class="form-group">
+                            <label class="form-label">产品名称 *</label>
+                            <input type="text" id="p-name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">所属分类 *</label>
+                            <select id="p-category" class="form-select" required></select>
+                        </div>
+                    </div>
+                    <div style="width:120px; text-align:center;">
+                        <img id="p-thumb-preview" style="width:100px; height:100px; object-fit:cover; border-radius:4px; background:#eee; display:block; margin-bottom:5px;">
+                        <input type="hidden" id="p-thumb-path">
+                        <label class="btn secondary small" style="display:block; cursor:pointer">
+                            选择图片
+                            <input type="file" id="p-thumb-file" style="display:none" onchange="uploadImage('thumb')">
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">产地</label>
+                        <input type="text" id="p-origin" class="form-input">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">等级</label>
+                        <input type="text" id="p-grade" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">包装规格</label>
+                    <input type="text" id="p-packaging" class="form-input" placeholder="例如: 2kg/袋，8袋/箱">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">部位 (Cut)</label>
+                    <input type="text" id="p-cut" class="form-input">
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">库存状态</label>
+                        <select id="p-stock" class="form-select">
+                            <option value="现货">现货</option>
+                            <option value="期货">期货</option>
+                            <option value="缺货">缺货</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">批发价</label>
+                        <input type="text" id="p-price-w" class="form-input" placeholder="¥48/kg">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">建议零售价</label>
+                        <input type="text" id="p-price-r" class="form-input" placeholder="¥58/kg">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">产品描述</label>
+                    <textarea id="p-desc" class="form-textarea"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">标签 (逗号分隔)</label>
+                    <input type="text" id="p-tags" class="form-input" placeholder="澳洲, 谷饲, 热销">
+                </div>
+
+                <div style="text-align:right; margin-top:20px;">
+                    <button type="button" class="btn secondary" onclick="closeProductModal()">取消</button>
+                    <button type="submit" class="btn primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/cloudbase.js"></script>
+    <script src="js/data.js"></script> <!-- Local data for migration -->
+    <script src="js/admin.js"></script>
+</body>
+</html>

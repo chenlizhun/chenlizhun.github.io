@@ -51,9 +51,90 @@ function setImageWithFallback(imgEl, src) {
   }
 }
 
+// CloudBase Config
+const ENV_ID = 'chenlizhun-projects-2ckab9e1cd47'; // Sync with admin.js
+let app, db;
+
 async function loadData() {
+  // 1. Init CloudBase (Try-Catch wrapped to ensure fallback works)
   try {
-    // 优先使用本地数据（js/data.js 中定义的 GLOBAL 变量）
+    if (typeof cloudbase !== 'undefined') {
+        app = cloudbase.init({ env: ENV_ID });
+        const auth = app.auth();
+        const loginState = await auth.getLoginState();
+        if (!loginState) await auth.signInAnonymously();
+        db = app.database();
+        
+        // Helper to load collection (Direct -> Cloud Function Fallback)
+        const safeLoad = async (collection) => {
+            try {
+                // Try direct read first
+                const res = await db.collection(collection).limit(1000).get();
+                return res.data;
+            } catch (directErr) {
+                console.warn(`Direct read ${collection} failed, trying cloud function...`, directErr);
+                const res = await app.callFunction({
+                    name: 'food_admin',
+                    data: { action: 'get', collection: collection }
+                });
+                if (res.result && res.result.success) {
+                    return res.result.data;
+                }
+                throw directErr;
+            }
+        };
+
+        // 2. Load Config (Categories & Titles)
+        try {
+            const configs = await safeLoad('food_config');
+            const config = configs.find(c => c._id === 'global_config');
+            
+            if (config) {
+                // Update page titles
+                if (config.appTitle) {
+                    document.title = config.appTitle;
+                    document.querySelector('.titles h1').textContent = config.appTitle;
+                }
+                if (config.appSubtitle) {
+                    document.querySelector('.titles p').textContent = config.appSubtitle;
+                }
+                // Update categories
+                if (config.categories && Array.isArray(config.categories)) {
+                    state.categories = ['全部', ...config.categories.sort((a,b)=>a.order-b.order).map(c=>c.name)];
+                }
+            }
+        } catch(e) {
+            console.warn('Failed to load cloud config, using local fallback', e);
+        }
+
+        // 3. Load Products
+        try {
+            const cloudProducts = await safeLoad('food_products');
+            
+            // If cloud has data, use it.
+            if (cloudProducts && cloudProducts.length > 0) {
+                state.products = cloudProducts;
+                if (state.categories.length <= 1) { // Only '全部'
+                     // If no config, infer categories from products
+                     const cats = new Set(state.products.map(p => p.category));
+                     state.categories = ['全部', ...Array.from(cats)];
+                }
+                
+                applyFilter();
+                renderCategories();
+                renderProducts();
+                return; // Success!
+            }
+        } catch(e) {
+            console.warn('Failed to load cloud products', e);
+        }
+    }
+  } catch (e) {
+      console.warn('CloudBase init failed, falling back to local data.', e);
+  }
+
+  try {
+    // Fallback: Use Local Data
     if (typeof LOCAL_DATA !== 'undefined') {
       const data = LOCAL_DATA;
       state.raw = data;
@@ -65,7 +146,7 @@ async function loadData() {
       return;
     }
 
-    // 回退到 Fetch 模式（仅在 HTTP 环境下有效）
+    // Fallback: Use JSON Fetch
     const res = await fetch('data/products.json?' + Date.now());
     if (!res.ok) throw new Error('网络错误');
     const data = await res.json();

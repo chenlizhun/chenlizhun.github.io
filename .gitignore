@@ -3,6 +3,9 @@
 .LSOverride
 .Spotlight-V100
 .Trashes
+/projects/edutogather/functions
+functions
+
 
 node_modules/
 npm-debug.log*

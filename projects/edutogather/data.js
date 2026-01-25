@@ -144,7 +144,13 @@ const DataStore = (() => {
                     // Just call get_family_data directly.
                     const res = await app.callFunction({
                         name: 'ourchildren_kidApi',
-                        data: { action: 'get_family_data', payload: { familyId: _currentFamily._id } }
+                        data: { 
+                            action: 'get_family_data', 
+                            payload: { 
+                                familyId: _currentFamily._id,
+                                _t: Date.now() // Prevent caching
+                            } 
+                        }
                     });
                     
                     if (res.result && res.result.success) {
