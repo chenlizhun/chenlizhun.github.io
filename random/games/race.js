@@ -55,13 +55,37 @@ window.startRace = function() {
     let progress = new Array(bars.length).fill(0);
     let winnerIndex = -1;
     
+    // 增加随机性参数
+    let speeds = new Array(bars.length).fill(0).map(() => 0.5 + Math.random() * 1.5);
+    
     if (raceTimer) clearInterval(raceTimer);
     raceTimer = setInterval(() => {
+        // 偶尔改变速度（冲刺或减速）
+        if (Math.random() < 0.1) {
+             speeds = speeds.map(s => Math.max(0.2, Math.min(3.0, s + (Math.random() - 0.5))));
+        }
+
         for (let i = 0; i < bars.length; i++) {
             if (winnerIndex !== -1) break;
-            progress[i] += Math.random() * 8;
+            
+            // 基础增量 + 随机波动
+            let increment = speeds[i] + Math.random() * 0.5;
+            
+            // 领先者稍微减速（增加悬念）
+            if (progress[i] > 80 && Math.random() < 0.3) increment *= 0.5;
+            
+            // 落后者偶尔加速（追赶机制）
+            if (progress[i] < 50 && Math.random() < 0.1) increment *= 2.0;
+
+            progress[i] += increment;
             const pct = Math.min(progress[i], 100);
             bars[i].style.width = pct + '%';
+            
+            // 颜色随进度变化
+            if (pct > 90) bars[i].style.background = 'var(--danger)';
+            else if (pct > 60) bars[i].style.background = 'var(--warning)';
+            else bars[i].style.background = 'var(--accent)';
+
             if (pct >= 100) {
                 winnerIndex = i;
             }
@@ -74,7 +98,7 @@ window.startRace = function() {
             window.showResult(raceResult, '恭喜 ' + winnerName);
             window.updateButtonState(btnRace, false);
         }
-    }, 160);
+    }, 50); // 更流畅的动画帧率
 };
 
 window.initRace = function() {

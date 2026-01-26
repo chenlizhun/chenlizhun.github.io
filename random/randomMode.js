@@ -6,7 +6,6 @@
 const gameStartFunctions = {
     simple: window.startSimple,
     race: window.startRace,
-    slot: window.startSlot,
     lottery: window.startLottery,
     card: window.startCard,
     spin: window.startSpin,
@@ -15,7 +14,6 @@ const gameStartFunctions = {
 const gamePanels = {
     simple: 'simplePanel',
     race: 'racePanel',
-    slot: 'slotPanel',
     lottery: 'lotteryPanel',
     card: 'cardPanel',
     spin: 'spinPanel',

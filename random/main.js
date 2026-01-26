@@ -14,7 +14,6 @@ function initApp() {
         const panelInfo = Array.from(panels).map(panel => {
             const containers = {
                 wheel: panel.querySelector('.wheel-container'),
-                slot: panel.querySelector('.slot-container'),
                 lottery: panel.querySelector('.lottery-container, .lottery-box'),
                 card: panel.querySelector('.card-container'),
                 spin: panel.querySelector('.spin-container'),

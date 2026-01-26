@@ -45,21 +45,44 @@ window.startSimple = function() {
     window.updateButtonState(btnSimple, true);
     window.clearResult(simpleResult);
 
-    const duration = 2000;
-    const interval = 120;
-    let elapsed = 0;
+    const totalDuration = 3000; // 总时长
+    let startTime = null;
+    let lastUpdate = 0;
+    let updateInterval = 50; // 初始间隔
 
-    if (simpleTimer) clearInterval(simpleTimer);
-    simpleTimer = setInterval(() => {
-        const name = eligible[window.randomIndex(eligible.length)];
-        simpleDisplay.textContent = name;
-        elapsed += interval;
-        if (elapsed >= duration) {
-            clearInterval(simpleTimer);
+    function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        
+        // 动态调整间隔，实现减速效果
+        // 进度 progress: 0 -> 1
+        const progress = elapsed / totalDuration;
+        
+        // 间隔随进度增加，使用二次曲线 easeIn
+        // updateInterval = 50 + (progress * progress) * 400; 
+        // 或者更简单的分段控制
+        
+        if (timestamp - lastUpdate > updateInterval) {
+            const name = eligible[window.randomIndex(eligible.length)];
+            simpleDisplay.textContent = name;
+            lastUpdate = timestamp;
+            
+            // 随着时间推移，间隔变大
+            if (progress > 0.6) updateInterval += 20;
+            if (progress > 0.8) updateInterval += 50;
+        }
+
+        if (elapsed < totalDuration) {
+            simpleTimer = requestAnimationFrame(animate);
+        } else {
+            // 结束
             const winner = eligible[window.randomIndex(eligible.length)];
             simpleDisplay.textContent = winner;
             window.showResult(simpleResult, '恭喜 ' + winner);
             window.updateButtonState(btnSimple, false);
         }
-    }, interval);
+    }
+
+    if (simpleTimer) cancelAnimationFrame(simpleTimer);
+    simpleTimer = requestAnimationFrame(animate);
 };

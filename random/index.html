@@ -50,8 +50,6 @@
                     <div class="toolbar">
                         <button data-target="simplePanel">🎲 简洁抽签</button>
                         <button data-target="racePanel">🏃 赛跑抽签</button>
-                        <button data-target="slotPanel">🎰 老虎机</button>
-                        <button data-target="lotteryPanel">🎫 抽奖箱</button>
                         <button data-target="cardPanel">🃏 卡片翻牌</button>
                         <button data-target="spinPanel">🌀 旋转抽奖</button>
                     </div>
@@ -94,36 +92,6 @@
                     <div id="raceContainer"></div>
                 </div>
                 <div class="result" id="raceResult"></div>
-            </div>
-
-            <!-- 老虎机 -->
-            <div id="slotPanel" class="panel">
-                <div class="panel-left">
-                    <h2><span class="emoji">🎰</span>老虎机</h2>
-                    <div class="panel-tip">三列滚动，当三列都显示同一个名字时，就是被抽中的学生。</div>
-                </div>
-                <div class="panel-right">
-                    <button id="btnSlot" class="btn-primary">开始抽奖</button>
-                </div>
-                <div class="slot-container">
-                    <div class="slot-column" id="slotCol1"></div>
-                    <div class="slot-column" id="slotCol2"></div>
-                    <div class="slot-column" id="slotCol3"></div>
-                </div>
-                <div class="result" id="slotResult"></div>
-            </div>
-
-            <!-- 抽奖箱 -->
-            <div id="lotteryPanel" class="panel">
-                <div class="panel-left">
-                    <h2><span class="emoji">🎫</span>抽奖箱</h2>
-                    <div class="panel-tip">抽奖券快速切换，最终停在谁的名字上，谁就是被抽中的学生。</div>
-                </div>
-                <div class="panel-right">
-                    <button id="btnLottery" class="btn-primary">开始抽奖</button>
-                </div>
-                <div class="lottery-container" id="lotteryBox"></div>
-                <div class="result" id="lotteryResult"></div>
             </div>
 
             <!-- 卡片翻牌 -->
@@ -197,8 +165,6 @@
 <script src="game-base.js"></script>
 <script src="games/simple.js"></script>
 <script src="games/race.js"></script>
-<script src="games/slot.js"></script>
-<script src="games/lottery.js"></script>
 <script src="games/card.js"></script>
 <script src="games/spin.js"></script>
         

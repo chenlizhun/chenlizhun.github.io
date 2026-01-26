@@ -55,35 +55,71 @@ window.startSpin = function() {
     window.clearResult(spinResult);
     spinSpinning = true;
     
+    // 提前确定中奖者
+    const winnerIdx = window.randomIndex(students.length);
+    
     // 获取所有旋转元素
     const spinItems = spinContainer.querySelectorAll(".spin-item");
+    const totalItems = spinItems.length;
     
-    // 快速切换旋转元素
-    let count = 0;
-    const maxCount = 50;
-    const interval = setInterval(() => {
-        // 重置所有旋转元素样式
-        spinItems.forEach(item => item.classList.remove("active"));
+    // 动画逻辑：顺序旋转
+    // 计算总步数：至少转3圈 + 到达中奖者的步数
+    // 假设当前从0开始（或者从上次结束位置开始，这里简化为从0或随机开始）
+    let currentIdx = 0;
+    // 找到当前active的元素，如果没找到则从0开始
+    spinItems.forEach((item, idx) => {
+        if (item.classList.contains('active')) currentIdx = idx;
+    });
+
+    // 目标索引是 winnerIdx
+    // 计算顺时针距离
+    let distance = winnerIdx - currentIdx;
+    if (distance <= 0) distance += totalItems;
+    
+    // 总步数 = 基础圈数 * 总数 + 距离
+    // 基础圈数设为 4 圈
+    const baseRounds = 4;
+    const totalSteps = baseRounds * totalItems + distance;
+    
+    let stepCount = 0;
+    let speed = 50; // 初始速度
+    
+    function spinAnimate() {
+        // 清除旧的高亮
+        if (spinItems[currentIdx]) spinItems[currentIdx].classList.remove("active");
         
-        // 随机选择一个旋转元素
-        const randomIdx = window.randomIndex(students.length);
-        const currentItem = spinItems[randomIdx];
+        // 移动到下一个
+        currentIdx = (currentIdx + 1) % totalItems;
         
-        if (currentItem) {
-            currentItem.classList.add("active");
+        // 高亮新的
+        if (spinItems[currentIdx]) spinItems[currentIdx].classList.add("active");
+        
+        stepCount++;
+        
+        // 速度控制算法
+        // 前 20% 加速，中间 50% 匀速，后 30% 减速
+        if (stepCount < totalSteps * 0.2) {
+             speed = Math.max(30, speed - 2); // 加速
+        } else if (stepCount > totalSteps * 0.7) {
+             // 减速曲线：剩余步数越少，速度越慢
+             const remaining = totalSteps - stepCount;
+             // 简单的线性减速或者指数减速
+             // remaining: 30 -> 1, speed: 50 -> 300+
+             speed += (300 - speed) / remaining * 2 + 5;
         }
-        
-        count++;
-        if (count >= maxCount) {
-            clearInterval(interval);
+
+        if (stepCount < totalSteps) {
+            setTimeout(spinAnimate, speed);
+        } else {
+            // 结束
             spinSpinning = false;
             window.updateButtonState(btnSpin, false);
-            
-            // 显示结果
-            const winnerIdx = window.randomIndex(students.length);
             window.showResult(spinResult, `恭喜 ${students[winnerIdx]}`);
+            if (spinItems[winnerIdx]) spinItems[winnerIdx].classList.add('winner-pulse');
         }
-    }, 50);
+    }
+
+    spinAnimate();
 };
 
 /**

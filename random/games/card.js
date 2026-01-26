@@ -27,7 +27,22 @@ function createCards() {
     eligible.forEach((name, index) => {
         const card = document.createElement("div");
         card.className = "card";
-        card.textContent = name;
+        
+        const inner = document.createElement("div");
+        inner.className = "card-inner";
+        
+        const front = document.createElement("div");
+        front.className = "card-front";
+        front.textContent = "❓"; // 或者用图标
+        
+        const back = document.createElement("div");
+        back.className = "card-back";
+        back.textContent = name;
+        
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+        
         cardContainer.appendChild(card);
     });
 };
@@ -46,44 +61,89 @@ window.startCard = function() {
     }
     
     const students = eligible;
-    if (students.length === 0) {
-        window.showResult(cardResult, "请先添加学生名单");
-        return;
-    }
     
     window.updateButtonState(btnCard, true);
     window.clearResult(cardResult);
     cardSpinning = true;
     
+    // 提前确定中奖者
+    const winnerIdx = window.randomIndex(students.length);
+    
     // 获取所有卡片
     const cards = cardContainer.querySelectorAll(".card");
     
-    // 快速切换卡片
-    let count = 0;
-    const maxCount = 50;
-    const interval = setInterval(() => {
-        // 重置所有卡片样式
+    // 重置状态
+    cards.forEach(c => {
+        c.classList.remove('flipped', 'active', 'winner-pulse');
+    });
+
+    // 动画参数
+    let speed = 50; 
+    let steps = 0;
+    const minSteps = 30;
+    let currentIdx = -1;
+    let timer = null;
+
+    function nextStep() {
+        // 重置所有卡片高亮
         cards.forEach(card => card.classList.remove("active"));
         
-        // 随机选择一张卡片
-        const randomIdx = window.randomIndex(students.length);
-        const currentCard = cards[randomIdx];
+        // 随机选择下一个
+        let nextIdx;
+        do {
+            nextIdx = window.randomIndex(students.length);
+        } while (nextIdx === currentIdx && students.length > 1);
         
+        currentIdx = nextIdx;
+        const currentCard = cards[currentIdx];
         if (currentCard) {
             currentCard.classList.add("active");
         }
         
-        count++;
-        if (count >= maxCount) {
-            clearInterval(interval);
-            cardSpinning = false;
-            window.updateButtonState(btnCard, false);
-            
-            // 显示结果
-            const winnerIdx = window.randomIndex(students.length);
-            window.showResult(cardResult, `恭喜 ${students[winnerIdx]}`);
+        steps++;
+        
+        // 减速
+        if (steps > minSteps) {
+            speed += 20;
         }
-    }, 50);
+        
+        // 结束条件
+        if (steps > minSteps && speed > 300 && currentIdx === winnerIdx) {
+            finishGame();
+            return;
+        }
+        
+        // 强制结束
+        if (speed > 400 && currentIdx !== winnerIdx) {
+             setTimeout(() => {
+                 cards.forEach(card => card.classList.remove("active"));
+                 currentIdx = winnerIdx;
+                 if (cards[winnerIdx]) cards[winnerIdx].classList.add("active");
+                 finishGame();
+             }, speed);
+             return;
+        }
+
+        timer = setTimeout(nextStep, speed);
+    }
+
+    function finishGame() {
+        cardSpinning = false;
+        window.updateButtonState(btnCard, false);
+        
+        const winnerCard = cards[winnerIdx];
+        if (winnerCard) {
+            // 翻转显示名字
+            winnerCard.classList.add('flipped');
+            // 延迟一点显示脉冲和结果
+            setTimeout(() => {
+                winnerCard.classList.add('winner-pulse');
+                window.showResult(cardResult, `恭喜 ${students[winnerIdx]}`);
+            }, 600);
+        }
+    }
+
+    nextStep();
 };
 
 /**

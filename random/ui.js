@@ -65,7 +65,6 @@ function showModeDetails(modeName) {
         setTimeout(() => {
             const gameContainers = {
                 wheel: targetPanel.querySelector('.wheel-container'),
-                slot: targetPanel.querySelector('.slot-container'),
                 lottery: targetPanel.querySelector('.lottery-container, .lottery-box'),
                 card: targetPanel.querySelector('.card-container'),
                 spin: targetPanel.querySelector('.spin-container'),
