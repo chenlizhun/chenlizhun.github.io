@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System - Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" />
+    <link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+    <div class="guide-layout">
+        <aside class="guide-sidebar">
+            <a href="index.html" style="text-decoration: none; display: block; text-align: center;">
+                <img src="logo.png" alt="Guide Logo" class="guide-logo" style="margin: 0 auto 20px;">
+            </a>
+            
+            <nav>
+                <div class="guide-nav-title">Foundation</div>
+                <a href="index.html" class="guide-nav-link active">Overview</a>
+                <a href="tokens.html" class="guide-nav-link">Tokens</a>
+                <a href="colors.html" class="guide-nav-link">Colors</a>
+                <a href="typography.html" class="guide-nav-link">Typography</a>
+                
+                <div class="guide-nav-title">Elements</div>
+                <a href="components.html" class="guide-nav-link">Components</a>
+                <a href="animations.html" class="guide-nav-link">Animations</a>
+            </nav>
+        </aside>
+
+        <main class="guide-content">
+            <!-- Hero Section -->
+            <div class="hero-banner" style="background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary)); color: white; padding: 60px 40px; border-radius: var(--radius-xl); margin-bottom: 50px; text-align: center; box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                
+                <img src="logo.png" alt="EduProjects Logo" style="height: 80px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));" class="anim-pulse">
+                <h1 style="font-size: 2.5rem; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">EduProjects Guide</h1>
+                <p style="font-size: 1.25rem; opacity: 0.95; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                    A unified design language for creating beautiful, child-friendly educational web applications.
+                </p>
+                <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
+                    <a href="components.html" class="btn" style="background: white; color: var(--color-brand-primary); border: none; font-weight: 800;">Explore Components</a>
+                    <a href="tokens.html" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);">View Tokens</a>
+                </div>
+            </div>
+
+            <section class="guide-section">
+                <h2>Introduction</h2>
+                <p style="margin-bottom: 20px;">
+                    This design system provides a collection of reusable components, guidelines, and assets used across our projects (Typeasy, Pixeldraw, etc.). 
+                    It ensures consistency in visual design and interaction patterns, making our tools professional yet approachable for children.
+                </p>
+                <div class="card" style="border-left: 4px solid var(--color-brand-accent);">
+                    <h3>Design Principles</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                        <li><strong>Child-Friendly:</strong> Use rounded corners, soft shadows, and vibrant colors.</li>
+                        <li><strong>Clear Feedback:</strong> Every action should have an immediate visual or auditory response.</li>
+                        <li><strong>Simplicity:</strong> Avoid clutter. Focus on the core task.</li>
+                        <li><strong>Accessibility:</strong> Ensure high contrast and clear typography.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>At a Glance</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <a href="colors.html" class="card interactive-hover" style="text-decoration: none; color: inherit;">
+                        <h3 class="text-brand">Colors</h3>
+                        <p class="text-muted">Brand palette, functional colors, and neutrals.</p>
+                        <div style="display: flex; gap: 5px; margin-top: 15px;">
+                            <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-brand-primary);"></div>
+                            <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-brand-secondary);"></div>
+                            <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-brand-accent);"></div>
+                            <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-success);"></div>
+                        </div>
+                    </a>
+                    
+                    <a href="tokens.html" class="card interactive-hover" style="text-decoration: none; color: inherit;">
+                        <h3 class="text-brand">Tokens</h3>
+                        <p class="text-muted">Spacing, radius, shadows, and other atomic values.</p>
+                        <div style="margin-top: 15px; display: flex; gap: 5px;">
+                            <div style="width: 20px; height: 20px; border: 1px solid var(--color-border); border-radius: 4px;"></div>
+                            <div style="width: 20px; height: 20px; border: 1px solid var(--color-border); border-radius: 8px;"></div>
+                            <div style="width: 20px; height: 20px; border: 1px solid var(--color-border); border-radius: 50%;"></div>
+                        </div>
+                    </a>
+
+                    <a href="components.html" class="card interactive-hover" style="text-decoration: none; color: inherit;">
+                        <h3 class="text-brand">Components</h3>
+                        <p class="text-muted">Buttons, cards, inputs, and other UI elements.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="btn btn-primary" style="padding: 5px 15px; font-size: 0.8rem;">Demo</span>
+                        </div>
+                    </a>
+
+                    <a href="animations.html" class="card interactive-hover" style="text-decoration: none; color: inherit;">
+                        <h3 class="text-brand">Animations</h3>
+                        <p class="text-muted">Standard animations for feedback and transitions.</p>
+                        <div style="margin-top: 15px;">
+                            <span style="font-size: 1.5rem;" class="anim-pulse">✨</span>
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>Quick Start</h2>
+                <p>To use this design system in your project, simply include the CSS file in your HTML <code>&lt;head&gt;</code>:</p>
+                
+                <div class="code-block">
+<pre><code class="language-html">&lt;!-- Add Fonts --&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet"&gt;
+
+&lt;!-- Add Design System --&gt;
+&lt;link rel="stylesheet" href="../guide/css/design-system.css"&gt;</code></pre>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="js/guide.js"></script>
+</body>
+</html>

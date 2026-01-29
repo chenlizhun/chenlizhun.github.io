@@ -8,6 +8,8 @@ const state = {
     // State
     showPoster: false,
     posterFamily: null,
+    posterHistory: {}, 
+    posterHistoryInterval: null,
 
     // UI State
     currentTab: 'home',
@@ -103,6 +105,58 @@ const SERIES_CONFIG = {
     2: { id: 2, name: '植物系列', icons: ['🌱', '🌸', '💐', '🌳'], desc: '芽苗、小花、花簇、大树花' }
 };
 const LEVEL_THRESHOLDS = [1, 10, 100, 1000];
+
+// Toast Notification System
+const Toast = {
+    container: null,
+    
+    init() {
+        if (!this.container) {
+            this.container = document.createElement('div');
+            this.container.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none';
+            document.body.appendChild(this.container);
+        }
+    },
+
+    show(message, type = 'info', duration = 3000) {
+        this.init();
+        
+        const el = document.createElement('div');
+        let bgClass = 'bg-gray-800';
+        let icon = '';
+        
+        switch(type) {
+            case 'success': bgClass = 'bg-green-600'; icon = '✅ '; break;
+            case 'error': bgClass = 'bg-red-600'; icon = '❌ '; break;
+            case 'warning': bgClass = 'bg-yellow-600'; icon = '⚠️ '; break;
+        }
+        
+        el.className = `${bgClass} text-white px-6 py-3 rounded-full shadow-lg text-sm font-medium transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-auto flex items-center gap-2 min-w-[200px] justify-center backdrop-blur-sm bg-opacity-90`;
+        el.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+        
+        this.container.appendChild(el);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+            el.classList.remove('opacity-0', 'translate-y-[-20px]');
+        });
+        
+        // Remove after duration
+        setTimeout(() => {
+            el.classList.add('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            }, 300);
+        }, duration);
+    },
+    
+    success(msg) { this.show(msg, 'success'); },
+    error(msg) { this.show(msg, 'error'); },
+    info(msg) { this.show(msg, 'info'); },
+    warning(msg) { this.show(msg, 'warning'); }
+};
+
+window.Toast = Toast;
 
 // Manual Content
 const USER_MANUAL_HTML = `
@@ -222,6 +276,13 @@ function isLargeScreen() {
     return window.innerWidth > window.innerHeight;
 }
 
+function isDisplayDevice() {
+    // iPad Mini portrait width is 768px.
+    // We consider devices >= 768px width as "Display/Tablet/Desktop" devices.
+    // These devices are restricted from Management UI and default to Poster/Display mode.
+    return window.innerWidth >= 768;
+}
+
 function formatDate(timestamp) {
     return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
 }
@@ -311,6 +372,19 @@ function render() {
 
     if (state.showPoster && state.posterFamily) {
         app.innerHTML = renderPosterView();
+        // Auto-scale for small screens (iPad mini)
+        setTimeout(() => {
+            if (window.adjustPosterScale) window.adjustPosterScale();
+        }, 100);
+        return;
+    }
+
+    // Force Display Mode for Tablets/Desktops (Restrict Management)
+    if (isDisplayDevice()) {
+        if (state.allFamilies.length === 0 && !state.allFamiliesLoading) {
+            loadAllFamilies();
+        }
+        app.innerHTML = renderFamilyListView();
         return;
     }
 
@@ -331,23 +405,31 @@ function render() {
 
     // Main App
     app.innerHTML = `
-        <div class="w-full max-w-4xl mx-auto">
+        <div class="w-full max-w-4xl mx-auto transition-opacity duration-300 opacity-0 animate-fade-in">
             ${renderHeader()}
             ${state.currentTab === 'home' ? renderHomeSimple() : ''}
             
             <div class="mb-20">
-                ${state.currentTab === 'dashboard' ? renderDashboardView() : ''}
-                ${state.currentTab === 'points' ? renderPointsView() : ''}
-                ${state.currentTab === 'stats' ? renderStatsView() : ''}
-                ${state.currentTab === 'display' ? renderDisplayView() : ''}
-                 ${state.currentTab === 'review' ? renderReviewView() : ''}
-                 ${state.currentTab === 'settings' ? renderSettingsView() : ''}
-             </div>
+                <div class="animate-slide-up">
+                    ${state.currentTab === 'dashboard' ? renderDashboardView() : ''}
+                    ${state.currentTab === 'points' ? renderPointsView() : ''}
+                    ${state.currentTab === 'stats' ? renderStatsView() : ''}
+                    ${state.currentTab === 'display' ? renderDisplayView() : ''}
+                    ${state.currentTab === 'review' ? renderReviewView() : ''}
+                    ${state.currentTab === 'settings' ? renderSettingsView() : ''}
+                </div>
+            </div>
 
             ${renderBottomNav()}
             ${renderLoginModal()} <!-- Legacy modal for pin entry if needed -->
             ${renderGlobalModal()}
         </div>
+        <style>
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+            .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        </style>
     `;
     
     // Post-render effects
@@ -357,26 +439,49 @@ function render() {
 
 async function loadAllFamilies() {
     state.allFamiliesLoading = true;
-    render(); // Update UI to show loading
+    
+    // Optimization: Load from cache first for instant rendering
+    // FamilyCache stores objects as { info: {...}, user: {...}, ... }
+    // But state.allFamilies expects a flat list of family info objects: [{_id, name...}, ...]
+    const cached = FamilyCache.load();
+    if (cached && cached.length > 0) {
+        // Extract 'info' from cached items to form the directory list
+        const localFamilies = cached.map(f => f.info).filter(i => i && i._id);
+        
+        if (localFamilies.length > 0) {
+            console.log('Loaded families from cache:', localFamilies.length);
+            state.allFamilies = localFamilies;
+            // Try auto-launch immediately with cached data
+            attemptAutoLaunch();
+        }
+    }
+    
+    render(); // Update UI
     
     try {
         const res = await DataStore.getAllFamilies();
         if (res.success) {
-            state.allFamilies = res.data.families;
-
-            // Auto-launch Kiosk Mode if applicable
-            if (isLargeScreen() && !state.hasAutoLaunched) {
-                const followedId = localStorage.getItem(FOLLOWED_FAMILY_KEY);
-                if (followedId) {
-                    const target = state.allFamilies.find(f => f._id === followedId);
-                    if (target) {
-                        console.log('Auto-launching kiosk mode for:', target.name);
-                        state.hasAutoLaunched = true;
-                        openPoster(target._id);
-                        return;
-                    }
-                }
+            const remoteFamilies = res.data.families || [];
+            
+            // Merge remote families with local cached families (to ensure we have "My Families" even if not in directory page 1)
+            const familyMap = new Map();
+            
+            // Add currently loaded families (from cache) first
+            if (state.allFamilies) {
+                state.allFamilies.forEach(f => {
+                    if (f && f._id) familyMap.set(f._id, f);
+                });
             }
+            
+            // Add/Overwrite with remote families
+            remoteFamilies.forEach(f => {
+                 if (f && f._id) familyMap.set(f._id, f);
+            });
+            
+            state.allFamilies = Array.from(familyMap.values());
+            
+            // Try auto-launch again if not yet launched
+            attemptAutoLaunch();
         }
     } catch (e) {
         console.error('Failed to load families', e);
@@ -384,6 +489,23 @@ async function loadAllFamilies() {
         state.allFamiliesLoading = false;
         render();
     }
+}
+
+function attemptAutoLaunch() {
+    // Auto-launch Kiosk Mode if applicable
+    if (isDisplayDevice() && !state.hasAutoLaunched) {
+        const followedId = localStorage.getItem(FOLLOWED_FAMILY_KEY);
+        if (followedId) {
+            const target = state.allFamilies.find(f => f._id === followedId);
+            if (target) {
+                console.log('Auto-launching kiosk mode for:', target.name);
+                state.hasAutoLaunched = true;
+                openPoster(target._id);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 function renderFamilyListView() {
@@ -405,7 +527,7 @@ function renderFamilyListView() {
         return 0;
     });
 
-    const isLarge = isLargeScreen();
+    const isLarge = isDisplayDevice();
     // Check if we have a followed family
     const followedId = localStorage.getItem(FOLLOWED_FAMILY_KEY);
 
@@ -548,12 +670,12 @@ window.selectFamily = (familyId) => {
         DataStore.selectFamily(family);
     } else {
         // Should not happen if UI is correct (only clickable if joined)
-        alert('您尚未加入该家庭');
+        Toast.error('您尚未加入该家庭');
     }
 }
 
 window.handleDeleteFamily = async (familyId) => {
-    if (state.isDemo || familyId === DEMO_FAMILY_ID) return alert('这仅为示例，无法删除。');
+    if (state.isDemo || familyId === DEMO_FAMILY_ID) return Toast.warning('这仅为示例，无法删除。');
 
     showModal({
         title: '删除家庭',
@@ -570,10 +692,10 @@ window.handleDeleteFamily = async (familyId) => {
                 onConfirm: async () => {
                     const res = await DataStore.deleteFamily(familyId, pin);
                     if (res.success) {
-                        alert('删除成功');
+                        Toast.success('删除成功');
                         loadAllFamilies();
                     } else {
-                        alert('删除失败: ' + res.message);
+                        Toast.error('删除失败: ' + res.message);
                     }
                 }
             });
@@ -644,16 +766,16 @@ window.handleAuthSubmit = async (mode) => {
     const nickname = document.getElementById('auth-nickname').value;
     const pin = document.getElementById('auth-pin').value;
     
-    if (!nickname || !pin) return alert('请填写完整信息');
+    if (!nickname || !pin) return Toast.warning('请填写完整信息');
     
     let res;
     if (mode === 'register') {
         const familyName = document.getElementById('auth-family-name').value;
-        if (!familyName) return alert('请输入家庭名称');
+        if (!familyName) return Toast.warning('请输入家庭名称');
         res = await DataStore.createFamily(familyName, pin, nickname);
     } else if (mode === 'join') {
         const familyId = document.getElementById('auth-family-id').value;
-        if (!familyId) return alert('请输入家庭ID');
+        if (!familyId) return Toast.warning('请输入家庭ID');
         res = await DataStore.joinFamily(familyId, pin, nickname);
     }
     
@@ -759,9 +881,9 @@ window.handleAuthSubmit = async (mode) => {
                 // Or Alert first? 
                 // Let's alert first as before, but ensure render happens.
                 if (mode === 'join') {
-                    alert('加入成功！');
+                    Toast.success('加入成功！');
                 } else {
-                    alert('创建成功！正在进入家庭...');
+                    Toast.success('创建成功！正在进入家庭...');
                 }
                 state.authMode = 'login';
                 return; // selectFamily triggers render, so we are done
@@ -770,15 +892,15 @@ window.handleAuthSubmit = async (mode) => {
         
         // Fallback if not auto-entered
         if (mode === 'join') {
-            alert('加入成功！');
+            Toast.success('加入成功！');
         } else {
-            alert('创建成功！');
+            Toast.success('创建成功！');
         }
         state.authMode = 'login';
         render();
 
     } else {
-        alert(res.message || '操作失败');
+        Toast.error(res.message || '操作失败');
     }
 }
 
@@ -798,6 +920,114 @@ function renderHeader() {
             </div>
         </div>
     `;
+}
+
+function updatePosterViewDifferentially() {
+    if (!state.posterFamily || !state.posterFamily.kids) return;
+
+    // Series config logic same as renderPosterView
+    let family = state.posterFamily;
+    if (state.family && state.family._id === family._id) {
+        family = {
+            ...state.family,
+            kids: state.kids
+        };
+    }
+    const seriesId = family.display_series || 3;
+    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
+
+    family.kids.forEach(kid => {
+        // 1. Update Score
+        const scoreEl = document.getElementById(`poster-score-${kid._id}`);
+        if (scoreEl) {
+            // Only update if changed (optimization)
+            if (scoreEl.textContent.trim() != kid.current_points) {
+                scoreEl.textContent = kid.current_points;
+                const length = String(kid.current_points).length;
+                scoreEl.style.fontSize = `clamp(4rem, ${Math.floor(120 / Math.max(1.5, length))}cqw, 40rem)`;
+            }
+        }
+
+        // 2. Update Visualization
+        const vizEl = document.getElementById(`poster-viz-${kid._id}`);
+        if (vizEl) {
+            const icons = getSeriesIconsDecomposed(kid.current_points, series);
+            const icons1 = icons.filter(i => i.val === 1);
+            const icons10 = icons.filter(i => i.val === 10);
+            const icons100 = icons.filter(i => i.val === 100);
+            const icons1000 = icons.filter(i => i.val === 1000);
+
+            // Construct HTML (Copied from renderPosterView)
+            const newHtml = `
+                <!-- Row 1000s -->
+                ${icons1000.length > 0 ? `
+                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
+                    <div class="flex-1 flex flex-wrap gap-2">
+                        ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                <!-- Row 100s -->
+                ${icons100.length > 0 || icons1000.length > 0 ? `
+                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
+                    <div class="flex-1 flex flex-wrap gap-2">
+                        ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                <!-- Row 10s -->
+                ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
+                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
+                    <div class="flex-1 flex flex-wrap gap-2">
+                        ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                <!-- Row 1s -->
+                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
+                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
+                    <div class="flex-1 flex flex-wrap gap-2 items-center">
+                        ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
+                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Compare normalized HTML to avoid unnecessary updates
+            if (vizEl.innerHTML.replace(/\s/g, '') !== newHtml.replace(/\s/g, '')) {
+                 vizEl.innerHTML = newHtml;
+            }
+        }
+
+        // 3. Update History Log
+        const historyEl = document.getElementById(`poster-history-${kid._id}`);
+        if (historyEl) {
+            const historyData = state.posterHistory[kid._id];
+            const newHistoryHtml = historyData ? `
+                <div class="mt-6 pt-4 border-t border-white/10">
+                    <div class="flex justify-between items-center">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest Update</span>
+                            <span class="text-base font-medium text-white line-clamp-1">${historyData.reason || 'No reason'}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold font-mono ${historyData.delta >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                ${historyData.delta > 0 ? '+' : ''}${historyData.delta}
+                            </div>
+                            <div class="text-[10px] text-white/30">${formatDate(historyData.timestamp)}</div>
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+            
+            if (historyEl.innerHTML.replace(/\s/g, '') !== newHistoryHtml.replace(/\s/g, '')) {
+                historyEl.innerHTML = newHistoryHtml;
+            }
+        }
+    });
 }
 
 window.handleBackToFamilyList = () => {
@@ -957,7 +1187,7 @@ function renderHomeSimple() {
 }
 
 window.quickAdd = (kidId, delta) => {
-    if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
+    if (state.isDemo) return Toast.warning('这仅为示例，请创建自己的家庭。');
     DataStore.updatePoints(kidId, delta, '快速加分', state.user.nickname);
 }
 
@@ -1073,7 +1303,7 @@ window.deleteReason = (type, reason) => {
 }
 
 window.doUpdatePoints = (kidId, delta) => {
-    if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
+    if (state.isDemo) return Toast.warning('这仅为示例，请创建自己的家庭。');
 
     const reasonInput = document.getElementById(`reason-${kidId}`);
     const reason = (reasonInput ? reasonInput.value : '').trim();
@@ -1108,7 +1338,7 @@ window.handleCustomPoints = (kidId, isAdd) => {
         onConfirm: (val) => {
             if (!val) return;
             const points = parseInt(val);
-            if (isNaN(points) || points <= 0) return alert('请输入有效的正整数');
+            if (isNaN(points) || points <= 0) return Toast.error('请输入有效的正整数');
             
             const delta = isAdd ? points : -points;
             doUpdatePoints(kidId, delta);
@@ -1117,7 +1347,7 @@ window.handleCustomPoints = (kidId, isAdd) => {
 }
 
 window.handleEditFamilyName = async () => {
-    if (state.isDemo) return alert('这仅为示例，无法修改。');
+    if (state.isDemo) return Toast.warning('这仅为示例，无法修改。');
 
     const nameInput = document.getElementById('setting-family-name');
     if (!nameInput) return;
@@ -1131,21 +1361,21 @@ window.handleEditFamilyName = async () => {
     // Client-side duplicate check (against loaded families)
     const exists = state.allFamilies.some(f => f.name === newName && f._id !== state.family._id);
     if (exists) {
-        alert('该家庭名称已被使用，请换一个名称。');
+        Toast.warning('该家庭名称已被使用，请换一个名称。');
         return;
     }
     
     const res = await DataStore.updateFamilyName(newName);
     if (res.success) {
-        alert('修改成功');
+        Toast.success('修改成功');
         render();
     } else {
-        alert('修改失败: ' + res.message);
+        Toast.error('修改失败: ' + res.message);
     }
 }
 
 window.handleUpdateFamilyPin = async () => {
-    if (state.isDemo) return alert('这仅为示例，无法修改。');
+    if (state.isDemo) return Toast.warning('这仅为示例，无法修改。');
     
     const oldPinInput = document.getElementById('setting-family-pin-old');
     const newPinInput = document.getElementById('setting-family-pin-new');
@@ -1153,20 +1383,20 @@ window.handleUpdateFamilyPin = async () => {
     const oldPin = oldPinInput ? oldPinInput.value : '';
     const newPin = newPinInput ? newPinInput.value : '';
 
-    if (!oldPin) return alert('请输入旧密码');
-    if (!newPin || newPin.trim() === '') return alert('请输入新密码');
+    if (!oldPin) return Toast.warning('请输入旧密码');
+    if (!newPin || newPin.trim() === '') return Toast.warning('请输入新密码');
     
     if (newPin.length < 4) {
-         return alert('PIN 码长度不能少于4位');
+         return Toast.warning('PIN 码长度不能少于4位');
     }
 
     const res = await DataStore.updateFamilyPin(oldPin, newPin);
     if (res.success) {
-        alert('修改成功，请记住新的 PIN 码');
+        Toast.success('修改成功，请记住新的 PIN 码');
         oldPinInput.value = '';
         newPinInput.value = '';
     } else {
-        alert('修改失败: ' + (res.message || '旧密码错误或网络问题'));
+        Toast.error('修改失败: ' + (res.message || '旧密码错误或网络问题'));
     }
 }
 
@@ -1228,7 +1458,7 @@ function renderDisplayView() {
 }
 
 window.handleSetSeries = async (seriesId) => {
-    if (state.isDemo) return alert('这仅为示例，无法修改。');
+    if (state.isDemo) return Toast.warning('这仅为示例，无法修改。');
     
     // Optimistic update
     // Update the correct path: state.family.display_series
@@ -1253,7 +1483,7 @@ window.handleSetSeries = async (seriesId) => {
     
     const res = await DataStore.updateFamilySeries(seriesId);
     if (!res.success) {
-        alert('设置失败: ' + res.message);
+        Toast.error('设置失败: ' + res.message);
         // Rollback or re-fetch
         DataStore.refresh();
     }
@@ -1282,11 +1512,16 @@ window.openPoster = (familyId) => {
         
         // Start polling for real-time updates for the poster family
         // Even if not logged in, we want updates for this specific family
-        DataStore.startPolling(1000, family._id);
+        DataStore.startPolling(3000, family._id);
+        
+        // Start polling for history
+        updatePosterHistory(); // Initial fetch
+        if (state.posterHistoryInterval) clearInterval(state.posterHistoryInterval);
+        state.posterHistoryInterval = setInterval(updatePosterHistory, 5000);
         
         render();
     } else {
-        alert('未找到家庭数据');
+        Toast.error('未找到家庭数据');
     }
 }
 
@@ -1294,7 +1529,153 @@ window.closePoster = () => {
     state.showPoster = false;
     state.posterFamily = null;
     DataStore.stopPolling();
+    if (state.posterHistoryInterval) {
+        clearInterval(state.posterHistoryInterval);
+        state.posterHistoryInterval = null;
+    }
     render();
+}
+
+async function updatePosterHistory() {
+    if (!state.showPoster || !state.posterFamily) return;
+    
+    const familyId = state.posterFamily._id;
+    const kids = state.posterFamily.kids;
+    let changed = false;
+    
+    for (const kid of kids) {
+        // Use familyIdOverride to ensure we get data even if not logged in as this family
+        const res = await DataStore.getHistory(kid._id, 1, familyId);
+        if (res.success && res.data.logs && res.data.logs.length > 0) {
+             // Filter logs to ensure they belong to this kid
+             const validLogs = res.data.logs.filter(l => l.kid_id === kid._id);
+             if (validLogs.length > 0) {
+                 const latest = validLogs[0];
+                 const current = state.posterHistory[kid._id];
+                 if (!current || current._id !== latest._id) {
+                     state.posterHistory[kid._id] = latest;
+                     changed = true;
+                 }
+             }
+        }
+    }
+    
+    if (changed) {
+        // Differential Update if possible
+        const grid = document.getElementById('poster-kids-grid');
+        if (grid) {
+            updatePosterViewDifferentially();
+        } else {
+            render();
+        }
+    }
+}
+
+function updatePosterViewDifferentially() {
+    if (!state.showPoster || !state.posterFamily) return;
+
+    // If grid structure changed (number of kids), we must full render
+    const grid = document.getElementById('poster-kids-grid');
+    if (!grid) {
+        render(); // Fallback
+        return;
+    }
+    
+    const family = state.posterFamily;
+    // Check if kid count matches
+    const currentKidsInDOM = grid.children.length;
+    if (currentKidsInDOM !== family.kids.length) {
+        render();
+        return;
+    }
+
+    const seriesId = family.display_series || 3;
+    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
+
+    // Iterate all kids to check for updates
+    family.kids.forEach(kid => {
+        // 1. Update Score
+        const scoreEl = document.getElementById(`poster-score-${kid._id}`);
+        if (scoreEl && scoreEl.innerText != kid.current_points) {
+             scoreEl.innerText = kid.current_points;
+             
+             // Update Visualization
+             const vizEl = document.getElementById(`poster-viz-${kid._id}`);
+             if (vizEl) {
+                 const icons = getSeriesIconsDecomposed(kid.current_points, series);
+                 const icons1 = icons.filter(i => i.val === 1);
+                 const icons10 = icons.filter(i => i.val === 10);
+                 const icons100 = icons.filter(i => i.val === 100);
+                 const icons1000 = icons.filter(i => i.val === 1000);
+                 
+                 vizEl.innerHTML = `
+                    <!-- Row 1000s -->
+                    ${icons1000.length > 0 ? `
+                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
+                        <div class="flex-1 flex flex-wrap gap-2">
+                            ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <!-- Row 100s -->
+                    ${icons100.length > 0 || icons1000.length > 0 ? `
+                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
+                        <div class="flex-1 flex flex-wrap gap-2">
+                            ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <!-- Row 10s -->
+                    ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
+                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
+                        <div class="flex-1 flex flex-wrap gap-2">
+                            ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <!-- Row 1s -->
+                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
+                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
+                        <div class="flex-1 flex flex-wrap gap-2 items-center">
+                            ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
+                            ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
+                        </div>
+                    </div>
+                 `;
+             }
+        }
+        
+        // 2. Update History
+        const historyEl = document.getElementById(`poster-history-${kid._id}`);
+        if (historyEl) {
+             const history = state.posterHistory[kid._id];
+             const newHistoryHTML = history ? `
+                <div class="mt-6 pt-4 border-t border-white/10">
+                    <div class="flex justify-between items-center">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest Update</span>
+                            <span class="text-base font-medium text-white line-clamp-1">${history.reason || 'No reason'}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold font-mono ${history.delta >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                ${history.delta > 0 ? '+' : ''}${history.delta}
+                            </div>
+                            <div class="text-[10px] text-white/30">${formatDate(history.timestamp)}</div>
+                        </div>
+                    </div>
+                </div>
+             ` : '';
+             
+             // Normalize strings for comparison (remove extra spaces/newlines)
+             const normalize = (s) => s.replace(/\s+/g, '');
+             if (normalize(historyEl.innerHTML) !== normalize(newHistoryHTML)) {
+                 historyEl.innerHTML = newHistoryHTML;
+             }
+        }
+    });
 }
 
 function renderPosterView() {
@@ -1315,10 +1696,10 @@ function renderPosterView() {
     const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
 
     return `
-        <div class="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white z-50 overflow-y-auto font-sans">
-            <div class="min-h-screen flex flex-col p-6 md:p-12">
+        <div class="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white z-50 overflow-hidden font-sans">
+            <div id="poster-content" class="h-screen flex flex-col p-4 md:p-6 origin-top">
                 <!-- Header -->
-                <div class="flex justify-between items-center mb-10">
+                <div class="flex justify-between items-center mb-4 flex-shrink-0">
                     <div class="flex items-center gap-4">
                         <div class="h-12 w-1.5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.5)]"></div>
                         <h1 class="text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-lg">
@@ -1332,7 +1713,7 @@ function renderPosterView() {
                 </div>
 
                 <!-- Kids Grid -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-8 content-center items-start">
+                <div id="poster-kids-grid" class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-4 content-stretch items-stretch">
                     ${family.kids.map(kid => {
                         const icons = getSeriesIconsDecomposed(kid.current_points, series);
                         const icons1 = icons.filter(i => i.val === 1);
@@ -1341,17 +1722,17 @@ function renderPosterView() {
                         const icons1000 = icons.filter(i => i.val === 1000);
                         
                         return `
-                        <div class="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/10 shadow-2xl overflow-hidden transition-all duration-500 hover:bg-white/10 hover:shadow-purple-500/10 hover:-translate-y-1">
+                        <div id="poster-kid-${kid._id}" class="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl overflow-hidden transition-all duration-500 hover:bg-white/10 hover:shadow-purple-500/10 flex flex-col">
                             <!-- Background Decoration -->
                             <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
                             
                             <!-- Header Section: Name & Score -->
-                            <div class="relative flex flex-col items-center mb-10 pb-8 border-b border-white/5">
-                                <div class="text-4xl md:text-5xl font-bold ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'} mb-2 drop-shadow-md tracking-wide">
+                            <div class="relative flex flex-col items-center mb-4 pb-4 border-b border-white/5 w-full flex-shrink-0" style="container-type: inline-size">
+                                <div class="text-3xl md:text-5xl font-bold ${kid.gender === 'girl' ? 'text-pink-300' : 'text-blue-300'} mb-2 drop-shadow-md tracking-wide">
                                     ${kid.name}
                                 </div>
-                                <div class="flex items-baseline justify-center gap-3">
-                                    <span class="text-8xl md:text-9xl font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)] leading-none">
+                                <div class="flex items-baseline justify-center gap-3 w-full flex-wrap">
+                                    <span id="poster-score-${kid._id}" style="font-size: clamp(4rem, ${Math.floor(120 / Math.max(1.5, String(kid.current_points).length))}cqw, 40rem); line-height: 0.9;" class="font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)]">
                                         ${kid.current_points}
                                     </span>
                                     <span class="text-xl text-white/40 font-medium uppercase tracking-[0.2em] mb-4">Points</span>
@@ -1359,42 +1740,62 @@ function renderPosterView() {
                             </div>
 
                             <!-- Visualization Section -->
-                            <div class="relative space-y-3">
+                            <div id="poster-viz-${kid._id}" class="relative space-y-2 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
                                 <!-- Row 1000s -->
                                 ${icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
                                     <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
+                                        ${icons1000.map(i => `<span class="text-4xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
                                     </div>
                                 </div>` : ''}
 
                                 <!-- Row 100s -->
                                 ${icons100.length > 0 || icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
                                     <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
+                                        ${icons100.map(i => `<span class="text-3xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
                                     </div>
                                 </div>` : ''}
 
                                 <!-- Row 10s -->
                                 ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
                                     <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
                                     <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
+                                        ${icons10.map(i => `<span class="text-2xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
                                     </div>
                                 </div>` : ''}
 
                                 <!-- Row 1s -->
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
+                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition min-h-[4rem]">
                                     <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
                                     <div class="flex-1 flex flex-wrap gap-2 items-center">
-                                        ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
-                                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
+                                        ${icons1.map(i => `<span class="text-xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
+                                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting...</span>' : ''}
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <!-- History Log -->
+                            <div id="poster-history-${kid._id}" class="flex-shrink-0">
+                                ${state.posterHistory[kid._id] ? `
+                                <div class="mt-4 pt-4 border-t border-white/10">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest</span>
+                                            <span class="text-sm font-medium text-white line-clamp-1">${state.posterHistory[kid._id].reason || 'No reason'}</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-xl font-bold font-mono ${state.posterHistory[kid._id].delta >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                                ${state.posterHistory[kid._id].delta > 0 ? '+' : ''}${state.posterHistory[kid._id].delta}
+                                            </div>
+                                            <div class="text-[10px] text-white/30">${formatDate(state.posterHistory[kid._id].timestamp)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
                         `;
@@ -1402,7 +1803,7 @@ function renderPosterView() {
                 </div>
 
                 <!-- Footer -->
-                <div class="text-center mt-12 opacity-30 hover:opacity-80 transition duration-700">
+                <div class="text-center mt-4 opacity-30 hover:opacity-80 transition duration-700 flex-shrink-0">
                     <p class="text-[10px] uppercase tracking-[0.3em] font-light text-white">
                         EduTogether Dashboard • Theme: ${series.name}
                     </p>
@@ -1509,7 +1910,7 @@ function renderSettingsView() {
 }
 
 window.handleAddKid = async () => {
-    if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
+    if (state.isDemo) return Toast.warning('这仅为示例，请创建自己的家庭。');
 
     const nameInput = document.getElementById('add-kid-name');
     const pointsInput = document.getElementById('add-kid-points');
@@ -1524,7 +1925,7 @@ window.handleAddKid = async () => {
     const gender = genderInput.value;
     const points = pointsInput.value;
     
-    if (!name) return alert('请输入孩子昵称');
+    if (!name) return Toast.warning('请输入孩子昵称');
     
     // Show loading state
     const btn = document.getElementById('btn-add-kid');
@@ -1539,17 +1940,17 @@ window.handleAddKid = async () => {
     try {
         const res = await DataStore.addKid(name, gender, points);
         if (res.success) {
-            alert('添加成功');
+            Toast.success('添加成功');
             nameInput.value = '';
             pointsInput.value = '0';
             // Refresh view
             render();
         } else {
-            alert('添加失败: ' + res.message);
+            Toast.error('添加失败: ' + res.message);
         }
     } catch (e) {
         console.error('Add kid error:', e);
-        alert('操作出错: ' + (e.message || '未知错误'));
+        Toast.error('操作出错: ' + (e.message || '未知错误'));
     } finally {
         // Restore button state (if view wasn't re-rendered)
         if (btn && document.body.contains(btn)) {
@@ -1576,7 +1977,22 @@ function renderDashboardView() {
 
             <div class="bg-white rounded-xl shadow p-4">
                 <h3 class="font-bold mb-4">最近动态</h3>
-                ${state.historyLoading && (!state.history || state.history.length === 0) ? '<div class="text-center text-gray-400 py-4">加载中...</div>' : ''}
+                ${state.historyLoading && (!state.history || state.history.length === 0) ? `
+                    <div class="space-y-4">
+                        ${[1,2,3,4,5].map(() => `
+                            <div class="bg-white rounded-xl p-4 shadow-sm animate-pulse flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
+                                    <div class="space-y-2">
+                                        <div class="w-24 h-4 bg-gray-200 rounded"></div>
+                                        <div class="w-16 h-3 bg-gray-200 rounded"></div>
+                                    </div>
+                                </div>
+                                <div class="w-12 h-6 bg-gray-200 rounded"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
                 
                 <div class="space-y-3">
                     ${(!state.history || state.history.length === 0) && !state.historyLoading ? '<div class="text-center text-gray-400 py-4">暂无记录</div>' : ''}
@@ -1794,7 +2210,7 @@ window.enterDemoFamily = () => {
 }
 
 window.handleSetPoints = (kidId, current) => {
-    if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
+    if (state.isDemo) return Toast.warning('这仅为示例，请创建自己的家庭。');
     
     showModal({
         title: '修改当前总分',
@@ -1805,7 +2221,7 @@ window.handleSetPoints = (kidId, current) => {
         onConfirm: (input) => {
             if (input === null) return;
             const newPoints = parseInt(input);
-            if (isNaN(newPoints)) return alert('请输入有效的数字');
+            if (isNaN(newPoints)) return Toast.error('请输入有效的数字');
             
             const delta = newPoints - current;
             if (delta === 0) return;
@@ -1817,7 +2233,7 @@ window.handleSetPoints = (kidId, current) => {
 }
 
 window.handleUpdateKidName = async (kidId, currentName) => {
-    if (state.isDemo) return alert('这仅为示例，请创建自己的家庭。');
+    if (state.isDemo) return Toast.warning('这仅为示例，请创建自己的家庭。');
 
     showModal({
         title: '修改孩子昵称',
@@ -1835,12 +2251,13 @@ window.handleUpdateKidName = async (kidId, currentName) => {
                     const kid = state.kids.find(k => k._id === kidId);
                     if (kid) kid.name = newName.trim();
                     render();
+                    Toast.success('修改成功');
                 } else {
-                    alert('修改失败: ' + res.message);
+                    Toast.error('修改失败: ' + res.message);
                 }
             } catch (e) {
                 console.error(e);
-                alert('修改出错');
+                Toast.error('修改出错');
             }
         }
     });
@@ -1935,7 +2352,18 @@ const initApp = async () => {
                         ...state.posterFamily,
                         kids: event.kids
                     };
-                    render();
+                    // Ensure state.kids is also updated if it matches
+                    if (state.family && state.family._id === event.familyId) {
+                        state.kids = event.kids;
+                    }
+                    
+                    // Use differential update to avoid flicker
+                    const grid = document.getElementById('poster-kids-grid');
+                    if (grid) {
+                        updatePosterViewDifferentially();
+                    } else {
+                        render();
+                    }
                 }
                 return;
             }
@@ -1964,5 +2392,40 @@ const initApp = async () => {
         }
     });
 };
+
+window.adjustPosterScale = () => {
+    if (!state.showPoster) return;
+    const el = document.getElementById('poster-content');
+    if (!el) return;
+    
+    // Reset to check natural height
+    el.style.zoom = '';
+    el.style.transform = '';
+    
+    // Allow browser to re-layout
+    requestAnimationFrame(() => {
+        const contentHeight = el.scrollHeight;
+        const viewportHeight = window.innerHeight;
+        
+        // Only scale down if content is taller than viewport
+        if (contentHeight > viewportHeight) {
+            const scale = viewportHeight / contentHeight;
+            // Use zoom for WebKit/iPad which handles this gracefully
+            // Fallback to transform scale if zoom not supported (Firefox)
+            if ('zoom' in document.body.style) {
+                 el.style.zoom = scale * 0.96; // 4% safety margin
+            } else {
+                 el.style.transform = `scale(${scale * 0.96})`;
+            }
+        }
+    });
+};
+
+// Add resize listener
+window.addEventListener('resize', () => {
+    if (state.showPoster) {
+        window.adjustPosterScale();
+    }
+});
 
 initApp();

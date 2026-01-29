@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拟态时钟</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0e5ec;
+        }
+
+        .clock {
+            width: 300px;
+            height: 300px;
+            background: #e0e5ec;
+            border-radius: 50%;
+            box-shadow: 
+                20px 20px 60px #a3b1c6,
+                -20px -20px 60px #ffffff;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .clock::before {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .hour {
+            width: 6px;
+            height: 70px;
+            background: #333;
+            transform: translateX(-50%);
+        }
+
+        .minute {
+            width: 4px;
+            height: 100px;
+            background: #666;
+            transform: translateX(-50%);
+        }
+
+        .second {
+            width: 2px;
+            height: 120px;
+            background: #e74c3c;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="clock">
+        <div class="hand hour" id="hour"></div>
+        <div class="hand minute" id="minute"></div>
+        <div class="hand second" id="second"></div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes();
+            const s = now.getSeconds();
+
+            const hDeg = (h * 30) + (m * 0.5);
+            const mDeg = m * 6;
+            const sDeg = s * 6;
+
+            document.getElementById('hour').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('minute').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            document.getElementById('second').style.transform = `translateX(-50%) rotate(${sDeg}deg)`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

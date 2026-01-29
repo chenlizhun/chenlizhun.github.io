@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colors - Design System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/design-system.css">
+    <style>
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        
+        .color-card {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: transform var(--transition-base);
+        }
+        
+        .color-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .color-swatch {
+            height: 120px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .color-info {
+            padding: 15px;
+            font-family: var(--font-family-mono);
+            font-size: 0.85rem;
+        }
+        
+        .color-name {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: var(--color-text-main);
+        }
+        
+        .color-var {
+            color: var(--color-text-muted);
+            display: block;
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        .color-hex {
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-layout">
+        <aside class="guide-sidebar">
+            <a href="index.html" style="text-decoration: none; display: block; text-align: center;">
+                <img src="logo.png" alt="Guide Logo" class="guide-logo" style="margin: 0 auto 20px;">
+            </a>
+            
+            <nav>
+                <div class="guide-nav-title">Foundation</div>
+                <a href="index.html" class="guide-nav-link">Overview</a>
+                <a href="tokens.html" class="guide-nav-link">Tokens</a>
+                <a href="colors.html" class="guide-nav-link active">Colors</a>
+                <a href="typography.html" class="guide-nav-link">Typography</a>
+                
+                <div class="guide-nav-title">Elements</div>
+                <a href="components.html" class="guide-nav-link">Components</a>
+                <a href="animations.html" class="guide-nav-link">Animations</a>
+            </nav>
+        </aside>
+
+        <main class="guide-content">
+            <div class="guide-header">
+                <h1>Color System</h1>
+                <p class="text-muted" style="font-size: 1.2rem; margin-top: 10px;">Our palette is designed to be vibrant, engaging, and accessible.</p>
+            </div>
+
+            <section class="guide-section">
+                <h2>Brand Colors</h2>
+                <p style="margin-bottom: 20px;">Primary colors used for main actions, navigation, and brand identity.</p>
+                <div class="color-grid">
+                    <div class="color-card" onclick="copyToClipboard('--color-brand-primary', '#D53F8C')">
+                        <div class="color-swatch" style="background: var(--color-brand-primary)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Brand Primary</span>
+                            <span class="color-var">--color-brand-primary</span>
+                            <span class="color-hex">#D53F8C</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-brand-secondary', '#764ba2')">
+                        <div class="color-swatch" style="background: var(--color-brand-secondary)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Brand Secondary</span>
+                            <span class="color-var">--color-brand-secondary</span>
+                            <span class="color-hex">#764ba2</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-brand-accent', '#667eea')">
+                        <div class="color-swatch" style="background: var(--color-brand-accent)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Brand Accent</span>
+                            <span class="color-var">--color-brand-accent</span>
+                            <span class="color-hex">#667eea</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-brand-accent-light', '#FBB6CE')">
+                        <div class="color-swatch" style="background: var(--color-brand-accent-light)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Accent Light</span>
+                            <span class="color-var">--color-brand-accent-light</span>
+                            <span class="color-hex">#FBB6CE</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>Functional Colors</h2>
+                <p style="margin-bottom: 20px;">Semantic colors for feedback states: success, error, warning, and info.</p>
+                <div class="color-grid">
+                    <div class="color-card" onclick="copyToClipboard('--color-success', '#48bb78')">
+                        <div class="color-swatch" style="background: var(--color-success)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Success</span>
+                            <span class="color-var">--color-success</span>
+                            <span class="color-hex">#48bb78</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-success-light', '#f0fff4')">
+                        <div class="color-swatch" style="background: var(--color-success-light)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Success Light</span>
+                            <span class="color-var">--color-success-light</span>
+                            <span class="color-hex">#f0fff4</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-error', '#f56565')">
+                        <div class="color-swatch" style="background: var(--color-error)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Error</span>
+                            <span class="color-var">--color-error</span>
+                            <span class="color-hex">#f56565</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-error-light', '#fff5f5')">
+                        <div class="color-swatch" style="background: var(--color-error-light)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Error Light</span>
+                            <span class="color-var">--color-error-light</span>
+                            <span class="color-hex">#fff5f5</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-warning', '#ed8936')">
+                        <div class="color-swatch" style="background: var(--color-warning)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Warning</span>
+                            <span class="color-var">--color-warning</span>
+                            <span class="color-hex">#ed8936</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-info', '#4299e1')">
+                        <div class="color-swatch" style="background: var(--color-info)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Info</span>
+                            <span class="color-var">--color-info</span>
+                            <span class="color-hex">#4299e1</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>Neutral Colors</h2>
+                <p style="margin-bottom: 20px;">Grays and whites for text, backgrounds, and borders.</p>
+                <div class="color-grid">
+                    <div class="color-card" onclick="copyToClipboard('--color-text-main', '#2d3748')">
+                        <div class="color-swatch" style="background: var(--color-text-main)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Text Main</span>
+                            <span class="color-var">--color-text-main</span>
+                            <span class="color-hex">#2d3748</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-text-muted', '#718096')">
+                        <div class="color-swatch" style="background: var(--color-text-muted)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Text Muted</span>
+                            <span class="color-var">--color-text-muted</span>
+                            <span class="color-hex">#718096</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-text-light', '#a0aec0')">
+                        <div class="color-swatch" style="background: var(--color-text-light)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Text Light</span>
+                            <span class="color-var">--color-text-light</span>
+                            <span class="color-hex">#a0aec0</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-bg-body', '#f7fafc')">
+                        <div class="color-swatch" style="background: var(--color-bg-body); border: 1px solid #edf2f7;"></div>
+                        <div class="color-info">
+                            <span class="color-name">BG Body</span>
+                            <span class="color-var">--color-bg-body</span>
+                            <span class="color-hex">#f7fafc</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-border', '#edf2f7')">
+                        <div class="color-swatch" style="background: var(--color-border)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Border</span>
+                            <span class="color-var">--color-border</span>
+                            <span class="color-hex">#edf2f7</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="guide-section">
+                <h2>Kid-Friendly Palette</h2>
+                <p style="margin-bottom: 20px;">Bright, high-energy colors for the children's theme.</p>
+                <div class="color-grid">
+                    <div class="color-card" onclick="copyToClipboard('--color-kid-primary', '#FFD93D')">
+                        <div class="color-swatch" style="background: var(--color-kid-primary)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Sunny Yellow</span>
+                            <span class="color-var">--color-kid-primary</span>
+                            <span class="color-hex">#FFD93D</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-kid-secondary', '#6BCB77')">
+                        <div class="color-swatch" style="background: var(--color-kid-secondary)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Grass Green</span>
+                            <span class="color-var">--color-kid-secondary</span>
+                            <span class="color-hex">#6BCB77</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-kid-accent', '#FF6B6B')">
+                        <div class="color-swatch" style="background: var(--color-kid-accent)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Toy Red</span>
+                            <span class="color-var">--color-kid-accent</span>
+                            <span class="color-hex">#FF6B6B</span>
+                        </div>
+                    </div>
+                    <div class="color-card" onclick="copyToClipboard('--color-kid-info', '#4D96FF')">
+                        <div class="color-swatch" style="background: var(--color-kid-info)"></div>
+                        <div class="color-info">
+                            <span class="color-name">Sky Blue</span>
+                            <span class="color-var">--color-kid-info</span>
+                            <span class="color-hex">#4D96FF</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/guide.js"></script>
+</body>
+</html>

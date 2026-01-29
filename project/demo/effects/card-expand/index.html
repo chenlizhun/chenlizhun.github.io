@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡片展开</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #2d3436;
+            font-family: sans-serif;
+        }
+
+        .card {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #fff;
+            border-radius: 10px;
+            transition: 0.5s;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            height: 400px;
+        }
+
+        .img-box {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .content {
+            position: relative;
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.5s;
+            transform: translateY(20px);
+        }
+
+        .card:hover .content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        h3 { margin: 0; color: #333; }
+        p { color: #777; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="img-box">
+            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Coding">
+        </div>
+        <div class="content">
+            <h3>Web Development</h3>
+            <p>Learn how to build modern websites and web applications using HTML, CSS, and JavaScript.</p>
+            <button style="margin-top:15px; padding:10px 20px; background:#0984e3; color:#fff; border:none; border-radius:5px; cursor:pointer;">Read More</button>
+        </div>
+    </div>
+</body>
+</html>

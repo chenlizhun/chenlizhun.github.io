@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视差倾斜卡片</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1e272e;
+            font-family: sans-serif;
+            perspective: 1000px;
+        }
+
+        .tilt-card {
+            width: 300px;
+            height: 450px;
+            background: linear-gradient(135deg, #0fb9b1, #20bf6b);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transform-style: preserve-3d;
+            transform: rotateX(0) rotateY(0);
+            transition: transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        .content {
+            transform: translateZ(60px);
+            text-align: center;
+        }
+
+        .content h2 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        .content p {
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            transform: translateZ(80px);
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+    </style>
+</head>
+<body>
+    <div class="tilt-card" id="tiltCard">
+        <div class="icon">🛸</div>
+        <div class="content">
+            <h2>Parallax</h2>
+            <p>Mouse Move Effect</p>
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById('tiltCard');
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -20; // Max 20deg
+            const rotateY = ((x - centerX) / centerX) * 20;
+
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateX(0) rotateY(0) scale(1)';
+        });
+    </script>
+</body>
+</html>

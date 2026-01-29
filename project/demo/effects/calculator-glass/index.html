@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毛玻璃计算器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            font-family: sans-serif;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 280px;
+        }
+
+        .display {
+            width: 100%;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: right;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 24px;
+            color: #333;
+            border: none;
+            outline: none;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .operator {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .equal {
+            background: #ff7675;
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" class="display" id="display" readonly>
+        <div class="buttons">
+            <button onclick="clearDisplay()">C</button>
+            <button onclick="append('/')" class="operator">÷</button>
+            <button onclick="append('*')" class="operator">×</button>
+            <button onclick="deleteLast()">←</button>
+            <button onclick="append('7')">7</button>
+            <button onclick="append('8')">8</button>
+            <button onclick="append('9')">9</button>
+            <button onclick="append('-')" class="operator">-</button>
+            <button onclick="append('4')">4</button>
+            <button onclick="append('5')">5</button>
+            <button onclick="append('6')">6</button>
+            <button onclick="append('+')" class="operator">+</button>
+            <button onclick="append('1')">1</button>
+            <button onclick="append('2')">2</button>
+            <button onclick="append('3')">3</button>
+            <button onclick="calculate()" class="equal">=</button>
+            <button onclick="append('0')" style="grid-column: span 2">0</button>
+            <button onclick="append('.')">.</button>
+        </div>
+    </div>
+
+    <script>
+        function append(val) {
+            document.getElementById('display').value += val;
+        }
+        function clearDisplay() {
+            document.getElementById('display').value = '';
+        }
+        function deleteLast() {
+            let val = document.getElementById('display').value;
+            document.getElementById('display').value = val.slice(0, -1);
+        }
+        function calculate() {
+            try {
+                let result = eval(document.getElementById('display').value);
+                document.getElementById('display').value = result;
+            } catch (e) {
+                document.getElementById('display').value = 'Error';
+            }
+        }
+    </script>
+</body>
+</html>

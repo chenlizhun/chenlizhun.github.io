@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>骨架屏加载</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f6fa;
+            font-family: sans-serif;
+        }
+
+        .card {
+            width: 350px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .skeleton {
+            background: #eee;
+            background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+            border-radius: 5px;
+            background-size: 200% 100%;
+            animation: 1.5s shine linear infinite;
+        }
+
+        .image {
+            height: 200px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            height: 30px;
+            width: 80%;
+            margin-bottom: 15px;
+        }
+
+        .content-line {
+            height: 20px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .content-line:last-child {
+            width: 60%;
+            margin-bottom: 0;
+        }
+
+        @keyframes shine {
+            to {
+                background-position-x: -200%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="skeleton image"></div>
+        <div class="skeleton title"></div>
+        <div class="skeleton content-line"></div>
+        <div class="skeleton content-line"></div>
+        <div class="skeleton content-line"></div>
+    </div>
+</body>
+</html>

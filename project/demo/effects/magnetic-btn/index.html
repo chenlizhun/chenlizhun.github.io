@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>磁吸按钮</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #192a56;
+            font-family: sans-serif;
+        }
+
+        .magnetic-area {
+            padding: 100px; /* 增加感应区域 */
+        }
+
+        .magnetic-btn {
+            position: relative;
+            padding: 20px 40px;
+            background: #e84118;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s ease-out;
+            outline: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        
+        .magnetic-btn span {
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="magnetic-area">
+        <button class="magnetic-btn" id="magnet">
+            <span>Magnetic</span>
+        </button>
+    </div>
+
+    <script>
+        const btn = document.getElementById('magnet');
+        
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            // 移动按钮位置，系数 0.4 控制磁力强度
+            btn.style.transform = `translate(${x * 0.4}px, ${y * 0.4}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0px, 0px)';
+        });
+    </script>
+</body>
+</html>

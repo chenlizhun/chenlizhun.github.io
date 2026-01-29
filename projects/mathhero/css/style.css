@@ -1,0 +1,96 @@
+.key-btn {
+    @apply bg-white rounded-xl shadow-md text-2xl font-bold text-gray-700 h-16 flex items-center justify-center transition-all border-b-4 border-gray-200;
+}
+
+.key-btn:active {
+    @apply border-b-0 translate-y-1 shadow-none;
+}
+
+/* Custom classes since we use @apply inside CSS which requires PostCSS setup, 
+   but here we are in a raw CSS file linked to HTML. 
+   So we will write standard CSS that mimics Tailwind utilities or just use standard CSS. 
+*/
+
+.key-btn {
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+    font-size: 1.5rem; /* text-2xl */
+    line-height: 2rem;
+    font-weight: 700; /* font-bold */
+    color: #374151; /* text-gray-700 */
+    height: 4rem; /* h-16 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+    border-bottom-width: 4px;
+    border-color: #E5E7EB; /* border-gray-200 */
+}
+
+.key-btn:active {
+    border-bottom-width: 0;
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.key-btn.bg-blue-500 {
+    background-color: #3B82F6;
+    color: white;
+    border-color: #2563EB; /* Darker blue for border */
+}
+
+.key-btn.text-red-400 {
+    color: #F87171;
+}
+
+/* Animations */
+@keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+    animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-20px) scale(1.2); opacity: 0; }
+}
+
+.float-score {
+    position: absolute;
+    color: #F59E0B; /* yellow-500 */
+    font-weight: bold;
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: floatUp 0.8s ease-out forwards;
+}
+
+/* Confetti */
+@keyframes confettiPop {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0.5) rotate(720deg); opacity: 0; }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 50;
+    animation: confettiPop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

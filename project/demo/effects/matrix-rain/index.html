@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑客帝国代码雨</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        // 设置画布全屏
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 字符集：片假名 + 数字 + 字母
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+
+        // 每一列的当前y坐标
+        const drops = [];
+        for( let x = 0; x < columns; x++ ) {
+            drops[x] = 1;
+        }
+
+        function draw() {
+            // 半透明黑色背景，形成拖尾效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0'; // 绿色文字
+            ctx.font = fontSize + 'px monospace';
+
+            for( let i = 0; i < drops.length; i++ ) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // 随机重置回顶部
+                if( drops[i] * fontSize > canvas.height && Math.random() > 0.975 )
+                    drops[i] = 0;
+
+                // y坐标增加
+                drops[i]++;
+            }
+        }
+
+        // 调整窗口大小时重置
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // 重新计算列数
+            const newColumns = canvas.width / fontSize;
+            drops.length = 0; // 清空数组
+            for( let x = 0; x < newColumns; x++ ) {
+                drops[x] = 1;
+            }
+        });
+
+        setInterval(draw, 30);
+    </script>
+</body>
+</html>

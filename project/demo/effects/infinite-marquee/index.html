@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无限滚动跑马灯</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f39c12;
+            overflow: hidden;
+        }
+
+        .marquee-container {
+            width: 100%;
+            background: #fff;
+            padding: 20px 0;
+            border-top: 5px solid #000;
+            border-bottom: 5px solid #000;
+            transform: rotate(-5deg);
+        }
+
+        .marquee-content {
+            display: flex;
+            white-space: nowrap;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 60px;
+            text-transform: uppercase;
+            color: #333;
+        }
+
+        .item {
+            padding: 0 20px;
+            animation: move 5s linear infinite;
+        }
+
+        @keyframes move {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="marquee-container">
+        <div class="marquee-content">
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+            <div class="item">BREAKING NEWS - LIVE UPDATES - </div>
+        </div>
+    </div>
+</body>
+</html>

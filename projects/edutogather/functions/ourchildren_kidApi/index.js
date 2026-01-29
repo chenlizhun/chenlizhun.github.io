@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -12,7 +13,12 @@ const COLLECTIONS = {
   FAMILIES: 'ourchildren_families',
   USERS: 'ourchildren_users',
   KIDS: 'ourchildren_kids',
-  LOGS: 'ourchildren_point_logs'
+  LOGS: 'ourchildren_point_logs',
+  MESSAGES: 'public_messages'
+}
+
+function hashPin(pin) {
+    return crypto.createHash('sha256').update(pin).digest('hex')
 }
 
 exports.main = async (event, context) => {
@@ -48,6 +54,10 @@ exports.main = async (event, context) => {
         return await handleUpdateKidName(openId, payload)
       case 'update_family_pin':
         return await handleUpdateFamilyPin(openId, payload)
+      case 'post_public_message':
+        return await postPublicMessage(openId, payload, context)
+      case 'get_public_messages':
+        return await getPublicMessages(openId, payload)
       default:
         return { success: false, message: 'Unknown action' }
     }
@@ -127,7 +137,7 @@ async function handleCreateFamily(openId, payload) {
     const familyRes = await transaction.collection(COLLECTIONS.FAMILIES).add({
       data: {
         name: familyName,
-        admin_pin: adminPin, // Should be hashed in production
+        admin_pin: hashPin(adminPin), // Hashed PIN
         created_at: db.serverDate(),
         owner_id: openId
       }
@@ -180,7 +190,7 @@ async function handleJoinFamily(openId, payload) {
   const familyRes = await db.collection(COLLECTIONS.FAMILIES).doc(familyId).get()
   if (!familyRes.data) throw new Error('Family not found')
   
-  if (familyRes.data.admin_pin !== adminPin) {
+  if (familyRes.data.admin_pin !== hashPin(adminPin)) {
       throw new Error('Invalid PIN')
   }
   
@@ -264,7 +274,7 @@ async function handleDeleteFamily(openId, payload) {
     if (!familyRes.data) throw new Error('Family not found')
     
     // Security check: Must provide correct PIN
-    if (familyRes.data.admin_pin !== adminPin) {
+    if (familyRes.data.admin_pin !== hashPin(adminPin)) {
         throw new Error('Invalid PIN')
     }
     
@@ -289,6 +299,14 @@ async function handleDeleteFamily(openId, payload) {
 async function handleUpdatePoints(openId, payload) {
     const { familyId, kidId, delta, reason, operatorName } = payload
     
+    // Security Fix: Verify user is a member of the family
+    const userRes = await db.collection(COLLECTIONS.USERS).where({
+        _openid: openId,
+        family_id: familyId
+    }).count()
+    
+    if (userRes.total === 0) throw new Error('Permission denied: You are not a member of this family')
+
     const cmd = db.command
     const transaction = await db.startTransaction()
     
@@ -430,6 +448,152 @@ async function handleUpdateFamilyName(openId, payload) {
     return { success: true }
 }
 
+// 13. Post Public Message
+async function postPublicMessage(openId, payload, context) {
+    const { content, kidId } = payload
+
+    // 1. Basic Validation
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return { success: false, message: '留言内容不能为空' }
+    }
+    if (content.length > 100) {
+        return { success: false, message: '留言太长啦，请控制在100字以内' }
+    }
+    if (!kidId) {
+        return { success: false, message: '请先选择发布留言的小朋友' }
+    }
+    
+    // 2. Sensitive Word Filter (Basic)
+    const badWords = ['脏话', '笨蛋', '坏蛋', '傻瓜', '去死'] 
+    const hasBadWord = badWords.some(word => content.includes(word))
+    if (hasBadWord) {
+        return { success: false, message: '留言包含不文明用语，请修改' }
+    }
+
+    try {
+        // 3. Fetch Kid and Family Info
+        // Try to find kid by _id or id
+        const kidRes = await db.collection(COLLECTIONS.KIDS)
+            .where(_.or([
+                { _id: kidId },
+                { id: kidId }
+            ]))
+            .get()
+
+        if (!kidRes.data || kidRes.data.length === 0) {
+             return { success: false, message: '未找到对应的小朋友信息' }
+        }
+        const kid = kidRes.data[0]
+
+        // Fetch Family
+        let familyName = '未知家庭'
+        let familyId = kid.family_id
+        
+        if (familyId) {
+            try {
+                const familyRes = await db.collection(COLLECTIONS.FAMILIES).doc(familyId).get()
+                if (familyRes.data) {
+                    familyName = familyRes.data.name
+                }
+            } catch (err) {
+                console.warn('Failed to fetch family info', err)
+            }
+        }
+
+        // 4. Write to DB
+        let clientIp = 'unknown'
+        if (context) {
+            clientIp = context.CLIENTIP || context.ip || context.sourceIp || 'unknown'
+        }
+
+        const res = await db.collection(COLLECTIONS.MESSAGES).add({
+            data: {
+                content: content.trim(),
+                author: {
+                    nickname: kid.name || kid.nickname || '小朋友',
+                    age: kid.age || 0,
+                    kid_id: kid._id || kid.id, // Store the actual ID found
+                    openid: openId
+                },
+                family: {
+                    name: familyName,
+                    id: familyId
+                },
+                created_at: db.serverDate(),
+                timestamp: Date.now(),
+                client_ip: clientIp
+            }
+        })
+
+        return { success: true, message: '留言成功！', data: { id: res._id } }
+    } catch (e) {
+        console.error('发布留言失败', e)
+        // Try to auto-create collection if missing
+        try {
+            await db.createCollection(COLLECTIONS.MESSAGES)
+            return { success: false, message: '系统初始化完成，请重新发送' }
+        } catch (createError) {
+             return { success: false, message: `发布失败: ${e.message}`, error: e }
+        }
+    }
+}
+
+// 14. Get Public Messages
+async function getPublicMessages(openId, payload) {
+    const page = payload.page || 1
+    const pageSize = payload.pageSize || 20
+    const skip = (page - 1) * pageSize
+
+    try {
+        // 1. Get Total Count
+        const countResult = await db.collection(COLLECTIONS.MESSAGES).count()
+        const total = countResult.total
+
+        // 2. Get Data
+        const res = await db.collection(COLLECTIONS.MESSAGES)
+            .orderBy('created_at', 'desc')
+            .skip(skip)
+            .limit(pageSize)
+            .field({
+                content: true,
+                'author.nickname': true,
+                'author.age': true,
+                'family.name': true,
+                created_at: true
+            })
+            .get()
+
+        return {
+            success: true,
+            data: {
+                messages: res.data,
+                total: total,
+                page: page,
+                hasMore: (skip + res.data.length) < total
+            }
+        }
+    } catch (e) {
+        console.error('获取留言列表失败', e)
+        // Try to auto-create collection if missing
+        try {
+             await db.createCollection(COLLECTIONS.MESSAGES)
+             // Return empty list success response immediately
+             return {
+                success: true,
+                data: {
+                    messages: [],
+                    total: 0,
+                    page: 1,
+                    hasMore: false
+                },
+                message: '系统初始化完成'
+            }
+        } catch (createError) {
+             return { success: false, message: `获取留言失败: ${e.message}`, error: e }
+        }
+    }
+}
+
 // 11. Update Kid Name
 async function handleUpdateKidName(openId, payload) {
     const { familyId, kidId, newName } = payload
@@ -471,7 +635,7 @@ async function handleUpdateFamilyPin(openId, payload) {
     if (!familyRes.data) throw new Error('Family not found')
     
     // 2. Validate Old PIN
-    if (familyRes.data.admin_pin !== oldPin) {
+    if (familyRes.data.admin_pin !== hashPin(oldPin)) {
         return { success: false, message: '旧密码错误' }
     }
     
@@ -486,7 +650,7 @@ async function handleUpdateFamilyPin(openId, payload) {
     // 4. Update
     await db.collection(COLLECTIONS.FAMILIES).doc(familyId).update({
         data: {
-            admin_pin: newPin
+            admin_pin: hashPin(newPin)
         }
     })
     

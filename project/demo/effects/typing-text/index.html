@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Text</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+            margin: 0;
+        }
+
+        .wrapper {
+            display: inline-block;
+        }
+
+        .typing-demo {
+            width: 22ch;
+            animation: typing 2s steps(22), blink .5s step-end infinite alternate;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid;
+            font-size: 2em;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="typing-demo">
+            This is a typing demo.
+        </div>
+    </div>
+</body>
+</html>

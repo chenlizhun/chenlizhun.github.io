@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typography - Design System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" />
+    <link rel="stylesheet" href="css/design-system.css">
+    <style>
+        .type-scale-row {
+            display: flex;
+            align-items: baseline;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .type-meta {
+            width: 150px;
+            flex-shrink: 0;
+            font-family: var(--font-family-mono);
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .type-preview {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-layout">
+        <aside class="guide-sidebar">
+            <a href="index.html" style="text-decoration: none; display: block; text-align: center;">
+                <img src="logo.png" alt="Guide Logo" class="guide-logo" style="margin: 0 auto 20px;">
+            </a>
+            
+            <nav>
+                <div class="guide-nav-title">Foundation</div>
+                <a href="index.html" class="guide-nav-link">Overview</a>
+                <a href="tokens.html" class="guide-nav-link">Tokens</a>
+                <a href="colors.html" class="guide-nav-link">Colors</a>
+                <a href="typography.html" class="guide-nav-link active">Typography</a>
+                
+                <div class="guide-nav-title">Elements</div>
+                <a href="components.html" class="guide-nav-link">Components</a>
+                <a href="animations.html" class="guide-nav-link">Animations</a>
+            </nav>
+        </aside>
+
+        <main class="guide-content">
+            <div class="guide-header">
+                <h1>Typography</h1>
+                <p class="text-muted" style="font-size: 1.2rem; margin-top: 10px;">
+                    We use <strong>Nunito</strong> for UI/Body text and <strong>Roboto Mono</strong> for code/numbers.
+                </p>
+            </div>
+
+            <section class="guide-section">
+                <h2>Font Families</h2>
+                
+                <div class="example-box" style="display: block;">
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 10px;">Base Font (Nunito)</h3>
+                        <p style="font-size: 1.2rem;">The quick brown fox jumps over the lazy dog.</p>
+                        <div class="code-block" style="margin-top: 10px;">
+                            <pre><code class="language-css">font-family: var(--font-family-base);</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px;">Monospace (Roboto Mono)</h3>
+                        <p class="font-mono" style="font-size: 1.2rem;">0123456789 code_snippet();</p>
+                        <div class="code-block" style="margin-top: 10px;">
+                            <pre><code class="language-css">font-family: var(--font-family-mono);</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>Type Scale</h2>
+                <div class="card">
+                    <div class="type-scale-row">
+                        <div class="type-meta">Heading 1</div>
+                        <div class="type-preview">
+                            <h1>Page Title</h1>
+                        </div>
+                    </div>
+                    <div class="type-scale-row">
+                        <div class="type-meta">Heading 2</div>
+                        <div class="type-preview">
+                            <h2>Section Title</h2>
+                        </div>
+                    </div>
+                    <div class="type-scale-row">
+                        <div class="type-meta">Heading 3</div>
+                        <div class="type-preview">
+                            <h3>Subsection Title</h3>
+                        </div>
+                    </div>
+                    <div class="type-scale-row">
+                        <div class="type-meta">Body Large</div>
+                        <div class="type-preview">
+                            <p style="font-size: 1.2rem;">Introductory paragraph text.</p>
+                        </div>
+                    </div>
+                    <div class="type-scale-row">
+                        <div class="type-meta">Body Base</div>
+                        <div class="type-preview">
+                            <p>Standard body text for paragraphs and descriptions.</p>
+                        </div>
+                    </div>
+                    <div class="type-scale-row">
+                        <div class="type-meta">Small / Meta</div>
+                        <div class="type-preview">
+                            <p class="text-muted" style="font-size: 0.875rem;">Metadata, captions, and helper text.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2>Utility Classes</h2>
+                <div class="code-block">
+<pre><code class="language-css">.text-brand { color: var(--color-brand-primary); }
+.text-muted { color: var(--color-text-muted); }
+.font-mono  { font-family: var(--font-family-mono); }</code></pre>
+                </div>
+                <div class="example-box">
+                    <p class="text-brand">Brand Colored Text</p>
+                    <p class="text-muted">Muted Text</p>
+                    <p class="font-mono">Monospace Text</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="js/guide.js"></script>
+</body>
+</html>

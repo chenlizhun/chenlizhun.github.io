@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyPiano - 小小钢琴家</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#fdf2f8] h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-3 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <a href="../edutogatherhome/index.html" class="text-gray-500 hover:text-[#D53F8C] transition flex items-center gap-1 font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                返回
+            </a>
+            <div class="h-6 w-px bg-gray-200 mx-2"></div>
+            <h1 class="text-xl font-extrabold text-[#D53F8C] tracking-tight flex items-center gap-2">
+                <span>🎹</span> TinyPiano
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="user-display" class="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">访客</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+        
+        <!-- Sheet Music Area -->
+        <div class="mb-8 w-full max-w-2xl px-4 z-10">
+            <div class="bg-white/80 backdrop-blur rounded-2xl shadow-lg p-6 border-2 border-[#D53F8C]/20 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#D53F8C] to-[#667eea]"></div>
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                    <h2 class="text-lg font-bold text-gray-700 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#D53F8C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                        乐谱: <span id="song-title" class="text-[#667eea]">欢乐颂 (Ode to Joy)</span>
+                    </h2>
+                    <div class="flex items-center gap-2">
+                         <button id="btn-demo" onclick="TinyPianoApp.playDemo()" class="text-xs bg-[#667eea] hover:bg-[#5a67d8] text-white px-4 py-1.5 rounded-full transition font-bold flex items-center gap-1 shadow-md hover:shadow-lg">
+                            <span>▶</span> 示范
+                        </button>
+                        <select id="song-selector" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-[#D53F8C] focus:ring focus:ring-[#D53F8C] focus:ring-opacity-50 cursor-pointer">
+                            <option value="ode_to_joy">欢乐颂</option>
+                            <option value="twinkle_star">小星星</option>
+                            <option value="jingle_bells">铃儿响叮当</option>
+                            <option value="mary_had_a_little_lamb">玛丽有只小羊羔</option>
+                            <option value="london_bridge">伦敦桥</option>
+                            <option value="happy_birthday">生日快乐</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="sheet-music" class="flex flex-wrap gap-2 justify-center font-mono text-xl bg-gray-50/50 p-4 rounded-xl min-h-[80px] items-center border border-gray-100">
+                    <!-- Notes will be injected here -->
+                </div>
+                <p class="text-center text-xs text-gray-400 mt-2">提示：按键盘上的字母键弹奏</p>
+            </div>
+        </div>
+
+        <!-- Piano Keys -->
+        <div class="w-full max-w-full overflow-x-auto pb-4 px-4 flex justify-center">
+            <div class="piano-container bg-gray-900 p-8 rounded-t-xl shadow-2xl relative inline-block min-w-max mx-auto border-t-4 border-[#D53F8C]">
+                <div class="piano-brand absolute top-3 right-5 text-gray-600 text-sm italic font-serif tracking-widest">TinyPiano</div>
+                <div class="keys flex justify-center gap-1" id="piano-keys">
+                    <!-- Keys will be injected by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center z-50 transition-all duration-300 opacity-0 pointer-events-none scale-90 border-2 border-[#D53F8C]/20">
+        <div class="text-6xl mb-4 animate-bounce">🎉</div>
+        <h3 class="text-2xl font-bold text-[#D53F8C] mb-2">太棒了！</h3>
+        <p id="success-message" class="text-gray-600 text-center mb-6">你完成了这首曲子！</p>
+        <button id="btn-toast-close" class="bg-[#D53F8C] hover:bg-[#b83275] text-white font-bold py-2 px-8 rounded-full shadow-lg transition transform active:scale-95">
+            再来一次
+        </button>
+    </div>
+
+    <!-- Shared Auth SDK -->
+    <script src="../common/cloudbase.js"></script>
+    <script src="../common/auth-sdk.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

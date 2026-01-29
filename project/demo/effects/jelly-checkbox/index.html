@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>果冻复选框</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f1f2f6;
+        }
+
+        .jelly-checkbox {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+        }
+
+        .jelly-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: relative;
+            display: block;
+            height: 40px;
+            width: 40px;
+            background-color: #ddd;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .jelly-checkbox:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+
+        .jelly-checkbox input:checked ~ .checkmark {
+            background-color: #2ecc71;
+            animation: jelly 0.6s ease-in-out;
+        }
+
+        .checkmark::after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 14px;
+            top: 6px;
+            width: 8px;
+            height: 20px;
+            border: solid white;
+            border-width: 0 4px 4px 0;
+            transform: rotate(45deg);
+        }
+
+        .jelly-checkbox input:checked ~ .checkmark::after {
+            display: block;
+        }
+
+        @keyframes jelly {
+            0% { transform: scale(1, 1); }
+            30% { transform: scale(1.25, 0.75); }
+            40% { transform: scale(0.75, 1.25); }
+            50% { transform: scale(1.15, 0.85); }
+            65% { transform: scale(0.95, 1.05); }
+            75% { transform: scale(1.05, 0.95); }
+            100% { transform: scale(1, 1); }
+        }
+    </style>
+</head>
+<body>
+    <label class="jelly-checkbox">
+        <input type="checkbox">
+        <span class="checkmark"></span>
+    </label>
+</body>
+</html>

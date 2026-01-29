@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拟态开关</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0e5ec;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 80px;
+            height: 40px;
+            -webkit-appearance: none;
+            background: #e0e5ec;
+            outline: none;
+            border-radius: 20px;
+            box-shadow: 
+                inset 2px 2px 5px #a3b1c6,
+                inset -2px -2px 5px #ffffff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 30px;
+            height: 30px;
+            background: #e0e5ec;
+            border-radius: 50%;
+            box-shadow: 
+                2px 2px 5px #a3b1c6,
+                -2px -2px 5px #ffffff;
+            transition: 0.3s;
+        }
+
+        .toggle-switch:checked {
+            background: #e0e5ec;
+        }
+
+        .toggle-switch:checked::after {
+            left: 45px;
+            background: #1da1f2;
+            box-shadow: 
+                2px 2px 5px #a3b1c6,
+                -2px -2px 5px #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <input type="checkbox" class="toggle-switch">
+</body>
+</html>

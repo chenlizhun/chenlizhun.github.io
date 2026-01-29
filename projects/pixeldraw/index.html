@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelDraw - 像素画板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Shared Auth SDK for consistency (optional usage) -->
+    <script src="../common/cloudbase.js"></script>
+    <script src="../common/auth-sdk.js"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col select-none overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-3 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <a href="../edutogatherhome/index.html" class="text-gray-500 hover:text-pink-500 transition flex items-center gap-1 font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                返回
+            </a>
+            <div class="h-6 w-px bg-gray-200 mx-2"></div>
+            <h1 class="text-xl font-extrabold text-pink-500 tracking-tight flex items-center gap-2">
+                <span>🎨</span> PixelDraw
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="user-display" class="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">访客</span>
+            <button id="btn-download" class="bg-pink-500 hover:bg-pink-600 text-white text-sm font-bold px-4 py-2 rounded-full shadow-md transition transform active:scale-95 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                保存作品
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Tools Sidebar -->
+        <aside class="bg-white w-full md:w-20 flex md:flex-col items-center justify-center gap-4 p-4 shadow-inner z-10 border-r border-gray-100">
+            <!-- Pencil -->
+            <button class="tool-btn active" data-tool="pen" title="画笔">
+                ✏️
+            </button>
+            <!-- Eraser -->
+            <button class="tool-btn" data-tool="eraser" title="橡皮擦">
+                🧹
+            </button>
+            <!-- Bucket (Fill) -->
+            <button class="tool-btn" data-tool="bucket" title="油漆桶">
+                🪣
+            </button>
+
+            <div class="h-px w-full bg-gray-200 my-2 hidden md:block"></div>
+
+            <!-- Undo/Redo -->
+            <button id="btn-undo" class="tool-btn text-gray-400" title="撤销 (Ctrl+Z)" disabled>
+                ↩️
+            </button>
+            <button id="btn-redo" class="tool-btn text-gray-400" title="重做 (Ctrl+Y)" disabled>
+                ↪️
+            </button>
+            
+            <div class="h-px w-full bg-gray-200 my-2 hidden md:block"></div>
+            
+            <!-- Symmetry -->
+            <button id="btn-symmetry" class="tool-btn text-gray-400" title="镜像模式">
+                🦋
+            </button>
+            
+            <!-- Clear -->
+            <button id="btn-clear" class="tool-btn text-red-500 hover:bg-red-50" title="清空画布">
+                🗑️
+            </button>
+            <!-- Grid Toggle -->
+            <button id="btn-grid" class="tool-btn text-gray-400" title="显示/隐藏网格">
+                #️⃣
+            </button>
+        </aside>
+
+        <!-- Canvas Area -->
+        <div class="flex-1 bg-gray-100 flex items-center justify-center p-8 relative overflow-auto pattern-bg">
+            <div class="canvas-wrapper shadow-2xl rounded-sm bg-white">
+                <canvas id="pixel-canvas" width="512" height="512"></canvas>
+            </div>
+        </div>
+
+        <!-- Color Palette (Bottom or Right) -->
+        <aside class="bg-white w-full md:w-64 p-4 shadow-inner z-10 border-l border-gray-100 flex flex-col">
+            <!-- Preview Window -->
+            <div class="mb-6">
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">预览</h3>
+                <div class="border border-gray-200 rounded-lg p-4 flex items-center justify-center bg-gray-50 pattern-bg">
+                    <canvas id="preview-canvas" width="128" height="128" class="bg-white shadow-sm image-pixelated"></canvas>
+                </div>
+            </div>
+
+            <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">调色盘</h3>
+            <div class="grid grid-cols-4 gap-2 mb-4" id="preset-colors">
+                <!-- Colors injected by JS -->
+            </div>
+            
+            <div class="mt-auto">
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">当前颜色</h3>
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <input type="color" id="color-picker" class="w-10 h-10 rounded cursor-pointer border-none bg-transparent" value="#000000">
+                    <span id="color-hex" class="text-xs font-mono text-gray-500">#000000</span>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

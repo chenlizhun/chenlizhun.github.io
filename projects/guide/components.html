@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Components - Design System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" />
+    <link rel="stylesheet" href="css/design-system.css">
+    <style>
+        /* Specific override for this page to make form examples look better */
+        .form-example {
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-layout">
+        <aside class="guide-sidebar">
+            <a href="index.html" style="text-decoration: none; display: block; text-align: center;">
+                <img src="logo.png" alt="Guide Logo" class="guide-logo" style="margin: 0 auto 20px;">
+            </a>
+            
+            <nav>
+                <div class="guide-nav-title">Foundation</div>
+                <a href="index.html" class="guide-nav-link">Overview</a>
+                <a href="tokens.html" class="guide-nav-link">Tokens</a>
+                <a href="colors.html" class="guide-nav-link">Colors</a>
+                <a href="typography.html" class="guide-nav-link">Typography</a>
+                
+                <div class="guide-nav-title">Elements</div>
+                <a href="components.html" class="guide-nav-link active">Components</a>
+                <a href="animations.html" class="guide-nav-link">Animations</a>
+            </nav>
+        </aside>
+
+        <main class="guide-content">
+            <div class="guide-header">
+                <h1>Components</h1>
+                <p class="text-muted" style="font-size: 1.2rem; margin-top: 10px;">Reusable UI elements for building interfaces.</p>
+            </div>
+
+            <!-- Buttons -->
+            <section class="guide-section">
+                <h2>Buttons</h2>
+                <div class="example-box">
+                    <button class="btn btn-primary">Primary Action</button>
+                    <button class="btn btn-secondary">Secondary Action</button>
+                    <button class="btn btn-primary btn-icon">
+                        <span style="font-size: 1.2rem;">▶</span>
+                    </button>
+                    <button class="btn btn-secondary btn-icon">
+                        <span style="font-size: 1.2rem;">⚙️</span>
+                    </button>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;button class="btn btn-primary"&gt;Primary Action&lt;/button&gt;
+&lt;button class="btn btn-secondary"&gt;Secondary Action&lt;/button&gt;
+&lt;button class="btn btn-primary btn-icon"&gt;▶&lt;/button&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Cards -->
+            <section class="guide-section">
+                <h2>Cards</h2>
+                <div class="example-box" style="background: var(--color-bg-body);">
+                    <div class="card" style="width: 300px;">
+                        <h3 style="margin-bottom: 10px;">Standard Card</h3>
+                        <p class="text-muted">This is a basic content container with padding, rounded corners, and a subtle shadow.</p>
+                    </div>
+                    
+                    <div class="card interactive-hover" style="width: 300px; cursor: pointer;">
+                        <h3 class="text-brand" style="margin-bottom: 10px;">Interactive Card</h3>
+                        <p class="text-muted">Hover over me! I lift up slightly to indicate I am clickable.</p>
+                    </div>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;!-- Basic Card --&gt;
+&lt;div class="card"&gt;...&lt;/div&gt;
+
+&lt;!-- Interactive Card --&gt;
+&lt;div class="card interactive-hover"&gt;...&lt;/div&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Forms -->
+            <section class="guide-section">
+                <h2>Forms</h2>
+                <div class="example-box">
+                    <div class="form-example">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" placeholder="Enter your username">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" placeholder="Enter your password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input">
+                                <span>Remember me</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;div class="form-group"&gt;
+    &lt;label class="form-label"&gt;Username&lt;/label&gt;
+    &lt;input type="text" class="form-control" placeholder="..."&gt;
+&lt;/div&gt;
+
+&lt;label class="form-check"&gt;
+    &lt;input type="checkbox" class="form-check-input"&gt;
+    &lt;span&gt;Remember me&lt;/span&gt;
+&lt;/label&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Badges -->
+            <section class="guide-section">
+                <h2>Badges</h2>
+                <div class="example-box">
+                    <span class="badge badge-primary">Primary</span>
+                    <span class="badge badge-secondary">Secondary</span>
+                    <span class="badge badge-success">Success</span>
+                    <span class="badge badge-warning">Warning</span>
+                    <span class="badge badge-error">Error</span>
+                    <span class="badge badge-outline" style="color: var(--color-brand-primary)">Outline</span>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;span class="badge badge-primary"&gt;Primary&lt;/span&gt;
+&lt;span class="badge badge-success"&gt;Success&lt;/span&gt;
+&lt;span class="badge badge-warning"&gt;Warning&lt;/span&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Alerts -->
+            <section class="guide-section">
+                <h2>Alerts</h2>
+                <div class="example-box" style="display: block;">
+                    <div class="alert alert-info">
+                        <strong>Info:</strong> This is an informational message.
+                    </div>
+                    <div class="alert alert-success">
+                        <strong>Success:</strong> Great job! You completed the level.
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> Are you sure you want to delete this?
+                    </div>
+                    <div class="alert alert-error" style="margin-bottom: 0;">
+                        <strong>Error:</strong> Something went wrong. Please try again.
+                    </div>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;div class="alert alert-success"&gt;
+    &lt;strong&gt;Success:&lt;/strong&gt; Message here.
+&lt;/div&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Progress -->
+            <section class="guide-section">
+                <h2>Progress Bars</h2>
+                <div class="example-box" style="display: block;">
+                    <div style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 5px; font-weight: bold;">Level Progress</div>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 5px; font-weight: bold;">Health</div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-success" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="margin-bottom: 5px; font-weight: bold;">Loading (Striped)</div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;div class="progress"&gt;
+    &lt;div class="progress-bar" style="width: 70%;"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Modals -->
+            <section class="guide-section">
+                <h2>Modals</h2>
+                <div class="example-box">
+                    <button class="btn btn-primary" onclick="openModal()">Open Modal</button>
+                </div>
+                
+                <!-- Modal Demo Structure -->
+                <div id="demo-modal" class="modal-overlay">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Level Complete!</h3>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Congratulations! You have successfully completed the tutorial level.</p>
+                            <div class="alert alert-success" style="margin-top: 15px; margin-bottom: 0;">
+                                Score: 1000 points
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                            <button class="btn btn-primary" onclick="closeModal()">Next Level</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+<pre><code class="language-html">&lt;div class="modal-overlay active"&gt;
+    &lt;div class="modal-container"&gt;
+        &lt;div class="modal-header"&gt;
+            &lt;h3 class="modal-title"&gt;Title&lt;/h3&gt;
+            &lt;button class="modal-close"&gt;×&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;...&lt;/div&gt;
+        &lt;div class="modal-footer"&gt;...&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Kid-Friendly Theme -->
+            <section class="guide-section">
+                <h2>Kid-Friendly Theme (6-9 Years)</h2>
+                <p class="text-muted" style="margin-bottom: 20px;">
+                    Playful elements with larger touch targets, vibrant colors, and bouncy interactions designed for children.
+                </p>
+                
+                <h3>Playful Buttons</h3>
+                <div class="example-box">
+                    <button class="btn-kid btn-kid-primary trigger-confetti">
+                        <span>▶</span> Start
+                    </button>
+                    <button class="btn-kid btn-kid-success trigger-confetti">
+                        <span>★</span> Win
+                    </button>
+                    <button class="btn-kid btn-kid-warning trigger-confetti">
+                        <span>?</span> Help
+                    </button>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;button class="btn-kid btn-kid-primary"&gt;Start&lt;/button&gt;
+&lt;button class="btn-kid btn-kid-success"&gt;Win&lt;/button&gt;</code></pre>
+                </div>
+
+                <h3>Sticker Cards</h3>
+                <div class="example-box" style="background: #f0f4f8;">
+                    <div class="card-kid" style="width: 250px;">
+                        <span class="badge-fun" style="position: absolute; top: 10px; right: 10px;">New!</span>
+                        <div class="card-kid-title">Math Adventure</div>
+                        <p>Learn adding and subtracting with space aliens!</p>
+                        <div style="margin-top: 15px; text-align: right;">
+                            <button class="btn-kid btn-kid-primary" style="font-size: 0.9rem; padding: 8px 16px;">Play</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-kid anim-wiggle" style="width: 250px; border-color: var(--color-kid-accent);">
+                        <div class="card-kid-title" style="color: var(--color-kid-accent);">Art Studio</div>
+                        <p>Draw and paint with magical brushes.</p>
+                        <div style="margin-top: 15px; text-align: right;">
+                            <button class="btn-kid" style="background: var(--color-kid-accent); font-size: 0.9rem; padding: 8px 16px;">Draw</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">
+<pre><code class="language-html">&lt;div class="card-kid"&gt;
+    &lt;div class="card-kid-title"&gt;Title&lt;/div&gt;
+    &lt;p&gt;Content...&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="js/guide.js"></script>
+    <script>
+        // Modal Logic
+        function openModal() {
+            document.getElementById('demo-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('demo-modal').classList.remove('active');
+        }
+
+        // Close modal on click outside
+        document.getElementById('demo-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

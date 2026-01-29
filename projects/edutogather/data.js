@@ -9,7 +9,6 @@ const DataStore = (() => {
     let _onDataChange = null;
     let _loading = true;
     let _pollingInterval = null;
-    let _listeningFamilyId = null;
 
     // Initialize CloudBase
     async function init({ env, onDataChange }) {
@@ -25,6 +24,32 @@ const DataStore = (() => {
             console.log('Initializing CloudBase with env:', env);
             app = cloudbase.init({ env });
             auth = app.auth();
+
+            // Check for shared session from EdutogatherHome/AuthSDK
+            const sharedSessionJson = localStorage.getItem(STORAGE_KEY);
+            if (sharedSessionJson) {
+                try {
+                    const session = JSON.parse(sharedSessionJson);
+                    // If we have a valid family and user in session, load it optimistically
+                    if (session.family && session.user) {
+                        console.log('Found shared session, loading optimistically:', session);
+                        _currentUser = session.user;
+                        _currentFamily = session.family;
+                        _kids = session.kids || [];
+                        
+                        if (_onDataChange) {
+                             _onDataChange({
+                                type: 'session_restored',
+                                user: _currentUser,
+                                family: _currentFamily,
+                                kids: _kids
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to parse shared session', e);
+                }
+            }
             
             // Anonymous login or silent login
             const loginState = await auth.getLoginState();
@@ -98,7 +123,11 @@ const DataStore = (() => {
             if (res.result.success === false && res.result.message === 'Unknown action') {
                 console.error('Backend version mismatch: Action not supported', action);
                 const msg = `云函数代码未更新：不支持操作 "${action}"。\n请务必在云端部署最新的 "ourchildren_kidApi" 函数代码。`;
-                alert(msg);
+                if (window.Toast) {
+                    window.Toast.show(msg, 'error', 10000);
+                } else {
+                    alert(msg);
+                }
                 return res.result;
             }
             
@@ -135,20 +164,11 @@ const DataStore = (() => {
         }
     }
 
-    function startPolling(intervalMs = 5000, targetFamilyId = null) {
+    function startPolling(intervalMs = 5000) {
         if (_pollingInterval) clearInterval(_pollingInterval);
-        
-        if (targetFamilyId) {
-            _listeningFamilyId = targetFamilyId;
-        }
-
-        console.log('Starting polling...', _listeningFamilyId ? `for specific family: ${_listeningFamilyId}` : 'for current family');
-        
+        console.log('Starting polling...');
         _pollingInterval = setInterval(async () => {
-            // Determine which family to poll: explicitly listened family OR current logged in family
-            const familyIdToPoll = _listeningFamilyId || (_currentFamily && _currentFamily._id);
-
-            if (familyIdToPoll) {
+            if (_currentFamily) {
                 try {
                     // Use silent call if possible, but our callApi doesn't support options.
                     // Just call get_family_data directly.
@@ -157,7 +177,7 @@ const DataStore = (() => {
                         data: { 
                             action: 'get_family_data', 
                             payload: { 
-                                familyId: familyIdToPoll,
+                                familyId: _currentFamily._id,
                                 _t: Date.now() // Prevent caching
                             } 
                         }
@@ -165,35 +185,13 @@ const DataStore = (() => {
                     
                     if (res.result && res.result.success) {
                         const newKids = res.result.data.kids;
-                        const newFamilyInfo = res.result.data.family; // Backend might return family info too? Usually just kids in get_family_data but let's check
+                        const oldKidsJson = JSON.stringify(_kids);
+                        const newKidsJson = JSON.stringify(newKids);
                         
-                        // Check if data changed
-                        // We need to compare against correct source.
-                        // If polling current family, compare with _kids.
-                        // If polling other family (poster view), we might not have local _kids to compare easily, 
-                        // unless we store it. For now, let's just notify always or check simplistic hash.
-                        
-                        const isCurrentFamily = _currentFamily && _currentFamily._id === familyIdToPoll;
-                        
-                        if (isCurrentFamily) {
-                            const oldKidsJson = JSON.stringify(_kids);
-                            const newKidsJson = JSON.stringify(newKids);
-                            
-                            if (oldKidsJson !== newKidsJson) {
-                                console.log('Data changed via polling (current family), updating...');
-                                _kids = newKids;
-                                notifyChange();
-                            }
-                        } else {
-                            // Polling for poster view (non-logged in or different family)
-                            // Always notify 'poster_update' so app.js can decide to re-render if changed
-                            if (_onDataChange) {
-                                _onDataChange({
-                                    type: 'poster_update',
-                                    familyId: familyIdToPoll,
-                                    kids: newKids
-                                });
-                            }
+                        if (oldKidsJson !== newKidsJson) {
+                            console.log('Data changed via polling, updating...');
+                            _kids = newKids;
+                            notifyChange();
                         }
                     }
                 } catch (e) {
@@ -209,7 +207,6 @@ const DataStore = (() => {
             clearInterval(_pollingInterval);
             _pollingInterval = null;
         }
-        _listeningFamilyId = null;
     }
 
     return {
@@ -353,7 +350,11 @@ const DataStore = (() => {
             });
             
             if (!res.success) {
-                alert('Failed to update points: ' + res.message);
+                if (window.Toast) {
+                    window.Toast.error('Failed to update points: ' + res.message);
+                } else {
+                    alert('Failed to update points: ' + res.message);
+                }
                 // Rollback logic could go here
                 await refreshFamilyData(); // Re-sync to be safe
             }
@@ -380,16 +381,47 @@ const DataStore = (() => {
                 await auth.signInAnonymously();
             }
         },
-        async getHistory(kidId, page = 1) {
-            if (!_currentFamily) return { success: false, message: 'Not logged in' };
+        async getHistory(kidId, page = 1, familyIdOverride = null) {
+            const fid = familyIdOverride || (_currentFamily ? _currentFamily._id : null);
+            if (!fid) return { success: false, message: 'No family context' };
+            
             return await callApi('get_history', {
-                familyId: _currentFamily._id,
+                familyId: fid,
                 kidId,
                 page
             });
         },
         async refresh() {
             await refreshFamilyData();
+        },
+        startPolling(intervalMs, familyId) {
+            this.stopPolling();
+            
+            const fetchFn = async () => {
+                // Fetch latest family data
+                const res = await callApi('get_family_data', { familyId });
+                if (res.success && res.data) {
+                     if (_onDataChange) {
+                         _onDataChange({
+                             type: 'poster_update',
+                             familyId: familyId,
+                             kids: res.data.kids || []
+                         });
+                     }
+                }
+            };
+            
+            // Fetch immediately
+            fetchFn();
+            
+            // Then poll
+            _pollingInterval = setInterval(fetchFn, intervalMs);
+        },
+        stopPolling() {
+            if (_pollingInterval) {
+                clearInterval(_pollingInterval);
+                _pollingInterval = null;
+            }
         }
     };
 })();

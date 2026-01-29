@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毛玻璃天气卡片</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url('https://images.unsplash.com/photo-1592210454359-9043f067919b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') center center/cover;
+            font-family: sans-serif;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 300px;
+        }
+
+        .temp {
+            font-size: 60px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .city {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .desc {
+            font-size: 16px;
+            text-transform: capitalize;
+            opacity: 0.8;
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="city">New York</div>
+        <div class="desc">Sunny</div>
+        <div class="temp">24°C</div>
+        <div class="details">
+            <div>
+                <div>Wind</div>
+                <strong>12 km/h</strong>
+            </div>
+            <div>
+                <div>Humidity</div>
+                <strong>45%</strong>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

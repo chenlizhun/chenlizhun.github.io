@@ -3,275 +3,870 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>家庭教育互助工具</title>
+    <title>家庭教育互助中心</title>
+    <!-- Google Fonts: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for rapid UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#D53F8C', // Logo Pink
+                            secondary: '#764ba2', // Typeasy Purple
+                            accent: '#667eea', // Blue-Purple
+                            'accent-light': '#FBB6CE',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-down': 'fadeInDown 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeInDown: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            font-family: 'Nunito', sans-serif;
             background: #f8f9fa;
-            height: 100vh;
-            padding: 16px;
-            color: #1a1a1a;
-            overflow: hidden;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-            padding: 16px 20px;
-            flex-shrink: 0;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            max-width: 100px;
-            height: auto;
-            margin-bottom: 12px;
-            border-radius: 6px;
-        }
-
-        .title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 4px;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 400;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 4px;
-        }
-
         .tool-card {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #e5e7eb;
             transition: all 0.2s ease;
-            cursor: pointer;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 100px;
         }
-
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #2563eb;
-            transform: scaleX(0);
-            transition: transform 0.2s ease;
-        }
-
         .tool-card:hover {
-            border-color: #2563eb;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        .tool-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .tool-card.available {
-            cursor: pointer;
-        }
-
-        .tool-card.coming-soon {
-            cursor: not-allowed;
-            background: #f9fafb;
-            border-color: #e5e7eb;
-        }
-
-        .tool-card.coming-soon:hover {
-            border-color: #e5e7eb;
-            box-shadow: none;
-        }
-
-        .tool-card.coming-soon::before {
-            display: none;
-        }
-
-        .tool-card.coming-soon .tool-title {
-            color: #9ca3af;
-        }
-
-        .tool-icon {
-            display: none;
-        }
-
-        .tool-title {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 12px;
-            color: #1a1a1a;
-            line-height: 1.4;
-        }
-
-        .tool-description {
-            display: none;
-        }
-
-        .tool-status {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
-            align-self: flex-start;
-            margin-top: auto;
-        }
-
-        .status-available {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status-coming-soon {
-            background: #f3f4f6;
-            color: #6b7280;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 16px;
-            color: #6b7280;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
-        @media (max-width: 1024px) {
-            .tools-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 18px;
-            }
-
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="homelogo.png" alt="家庭教育互助工具" class="logo">
-            <h1 class="title">家庭教育互助工具</h1>
-            <p class="subtitle">为家庭教育提供便捷实用的工具集合</p>
-        </div>
+<body class="text-gray-800 h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 selection:bg-brand-primary selection:text-white">
 
-        <div class="tools-grid">
-            <!-- 孩子积分系统 - 已开发 -->
-            <a href="../edutogather/index.html" class="tool-card available">
-                <div>
-                    <h3 class="tool-title">孩子积分系统</h3>
-                </div>
-                <span class="tool-status status-available">可用</span>
-            </a>
-
-            <!-- 待开发工具 -->
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">学习计划管理</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <img src="logo.png" class="h-8 w-auto drop-shadow-sm">
+                <span class="font-extrabold text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-accent">
+                    Edutogather
+                </span>
             </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">作业记录本</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">目标设定与追踪</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">成长档案</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">家庭沟通日志</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">兴趣培养记录</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">时间管理助手</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
-            </div>
-
-            <div class="tool-card coming-soon" onclick="showComingSoon()">
-                <div>
-                    <h3 class="tool-title">互助社区</h3>
-                </div>
-                <span class="tool-status status-coming-soon">即将推出</span>
+            <div class="flex items-center gap-3">
+                 <div id="user-status-widget" class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    <span id="header-user-name">访客</span>
+                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="footer">
-            <p>© 2025 家庭教育互助工具 · 持续更新中</p>
+    <div id="app" class="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 md:p-6">
+        <!-- Loading State -->
+        <div id="loading" class="flex-1 flex flex-col items-center justify-center text-gray-500 gap-4">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-gray-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-brand-primary border-t-transparent animate-spin"></div>
+            </div>
+            <div class="font-medium animate-pulse text-brand-primary">正在开启智慧大门...</div>
+        </div>
+
+        <!-- Auth View -->
+        <div id="auth-view" class="hidden flex-1 flex flex-col items-center justify-center p-4">
+            <div class="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/50 relative overflow-hidden">
+                <!-- Decorative bg blobs -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+
+                <!-- Watermark Logo -->
+                <img src="logo.png" class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-64 opacity-[0.15] pointer-events-none select-none grayscale brightness-125">
+
+                <div class="relative z-10">
+                    <div class="text-center mb-10 pt-4">
+                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">欢迎回家</h1>
+                        <p class="text-gray-500 text-sm mt-2 font-medium">Edutogather 家庭教育互助中心</p>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- Family ID / Selector -->
+                        <div class="group">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">选择家庭</label>
+                            <div class="relative">
+                                <select id="family-selector" onchange="handleFamilySelectChange(this.value)" class="appearance-none w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition font-medium text-gray-700 hover:bg-white">
+                                    <option value="">加载中...</option>
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Manual Input Fallback -->
+                            <div id="manual-family-input" class="hidden mt-2 animate-fade-in-down">
+                                 <input type="text" id="login-family-id" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/50 outline-none transition text-sm bg-white" placeholder="请输入家庭 ID">
+                            </div>
+                        </div>
+
+                        <!-- Nickname -->
+                        <div class="group">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">您的称呼</label>
+                            <div class="relative">
+                                <select id="role-selector" onchange="handleRoleSelectChange(this.value)" class="appearance-none w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition font-medium text-gray-700 hover:bg-white">
+                                    <option value="">-- 请选择身份 --</option>
+                                    <option value="爸爸">👨🏻 爸爸</option>
+                                    <option value="妈妈">👩🏻 妈妈</option>
+                                    <option value="爷爷">👴🏻 爷爷</option>
+                                    <option value="奶奶">👵🏻 奶奶</option>
+                                    <option value="外公">👴🏻 外公</option>
+                                    <option value="外婆">👵🏻 外婆</option>
+                                    <option value="宝贝">👶🏻 宝贝</option>
+                                    <option value="manual">✏️ 手动输入...</option>
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                            
+                            <div id="manual-role-input" class="hidden mt-2 animate-fade-in-down">
+                                <input type="text" id="login-nickname" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/50 outline-none transition" placeholder="例如：叔叔、阿姨">
+                            </div>
+                        </div>
+
+                        <!-- PIN -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">家庭通行证 (PIN)</label>
+                            <input type="password" id="login-pin" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/50 focus:bg-white outline-none transition font-mono tracking-widest text-lg" placeholder="••••">
+                        </div>
+
+                        <!-- Error Msg -->
+                        <div id="login-error-msg" class="hidden p-3 bg-red-50 text-red-500 text-sm rounded-xl border border-red-100 flex items-center gap-2">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span></span>
+                        </div>
+
+                        <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:to-brand-primary text-white font-bold p-4 rounded-xl shadow-lg shadow-brand-primary/30 transform transition hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2">
+                            <span>开启家庭空间</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="mt-8 text-gray-400 text-xs text-center">
+                &copy; 2026 Edutogather. All rights reserved. <br>
+                Made with ❤️ for Families.
+            </p>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="hidden flex-col h-full">
+            <!-- Header -->
+            <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <h2 id="family-name" class="font-bold text-lg leading-tight">--</h2>
+                        <div class="text-xs text-gray-500" id="user-info">--</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Kid Selector -->
+                    <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                        <span class="text-xs text-gray-500 mr-2">当前使用者:</span>
+                        <select id="kid-selector" onchange="handleKidChange(this.value)" class="bg-transparent text-sm font-bold text-brand-primary outline-none cursor-pointer">
+                            <option value="">请选择...</option>
+                        </select>
+                    </div>
+
+                    <button onclick="EduAuth.logout()" class="text-gray-400 hover:text-red-500 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Daily Quote (Fixed Bottom) - Disabled by user request
+            <div id="daily-quote-section" class="fixed bottom-6 left-4 right-4 md:left-1/2 md:w-full md:max-w-3xl md:transform md:-translate-x-1/2 z-50 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl shadow-lg border border-yellow-100 flex items-start gap-3 hidden backdrop-blur-sm bg-opacity-95">
+                <div class="text-2xl animate-bounce">💡</div>
+                <div>
+                    <h3 class="text-xs font-bold text-yellow-600 uppercase mb-1">每日一句</h3>
+                    <p id="quote-content" class="text-gray-700 font-medium text-sm italic">加载中...</p>
+                </div>
+            </div>
+            -->
+
+            <!-- Tools Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-32">
+                
+                <!-- Tool 1: Edutogather -->
+                <a href="../edutogather/index.html" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-pink-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">🏆</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                🏆
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-brand-primary transition-colors">积分管理</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">家庭积分奖惩、任务管理与统计报表。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-brand-primary">
+                            <span class="mr-2">进入应用</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tool 2: Typeasy -->
+                <a href="../typeasy/index.html" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">⌨️</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                ⌨️
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">Typeasy 打字</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">专为儿童设计的盲打练习工具。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-indigo-600">
+                            <span class="mr-2">开始练习</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tool 3: Scratch -->
+                <a href="http://scratch.webt.club/" target="_blank" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-orange-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">🐱</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                🐱
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-orange-600 transition-colors">Scratch 编程</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">少儿图形化编程工具，激发无限创造力。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-orange-600">
+                            <span class="mr-2">开始创作</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tool 4: PixelDraw -->
+                <a href="../pixeldraw/index.html" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-pink-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">🎨</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                🎨
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-pink-600 transition-colors">PixelDraw 像素画</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">简单有趣的像素绘画工具，培养艺术细胞。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-pink-600">
+                            <span class="mr-2">开始绘画</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tool 5: TinyPiano -->
+                <a href="../tinypiano/index.html" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-purple-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">🎹</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                🎹
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">TinyPiano 钢琴</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">简单的虚拟钢琴，开启音乐启蒙之旅。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-purple-600">
+                            <span class="mr-2">开始弹奏</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tool 6: MathHero -->
+                <a href="../mathhero/index.html" class="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-100 hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 rotate-12">
+                        <span class="text-9xl">🧮</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-yellow-50 flex items-center justify-center text-3xl mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                🧮
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 mb-1 group-hover:text-yellow-600 transition-colors">MathHero 口算</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">趣味口算闯关游戏，成为数学小英雄。</p>
+                        </div>
+                        <div class="mt-6 flex items-center text-sm font-bold text-yellow-600">
+                            <span class="mr-2">开始挑战</span>
+                            <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Placeholders -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-dashed border-gray-200 flex flex-col items-center justify-center text-center h-full min-h-[240px] opacity-60 hover:opacity-100 transition-opacity cursor-default">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    </div>
+                    <span class="text-gray-400 font-medium text-sm">更多工具开发中...</span>
+                </div>
+
+            </div>
+
+            <!-- Guestbook Section -->
+            <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                        💬 小伙伴的留言板
+                        <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Public</span>
+                    </h3>
+                    <button onclick="loadGuestbookMessages()" class="text-blue-500 text-sm hover:underline">🔄 刷新</button>
+                </div>
+                
+                <div id="guestbook-list" class="space-y-4 max-h-80 overflow-y-auto mb-4 pr-2">
+                    <div class="text-center text-gray-400 py-8 text-sm">加载留言中...</div>
+                </div>
+
+                <div class="flex gap-2 items-start border-t border-gray-100 pt-4">
+                    <div class="flex-1">
+                        <textarea id="guestbook-input" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm resize-none" placeholder="分享你的想法... (记得要有礼貌哦)"></textarea>
+                        <div class="text-right mt-1">
+                             <span id="guestbook-char-count" class="text-xs text-gray-400">0/100</span>
+                        </div>
+                    </div>
+                    <button onclick="handlePostMessage()" id="btn-post-msg" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-md text-sm transition transform active:scale-95 h-10 flex items-center">
+                        发送
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">* 留言将对所有家庭的小朋友可见，请注意保护隐私。</p>
+            </div>
+
         </div>
     </div>
 
+    <!-- Scripts -->
+    <!-- CloudBase SDK (Local Shared) -->
+    <script src="../common/cloudbase.js"></script>
+    <!-- Shared Auth SDK -->
+    <script src="../common/auth-sdk.js?v=20260127"></script>
+    <!-- Flying Bug Interaction -->
+    <script src="js/flying-bug.js"></script>
     <script>
-        function showComingSoon() {
-            // 点击未开发项目时暂时没有反应
-            // 可以在这里添加提示，但根据要求暂时不做任何反应
+        // Daily Quotes Logic
+        const QUOTES = [
+            "试一试，你比你想象的更厉害！",
+            "犯错没关系，那是学习的一部分。",
+            "今天的努力，是为了明天的惊喜。",
+            "保持好奇心，世界很有趣！",
+            "你不仅聪明，还很善良。",
+            "慢慢来，比较快。",
+            "每一个大专家，都是从小学生开始的。",
+            "相信自己，你可以做到的！",
+            "微笑是世界上最美丽的语言。",
+            "每一次跌倒，都是为了更好地站起来。",
+            "做一件小事，也是大大的进步。",
+            "勇敢不是不害怕，而是虽然害怕但依然前行。"
+        ];
+
+        function showDailyQuote() {
+            const quoteEl = document.getElementById('quote-content');
+            const sectionEl = document.getElementById('daily-quote-section');
+            if(quoteEl && sectionEl) {
+                const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+                quoteEl.textContent = randomQuote;
+                sectionEl.classList.remove('hidden');
+            }
         }
+
+        // Guestbook Logic
+        async function loadGuestbookMessages() {
+            const listEl = document.getElementById('guestbook-list');
+            try {
+                // Show loading only if empty or refreshing manually (optional UX)
+                // listEl.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">加载留言中...</div>';
+                
+                const res = await EduAuth.callApi('get_public_messages', { page: 1, pageSize: 20 });
+                console.log('Guestbook messages:', res);
+                
+                if (!res.success) {
+                    listEl.innerHTML = `<div class="text-center text-red-400 py-8 text-sm">加载失败: ${res.message || '未知错误'}</div>`;
+                    return;
+                }
+
+                if (res.data && res.data.messages && res.data.messages.length > 0) {
+                    renderGuestbookMessages(res.data.messages);
+                } else {
+                    listEl.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">暂无留言，快来抢沙发吧！</div>';
+                }
+            } catch (e) {
+                console.error('Failed to load messages', e);
+                listEl.innerHTML = '<div class="text-center text-red-400 py-8 text-sm">加载失败，请稍后再试</div>';
+            }
+        }
+
+        function renderGuestbookMessages(list) {
+            const listEl = document.getElementById('guestbook-list');
+            if (list.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">暂无留言，快来抢沙发吧！</div>';
+                return;
+            }
+
+            listEl.innerHTML = list.map(msg => {
+                const date = new Date(msg.created_at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const authorName = msg.author?.nickname || '小朋友';
+                const age = msg.author?.age ? `<span class="text-xs bg-blue-50 text-blue-500 px-1.5 rounded ml-1">${msg.author.age}岁</span>` : '';
+                const familyName = msg.family?.name ? `<span class="text-xs text-gray-400 ml-2">来自: ${msg.family.name}</span>` : '';
+                
+                return `
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-lg flex-shrink-0">
+                            👶
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl rounded-tl-none flex-1">
+                            <div class="flex items-baseline justify-between mb-1">
+                                <div class="flex items-center">
+                                    <span class="font-bold text-sm text-gray-800">${authorName}</span>
+                                    ${age}
+                                    ${familyName}
+                                </div>
+                                <span class="text-xs text-gray-300">${date}</span>
+                            </div>
+                            <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(msg.content)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function handlePostMessage() {
+            const inputEl = document.getElementById('guestbook-input');
+            const content = inputEl.value.trim();
+            
+            if (!content) {
+                alert('请先输入内容哦~');
+                return;
+            }
+
+            // Get Current Kid
+            const session = EduAuth.getSession();
+            let currentKid = null;
+            
+            if (session.kidId) {
+                currentKid = session.kids.find(k => k.id === session.kidId); // Try simple ID first
+                if(!currentKid) {
+                    // Try fallback if ID structure differs (e.g. _id vs id)
+                     currentKid = session.kids.find(k => k._id === session.kidId);
+                }
+            }
+
+            // If no kid selected, check if we can infer or must block
+            if (!currentKid) {
+                alert('请先在右上角选择你是哪位小朋友哦！');
+                return;
+            }
+
+            const btn = document.getElementById('btn-post-msg');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+                
+                const res = await EduAuth.callApi('post_public_message', {
+                    content: content,
+                    kidId: currentKid._id || currentKid.id
+                });
+
+                if (res.success) {
+                    inputEl.value = '';
+                    document.getElementById('guestbook-char-count').textContent = '0/100';
+                    loadGuestbookMessages(); // Refresh list
+                } else {
+                    alert(res.message || '发送失败');
+                }
+            } catch (e) {
+                console.error('Post failed', e);
+                alert('发送出错了，请稍后再试');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        // Input character count
+        const guestbookInput = document.getElementById('guestbook-input');
+        if (guestbookInput) {
+            guestbookInput.addEventListener('input', function(e) {
+                const len = e.target.value.length;
+                const counter = document.getElementById('guestbook-char-count');
+                if (counter) {
+                    counter.textContent = `${len}/100`;
+                    if (len > 100) {
+                        counter.classList.add('text-red-500');
+                    } else {
+                        counter.classList.remove('text-red-500');
+                    }
+                }
+            });
+        }
+
+        // UI Logic
+        async function initApp() {
+            // Check SDK
+            if (!window.cloudbase) {
+                const errorEl = document.getElementById('login-error-msg');
+                errorEl.innerHTML = '⚠️ CloudBase SDK 加载失败。<br>请检查网络连接或广告拦截插件。';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                await EduAuth.init();
+
+                // Check and refresh session if kids data is missing
+                let session = EduAuth.getSession();
+                if (session.isAuthenticated && (!session.kids || session.kids.length === 0)) {
+                    console.log('Session data incomplete (missing kids), refreshing...');
+                    await EduAuth.refreshSession();
+                    session = EduAuth.getSession();
+                }
+
+                render();
+                
+                // If not authenticated, load family list
+                if (!session.isAuthenticated) {
+                    loadFamilyList();
+                }
+            } catch (e) {
+                console.error('Init failed', e);
+                // Non-blocking error for init
+            }
+        }
+
+        async function loadFamilyList() {
+            const selector = document.getElementById('family-selector');
+            try {
+                console.log('Loading family list...');
+                const res = await EduAuth.getAllFamilies();
+                console.log('Family list response:', res);
+                
+                selector.innerHTML = '<option value="">-- 请选择家庭 --</option>';
+                
+                // Compatibility: Check if data is array directly or nested in families
+                let families = Array.isArray(res.data) ? res.data : (res.data && res.data.families) || [];
+                
+                // Fallback: Try loading from local cache if API returns empty
+                if (families.length === 0) {
+                    try {
+                        const cached = localStorage.getItem('kids_management_families_cache');
+                        if (cached) {
+                            const cachedFamilies = JSON.parse(cached);
+                            // Cache structure might be different (wrapper objects), check edutogather app.js
+                            // Edutogather cache stores availableFamilies (array of objects with .info)
+                            // We need to extract .info from them if they have it, or use as is
+                            if (Array.isArray(cachedFamilies)) {
+                                console.log('Using cached families as fallback');
+                                families = cachedFamilies.map(f => f.info || f);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Failed to load cached families', err);
+                    }
+                }
+
+                if (families.length > 0) {
+                    families.forEach(family => {
+                        const opt = document.createElement('option');
+                        opt.value = family._id;
+                        opt.textContent = family.name;
+                        selector.appendChild(opt);
+                    });
+                } else {
+                    console.warn('No families found in response');
+                }
+                
+                // Add manual option
+                const manualOpt = document.createElement('option');
+                manualOpt.value = 'manual';
+                manualOpt.textContent = '✏️ 手动输入 ID...';
+                selector.appendChild(manualOpt);
+                
+            } catch (e) {
+                console.error('Failed to load families', e);
+                selector.innerHTML = '<option value="manual">加载失败，请手动输入</option>';
+                document.getElementById('manual-family-input').classList.remove('hidden');
+            }
+        }
+
+        function handleFamilySelectChange(val) {
+            const manualInputDiv = document.getElementById('manual-family-input');
+            const manualInput = document.getElementById('login-family-id');
+            
+            if (val === 'manual') {
+                manualInputDiv.classList.remove('hidden');
+                manualInput.value = '';
+                manualInput.focus();
+            } else {
+                manualInputDiv.classList.add('hidden');
+                manualInput.value = val; // Set the hidden input to selected ID
+            }
+        }
+
+        function handleRoleSelectChange(val) {
+            const manualInputDiv = document.getElementById('manual-role-input');
+            const manualInput = document.getElementById('login-nickname');
+            
+            if (val === 'manual') {
+                manualInputDiv.classList.remove('hidden');
+                manualInput.value = '';
+                manualInput.focus();
+            } else {
+                manualInputDiv.classList.add('hidden');
+                manualInput.value = val;
+            }
+        }
+
+        function render() {
+            try {
+                const session = EduAuth.getSession();
+                console.log('Rendering with session:', session);
+                const loadingEl = document.getElementById('loading');
+                const authEl = document.getElementById('auth-view');
+                const dashEl = document.getElementById('dashboard-view');
+
+                loadingEl.classList.add('hidden');
+
+                if (session.isAuthenticated) {
+                    authEl.classList.add('hidden');
+                    dashEl.classList.remove('hidden');
+                    dashEl.classList.add('flex');
+                    
+                    // Update Dashboard Info
+                    if (session.family) {
+                        document.getElementById('family-name').textContent = session.family.name || '未命名家庭';
+                    }
+                    
+                    if (session.user) {
+                        const roleName = session.user.role === 'admin' ? '管理员' : '成员';
+                        document.getElementById('user-info').innerHTML = `
+                            ${session.user.nickname || '未知用户'} (${roleName})
+                            <button onclick="forceRefreshSession(this)" class="ml-2 text-blue-400 hover:text-blue-600 transition" title="同步最新数据">
+                                <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </button>
+                        `;
+                        
+                        // Update Header User Name
+                        const headerUserEl = document.getElementById('header-user-name');
+                        if (headerUserEl) {
+                            headerUserEl.textContent = session.user.nickname || '成员';
+                        }
+                    } else {
+                        document.getElementById('user-info').textContent = '用户信息加载失败';
+                    }
+
+                    // Show Daily Quote
+                    // showDailyQuote();
+
+                    // Initialize Flying Bug (Singleton)
+                    if (window.FlyingBug && !window.flyingBugInstance) {
+                        window.flyingBugInstance = new FlyingBug();
+                    }
+                    
+                    // Load Guestbook Messages
+                    loadGuestbookMessages(); 
+                    
+                    // Update Kid Selector
+                    updateKidSelector(session);
+
+                    // Update Tool Links
+                    const familyId = session.family ? session.family._id : '';
+                    const kidId = session.kidId;
+                    
+                    // Edutogather Link
+                    const edutogatherLink = document.querySelector('a[href*="edutogather/index.html"]');
+                    if (edutogatherLink && familyId) {
+                        let href = `../edutogather/index.html?familyId=${familyId}`;
+                        if (kidId) href += `&kidId=${kidId}`;
+                        edutogatherLink.href = href;
+                    }
+                    
+                    // Typeasy Link
+                    const typeasyLink = document.querySelector('a[href*="typeasy/index.html"]');
+                    if (typeasyLink && familyId) {
+                        let href = `../typeasy/index.html?familyId=${familyId}`;
+                        if (kidId) href += `&kidId=${kidId}`;
+                        typeasyLink.href = href;
+                    }
+
+                    // PixelDraw Link
+                    const pixelDrawLink = document.querySelector('a[href*="pixeldraw/index.html"]');
+                    if (pixelDrawLink && familyId) {
+                        let href = `../pixeldraw/index.html?familyId=${familyId}`;
+                        if (kidId) href += `&kidId=${kidId}`;
+                        pixelDrawLink.href = href;
+                    }
+
+                    // TinyPiano Link
+                    const tinyPianoLink = document.querySelector('a[href*="tinypiano/index.html"]');
+                    if (tinyPianoLink && familyId) {
+                        let href = `../tinypiano/index.html?familyId=${familyId}`;
+                        if (kidId) href += `&kidId=${kidId}`;
+                        tinyPianoLink.href = href;
+                    }
+
+                    // MathHero Link
+                    const mathHeroLink = document.querySelector('a[href*="mathhero/index.html"]');
+                    if (mathHeroLink && familyId) {
+                        let href = `../mathhero/index.html?familyId=${familyId}`;
+                        if (kidId) href += `&kidId=${kidId}`;
+                        mathHeroLink.href = href;
+                    }
+                } else {
+                    authEl.classList.remove('hidden');
+                    dashEl.classList.add('hidden');
+                    dashEl.classList.remove('flex');
+                }
+            } catch (e) {
+                console.error('Render failed:', e);
+                // Force logout if render fails due to bad data
+                // EduAuth.logout(); 
+                document.getElementById('loading').innerHTML = `
+                    <div class="text-red-500 p-4">
+                        页面渲染出错: ${e.message}<br>
+                        <button onclick="EduAuth.logout()" class="mt-4 px-4 py-2 bg-gray-200 rounded">重置应用</button>
+                    </div>
+                `;
+            }
+        }
+
+        function updateKidSelector(session) {
+            const select = document.getElementById('kid-selector');
+            const currentKidId = session.kidId;
+            // Fix: Access kids from session root, not family object
+            const kids = EduAuth.getSession().kids || [];
+
+            select.innerHTML = '<option value="">-- 选择孩子 --</option>';
+            if (kids && kids.length > 0) {
+                kids.forEach(kid => {
+                    const opt = document.createElement('option');
+                    opt.value = kid._id;
+                    opt.textContent = kid.name;
+                    if (kid._id === currentKidId) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.textContent = "(暂无数据 - 请点上方刷新)";
+                select.appendChild(opt);
+            }
+        }
+
+        async function forceRefreshSession(btn) {
+            if(btn) btn.classList.add('animate-spin');
+            try {
+                console.log('Force refreshing session...');
+                const success = await EduAuth.refreshSession();
+                if (success) {
+                    console.log('Refresh successful');
+                    render();
+                } else {
+                    alert('同步失败，无法获取最新数据。');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('同步出错: ' + e.message);
+            } finally {
+                if(btn) btn.classList.remove('animate-spin');
+            }
+        }
+
+        async function handleLogin() {
+            const familyId = document.getElementById('login-family-id').value;
+            const nickname = document.getElementById('login-nickname').value;
+            const pin = document.getElementById('login-pin').value;
+            const errorEl = document.getElementById('login-error-msg');
+            
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+
+            console.log('Login attempt:', { familyId, nickname, hasPin: !!pin });
+
+            if (!familyId || !nickname || !pin) {
+                errorEl.textContent = '请填写所有字段（家庭、称呼、PIN码）';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="handleLogin()"]');
+            const originalText = btn.textContent;
+            btn.textContent = '登录中...';
+            btn.disabled = true;
+
+            try {
+                console.log('Calling EduAuth.loginToFamily...');
+                const res = await EduAuth.loginToFamily(familyId, pin, nickname);
+                console.log('Login result:', res);
+                
+                if (res.success) {
+                    console.log('Login successful, rendering dashboard...');
+                    render();
+                } else {
+                    console.error('Login failed:', res);
+                    errorEl.textContent = '登录失败: ' + (res.message || 'PIN码错误或家庭不存在');
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error('System error during login:', e);
+                errorEl.textContent = '系统错误: ' + (e.message || JSON.stringify(e));
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function handleKidChange(kidId) {
+            if (kidId) {
+                EduAuth.setCurrentKid(kidId);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', initApp);
+
     </script>
 </body>
 </html>

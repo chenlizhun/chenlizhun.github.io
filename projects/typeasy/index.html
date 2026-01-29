@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typeasy - 儿童趣味打字</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <script src="../common/cloudbase.js"></script>
+    <script src="../common/auth-sdk.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <a href="../edutogatherhome/index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px;">
+                <span style="font-size: 0.8em;">🏠</span>
+                <span><span>T</span>ypeasy</span>
+            </a>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item" id="family-display" style="display:none">🏠</div>
+            <div class="stat-item" id="user-display">👤 访客</div>
+            <div class="stat-item level-select-container">
+                <button id="btn-level-menu" class="btn-level-menu">
+                    <span class="icon">📂</span> <span class="text">课程列表</span>
+                </button>
+            </div>
+            <div class="stat-item">⚡️ <span id="wpm-value">0</span> WPM</div>
+            <div class="stat-item">🎯 准确率 <span id="accuracy-value">100</span>%</div>
+            <button class="btn-icon" id="btn-sound" title="开关声音">🔊</button>
+        </div>
+    </header>
+
+    <div id="stage">
+        <div class="progress-wrapper">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="progress-text">0%</div>
+        </div>
+        <div id="combo-display" class="combo-display"></div>
+        <div class="overlay">
+            <h1 style="color:var(--text-primary); margin-bottom: 10px;">准备好了吗？</h1>
+            <p style="color:#718096; margin-bottom: 30px;">把双手轻轻放在键盘上，食指摸到 F 和 J 的小凸起。</p>
+            <button class="btn-start">开始练习</button>
+        </div>
+
+        <div class="display-area">
+            <!-- Text will be injected here -->
+        </div>
+
+        <div id="keyboard-container">
+            <div class="hands-guide">
+                <!-- Left Hand SVG -->
+                <div class="hand-wrapper left">
+                    <svg class="hand-svg" viewBox="0 0 200 200">
+                        <path class="finger l-pinky" d="M30,120 L30,70 A10,10 0 0,1 50,70 L50,120 Z" />
+                        <path class="finger l-ring" d="M60,120 L60,50 A10,10 0 0,1 80,50 L80,120 Z" />
+                        <path class="finger l-middle" d="M90,120 L90,40 A10,10 0 0,1 110,40 L110,120 Z" />
+                        <path class="finger l-index" d="M120,120 L120,50 A10,10 0 0,1 140,50 L140,120 Z" />
+                        <path class="finger thumb" d="M150,140 L180,110 A10,10 0 0,1 190,120 L160,160 Z" />
+                        <path class="palm" d="M40,120 L150,120 L160,160 L50,180 Z" />
+                    </svg>
+                </div>
+
+                <!-- Right Hand SVG -->
+                <div class="hand-wrapper right">
+                    <svg class="hand-svg" viewBox="0 0 200 200">
+                        <path class="finger r-pinky" d="M170,120 L170,70 A10,10 0 0,0 150,70 L150,120 Z" />
+                        <path class="finger r-ring" d="M140,120 L140,50 A10,10 0 0,0 120,50 L120,120 Z" />
+                        <path class="finger r-middle" d="M110,120 L110,40 A10,10 0 0,0 90,40 L90,120 Z" />
+                        <path class="finger r-index" d="M80,120 L80,50 A10,10 0 0,0 60,50 L60,120 Z" />
+                        <path class="finger thumb" d="M50,140 L20,110 A10,10 0 0,0 10,120 L40,160 Z" />
+                        <path class="palm" d="M160,120 L50,120 L40,160 L150,180 Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="keyboard">
+                <!-- Row 1 -->
+                <div class="row">
+                    <div class="key" data-key="KeyQ" data-finger="l-pinky">Q</div>
+                    <div class="key" data-key="KeyW" data-finger="l-ring">W</div>
+                    <div class="key" data-key="KeyE" data-finger="l-middle">E</div>
+                    <div class="key" data-key="KeyR" data-finger="l-index">R</div>
+                    <div class="key" data-key="KeyT" data-finger="l-index">T</div>
+                    <div class="key" data-key="KeyY" data-finger="r-index">Y</div>
+                    <div class="key" data-key="KeyU" data-finger="r-index">U</div>
+                    <div class="key" data-key="KeyI" data-finger="r-middle">I</div>
+                    <div class="key" data-key="KeyO" data-finger="r-ring">O</div>
+                    <div class="key" data-key="KeyP" data-finger="r-pinky">P</div>
+                </div>
+                <!-- Row 2 -->
+                <div class="row">
+                    <div class="key" data-key="KeyA" data-finger="l-pinky">A</div>
+                    <div class="key" data-key="KeyS" data-finger="l-ring">S</div>
+                    <div class="key" data-key="KeyD" data-finger="l-middle">D</div>
+                    <div class="key" data-key="KeyF" data-finger="l-index">F</div>
+                    <div class="key" data-key="KeyG" data-finger="l-index">G</div>
+                    <div class="key" data-key="KeyH" data-finger="r-index">H</div>
+                    <div class="key" data-key="KeyJ" data-finger="r-index">J</div>
+                    <div class="key" data-key="KeyK" data-finger="r-middle">K</div>
+                    <div class="key" data-key="KeyL" data-finger="r-ring">L</div>
+                    <div class="key" data-key="Semicolon" data-finger="r-pinky">;</div>
+                </div>
+                <!-- Row 3 -->
+                <div class="row">
+                    <div class="key" data-key="KeyZ" data-finger="l-pinky">Z</div>
+                    <div class="key" data-key="KeyX" data-finger="l-ring">X</div>
+                    <div class="key" data-key="KeyC" data-finger="l-middle">C</div>
+                    <div class="key" data-key="KeyV" data-finger="l-index">V</div>
+                    <div class="key" data-key="KeyB" data-finger="l-index">B</div>
+                    <div class="key" data-key="KeyN" data-finger="r-index">N</div>
+                    <div class="key" data-key="KeyM" data-finger="r-index">M</div>
+                    <div class="key" data-key="Comma" data-finger="r-middle">,</div>
+                    <div class="key" data-key="Period" data-finger="r-ring">.</div>
+                    <div class="key" data-key="Slash" data-finger="r-pinky">/</div>
+                </div>
+                <!-- Row 4 -->
+                <div class="row">
+                    <div class="key space" data-key="Space" data-finger="thumb">SPACE</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Selection Modal -->
+    <div id="level-menu" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择课程</h2>
+                <button class="btn-close" id="btn-close-menu">×</button>
+            </div>
+            <div class="level-grid" id="level-grid">
+                <!-- Levels will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sound.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

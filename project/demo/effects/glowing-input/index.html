@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发光输入框</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: sans-serif;
+        }
+
+        .input-group {
+            position: relative;
+            width: 300px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: #1a1a1a;
+            border-radius: 5px;
+            outline: none;
+            color: #fff;
+            font-size: 1em;
+            transition: 0.5s;
+        }
+
+        .input-group span {
+            position: absolute;
+            left: 0;
+            padding: 10px;
+            pointer-events: none;
+            font-size: 1em;
+            color: rgba(255,255,255,0.25);
+            text-transform: uppercase;
+            transition: 0.5s;
+        }
+
+        .input-group input:valid ~ span,
+        .input-group input:focus ~ span {
+            color: #00dfc4;
+            transform: translateX(10px) translateY(-7px);
+            font-size: 0.65em;
+            padding: 0 10px;
+            background: #1a1a1a;
+            border-left: 1px solid #00dfc4;
+            border-right: 1px solid #00dfc4;
+            letter-spacing: 0.2em;
+        }
+
+        .input-group input:valid,
+        .input-group input:focus {
+            border: 1px solid #00dfc4;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-group">
+        <input type="text" required>
+        <span>Username</span>
+    </div>
+</body>
+</html>

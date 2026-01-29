@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聚光灯卡片</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: -apple-system, sans-serif;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            background: rgba(45, 45, 45, 1);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            cursor: default;
+        }
+
+        /* 聚光灯光晕层 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                800px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(255, 255, 255, 0.1),
+                transparent 40%
+            );
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* 边框高亮层 */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(255, 255, 255, 0.4),
+                transparent 40%
+            );
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        /* 内部内容容器，遮挡多余的边框光晕，只留出细边框 */
+        .card-content {
+            position: absolute;
+            inset: 2px;
+            background: #222;
+            border-radius: 18px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card:hover::before,
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        h2 { font-size: 2em; margin-bottom: 0.5em; color: #fff; }
+        p { line-height: 1.6; font-size: 0.95em; }
+        .tag {
+            margin-top: 20px;
+            padding: 5px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-content">
+            <h2>Spotlight</h2>
+            <p>移动鼠标查看效果。</p>
+            <p>利用 CSS 变量追踪鼠标位置，配合 radial-gradient 实现动态光照和边框高亮。</p>
+            <div class="tag">Interactive UI</div>
+        </div>
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.card');
+        
+        document.body.addEventListener('mousemove', (e) => {
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body>
+</html>
