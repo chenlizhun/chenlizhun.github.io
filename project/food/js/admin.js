@@ -9,6 +9,13 @@ let products = [];
 let categories = [];
 let config = null;
 
+// Pagination State
+let currentPage = 1;
+const itemsPerPage = 20;
+
+// Gallery State (Separate from DOM to ensure stability)
+let editingGallery = [];
+
 // Use cloud function for secure operations?
 // Yes, for GitHub Pages security, we MUST use cloud function for writes.
 // Direct DB write from frontend is dangerous if exposed.
@@ -250,6 +257,15 @@ async function loadProducts() {
         // Use safeDbOp (Cloud Function) to ensure we can read products even if DB is private
         const res = await safeDbOp('get', COLLECTION_PRODUCTS);
         products = res.data || [];
+        
+        // Sort by createTime (or _id timestamp) descending
+        // Newest first
+        products.sort((a, b) => {
+            const tA = a.createTime || (a.updateTime || 0);
+            const tB = b.createTime || (b.updateTime || 0);
+            return tB - tA;
+        });
+        
     } catch (e) {
         console.error('Load products failed', e);
         alert('读取产品数据失败：' + e.message);
@@ -284,6 +300,23 @@ function updateCategorySelects() {
     filter.value = currentFilter;
 }
 
+// Helper for safe image URLs (avoid double encoding cloud URLs)
+function safeImageUrl(url) {
+    if (!url) return '';
+    
+    // Auto-upgrade HTTP to HTTPS for known cloud providers to avoid Mixed Content warnings
+    if (url.startsWith('http://') && (url.includes('myqcloud.com') || url.includes('tcb.qcloud.la') || url.includes('clouddn.com'))) {
+        url = url.replace('http://', 'https://');
+    }
+
+    // If it's a remote URL (CloudBase) or data URI, assume it's valid/encoded
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+    }
+    // For local paths with Chinese, encode
+    return encodeURI(url);
+}
+
 function renderProductTable() {
     const tbody = document.getElementById('product-tbody');
     const filterCat = document.getElementById('filter-category').value;
@@ -297,17 +330,47 @@ function renderProductTable() {
         return hitCat && hitSearch;
     });
     
-    console.log('Rendering products:', filtered.length);
+    // --- Pagination Logic ---
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
     
-    filtered.forEach(p => {
+    // Ensure current page is valid
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pagedProducts = filtered.slice(start, end);
+    
+    console.log(`Rendering page ${currentPage}/${totalPages}, items ${start}-${end} of ${totalItems}`);
+    
+    // Update Controls
+    const pageInfo = document.getElementById('page-info');
+    const btnPrev = document.getElementById('prev-page');
+    const btnNext = document.getElementById('next-page');
+    const controls = document.getElementById('pagination-controls');
+    
+    if (controls) {
+        pageInfo.textContent = `第 ${currentPage} / ${totalPages} 页 (共 ${totalItems} 条)`;
+        btnPrev.disabled = currentPage === 1;
+        btnNext.disabled = currentPage === totalPages;
+        
+        // Style disabled buttons
+        btnPrev.style.opacity = btnPrev.disabled ? '0.5' : '1';
+        btnNext.style.opacity = btnNext.disabled ? '0.5' : '1';
+        btnPrev.style.cursor = btnPrev.disabled ? 'not-allowed' : 'pointer';
+        btnNext.style.cursor = btnNext.disabled ? 'not-allowed' : 'pointer';
+    }
+    
+    pagedProducts.forEach(p => {
         const tr = document.createElement('tr');
         
         // Image handling logic
         let imgHtml = '';
-        const thumbSrc = p.thumb ? encodeURI(p.thumb) : '';
+        const thumbSrc = safeImageUrl(p.thumb);
         
         // Debug log for first item
-        if (p === filtered[0]) console.log('First product thumb:', p.thumb, 'Encoded:', thumbSrc);
+        if (p === filtered[0]) console.log('First product thumb:', p.thumb, 'Safe:', thumbSrc);
 
         if (thumbSrc) {
             imgHtml = `
@@ -382,8 +445,120 @@ function renderSettings() {
 
 // --- Product Actions ---
 
-document.getElementById('filter-category').onchange = renderProductTable;
-document.getElementById('search-product').oninput = renderProductTable;
+window.changePage = (delta) => {
+    currentPage += delta;
+    renderProductTable();
+};
+
+document.getElementById('filter-category').onchange = () => {
+    currentPage = 1;
+    renderProductTable();
+};
+document.getElementById('search-product').oninput = () => {
+    currentPage = 1;
+    renderProductTable();
+};
+
+
+// Helper to render gallery items
+function renderGallery(images) {
+    const container = document.getElementById('gallery-container');
+    const countEl = document.getElementById('gallery-count');
+    if (countEl) countEl.textContent = `(${images.length})`;
+    
+    container.innerHTML = '';
+    
+    images.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        // Force relative positioning for the container to support absolute children
+        div.style.position = 'relative';
+        // Fallback for older browsers if aspect-ratio fails
+        div.style.paddingBottom = '100%';
+        div.style.height = '0';
+        
+        // Support both string and object {url, preview}
+        const url = typeof item === 'object' ? item.url : item;
+        const rawPreview = typeof item === 'object' ? item.preview : item;
+        const previewSrc = safeImageUrl(rawPreview);
+        const targetUrl = safeImageUrl(url);
+        
+        // Error fallback element
+        const errorFallback = document.createElement('div');
+        errorFallback.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:#fee2e2;color:#ef4444;font-size:12px;text-align:center;padding:4px;flex-direction:column;z-index:1';
+        errorFallback.innerHTML = '<span style="font-size:18px">⚠️</span><span style="margin-top:4px">加载失败</span>';
+
+        // Image Element
+        const img = document.createElement('img');
+        img.referrerPolicy = "no-referrer"; 
+        // Force absolute positioning to fill the padding-bottom container
+        img.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;border:none;background:#f3f4f6;";
+        
+        // Handle click to open
+        // Use an anchor tag if it's a valid remote URL, otherwise just the image
+        let contentEl = img;
+        
+        const isPending = url && (url.startsWith('pending-') || url.startsWith('data:'));
+        
+        if (targetUrl && !isPending) {
+            const link = document.createElement('a');
+            link.href = targetUrl;
+            link.target = "_blank";
+            // z-index 5 to ensure it is above errorFallback (1) but below removeBtn (10)
+            link.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;text-decoration:none;cursor:pointer;z-index:5;";
+            link.appendChild(img);
+            contentEl = link;
+        } else {
+            // For pending/data images, just show them, no link
+            img.style.cursor = "default";
+            // Apply z-index to img directly if no link wrapper
+            img.style.zIndex = "5";
+        }
+
+        if (previewSrc) {
+             img.src = previewSrc;
+        } else {
+             // No preview available? Show fallback
+             errorFallback.style.display = 'flex';
+        }
+
+        // Do not hide image on error, just show fallback overlay on top
+        // This helps debug if image is there but transparent/broken
+        img.onerror = () => {
+            console.error('Gallery image failed to load:', previewSrc);
+            errorFallback.style.display = 'flex';
+            // Keep img visible in DOM to hold space if needed, but fallback covers it
+        };
+        
+        const removeBtn = document.createElement('div');
+        removeBtn.className = 'gallery-remove';
+        removeBtn.textContent = '✕';
+        removeBtn.style.zIndex = "10"; // Ensure above image
+        removeBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation(); 
+            removeGalleryImage(index);
+        };
+        
+        div.appendChild(contentEl);
+        div.appendChild(errorFallback);
+        div.appendChild(removeBtn);
+        
+        // Store raw url in dataset for saving
+        div.dataset.url = url;
+        container.appendChild(div);
+    });
+}
+
+window.removeGalleryImage = (index) => {
+    editingGallery.splice(index, 1);
+    renderGallery(editingGallery);
+};
+
+window.addGalleryImage = (url, preview) => {
+    editingGallery.push({ url, preview: preview || url });
+    renderGallery(editingGallery);
+};
 
 window.openProductModal = (id = null) => {
     const modal = document.getElementById('product-modal');
@@ -399,7 +574,11 @@ window.openProductModal = (id = null) => {
     
     // Reset Text
     const uploadText = document.getElementById('upload-text');
-    if (uploadText) uploadText.textContent = '点击上传图片';
+    if (uploadText) uploadText.textContent = '点击上传封面';
+    
+    // Reset Gallery
+    editingGallery = [];
+    renderGallery(editingGallery);
     
     if (id) {
         // Edit
@@ -422,8 +601,17 @@ window.openProductModal = (id = null) => {
             document.getElementById('p-thumb-path').value = p.thumb || '';
             
             if (p.thumb) {
-                previewEl.src = p.thumb;
-                if (uploadText) uploadText.textContent = '更换图片';
+                previewEl.src = safeImageUrl(p.thumb);
+                if (uploadText) uploadText.textContent = '更换封面';
+            }
+            
+            // Load Gallery
+            if (p.images && Array.isArray(p.images)) {
+                // Initialize gallery state with objects
+                editingGallery = p.images.map(img => 
+                    typeof img === 'object' ? img : { url: img, preview: img }
+                );
+                renderGallery(editingGallery);
             }
         }
     } else {
@@ -462,6 +650,7 @@ window.saveProduct = async () => {
         tags: document.getElementById('p-tags').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
         highlights: document.getElementById('p-highlights').value.split('\n').map(s => s.trim()).filter(Boolean),
         thumb: document.getElementById('p-thumb-path').value,
+        images: editingGallery.map(i => i.url),
         updateTime: Date.now()
     };
 
@@ -501,7 +690,11 @@ window.deleteProduct = async (id) => {
 };
 
 window.uploadImage = async (type) => {
-    const fileInput = document.getElementById('p-thumb-file');
+    // Determine which input triggered this
+    const fileInput = type === 'gallery' 
+        ? document.getElementById('p-gallery-file')
+        : document.getElementById('p-thumb-file');
+        
     const previewEl = document.getElementById('p-thumb-preview');
     const pathInput = document.getElementById('p-thumb-path');
     const labelBtn = fileInput.parentElement;
@@ -510,17 +703,37 @@ window.uploadImage = async (type) => {
     const file = fileInput.files[0];
     if (!file) return;
 
-    // 1. 本地立即预览
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        previewEl.src = e.target.result;
-        previewEl.style.opacity = '0.5'; // 上传中半透明
-    };
-    reader.readAsDataURL(file);
-    
-    // 2. 更新UI状态
-    if (uploadText) uploadText.textContent = '上传中...';
-    labelBtn.style.pointerEvents = 'none'; // 禁用点击
+    // 1. Prepare Local Preview (Immediate Feedback)
+    let previewDataUrl = null;
+    try {
+        previewDataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = e => resolve(e.target.result);
+            r.onerror = e => reject(e);
+            r.readAsDataURL(file);
+        });
+    } catch (e) {
+        console.error('File read failed', e);
+        showToast('读取文件失败', 'error');
+        return;
+    }
+
+    // 2. Optimistic UI: Show image immediately before upload
+    let tempId = null;
+    if (type === 'gallery') {
+        tempId = 'pending-' + Date.now();
+        // Add to gallery with temporary ID and local preview
+        addGalleryImage(tempId, previewDataUrl);
+        
+        labelBtn.innerHTML = '上传中...';
+        labelBtn.style.pointerEvents = 'none';
+    } else {
+        // Thumb: Show immediately
+        previewEl.src = previewDataUrl;
+        previewEl.style.opacity = '0.8'; 
+        if (uploadText) uploadText.textContent = '上传中...';
+        labelBtn.style.pointerEvents = 'none';
+    }
     
     const ext = file.name.split('.').pop();
     const cloudPath = `food/images/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
@@ -531,27 +744,58 @@ window.uploadImage = async (type) => {
             filePath: file
         });
         
-        // Convert cloud:// ID to HTTP URL for storage
         const urlRes = await app.getTempFileURL({ fileList: [res.fileID] });
         const httpUrl = urlRes.fileList[0].tempFileURL;
 
-        pathInput.value = httpUrl;
-        previewEl.src = httpUrl;
-        previewEl.style.opacity = '1'; // 恢复不透明
-        
-        // 成功反馈
-        if (uploadText) uploadText.textContent = '上传成功!';
-        setTimeout(() => {
-            if (uploadText) uploadText.textContent = '更换图片';
+        if (type === 'thumb') {
+            pathInput.value = httpUrl;
+            // Keep the local previewDataUrl for display to avoid loading delay/failure
+            // The httpUrl is saved to input for DB submission
+            previewEl.style.opacity = '1';
+            if (uploadText) uploadText.textContent = '上传成功!';
+            setTimeout(() => {
+                if (uploadText) uploadText.textContent = '更换封面';
+                labelBtn.style.pointerEvents = 'auto';
+            }, 1000);
+        } else {
+            // Gallery: Update the pending item with real URL
+            const index = editingGallery.findIndex(img => img.url === tempId);
+            if (index !== -1) {
+                editingGallery[index].url = httpUrl;
+                // We keep the preview as the local data URL for this session
+                // This ensures it stays visible even if httpUrl is slow
+            } else {
+                // Fallback if list changed (unlikely)
+                editingGallery.push({ url: httpUrl, preview: previewDataUrl });
+            }
+            renderGallery(editingGallery);
+            
+            labelBtn.innerHTML = `+ 添加轮播图片 <input type="file" id="p-gallery-file" style="display:none" onchange="uploadImage('gallery')">`;
             labelBtn.style.pointerEvents = 'auto';
-        }, 2000);
+            showToast('图片上传成功', 'success');
+        }
         
     } catch (e) {
         console.error(e);
         showToast('图片上传失败: ' + e.message, 'error');
-        previewEl.style.opacity = '1';
-        if (uploadText) uploadText.textContent = '重试上传';
-        labelBtn.style.pointerEvents = 'auto';
+        
+        if (type === 'thumb') {
+            previewEl.style.opacity = '1';
+            if (uploadText) uploadText.textContent = '重试上传';
+            labelBtn.style.pointerEvents = 'auto';
+        } else {
+            // Remove the pending item on failure
+            const currentImages = Array.from(document.querySelectorAll('.gallery-item'))
+                .map(el => ({
+                    url: el.dataset.url,
+                    preview: el.querySelector('img').src
+                }))
+                .filter(img => img.url !== tempId);
+            renderGallery(currentImages);
+
+            labelBtn.innerHTML = `+ 添加轮播图片 <input type="file" id="p-gallery-file" style="display:none" onchange="uploadImage('gallery')">`;
+            labelBtn.style.pointerEvents = 'auto';
+        }
     }
 };
 

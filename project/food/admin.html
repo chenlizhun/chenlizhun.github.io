@@ -6,6 +6,9 @@
     <title>后台管理 - 世友的肉肉仓库</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
+        /* Force all images to be visible in admin, overriding global lazy loading styles */
+        img { opacity: 1 !important; transition: none !important; }
+        
         /* Modern Admin Styles */
         :root {
             --primary: #e11d48; /* Rose 600 */
@@ -202,6 +205,48 @@
         }
         .upload-label { color: var(--primary); font-size: 13px; font-weight: 500; }
         
+        /* Gallery Grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .gallery-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+        .gallery-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gallery-remove:hover { background: #ef4444; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Toast Animations */
@@ -231,9 +276,12 @@
     <!-- Admin App -->
     <div id="admin-app" class="admin-container hidden">
         <header class="admin-header">
-            <h2 style="margin:0">肉肉仓库管理后台</h2>
+        <h2 style="margin:0">肉肉仓库管理后台</h2>
+        <div style="display:flex;gap:10px">
+            <a href="index.html" target="_blank" class="btn secondary small" style="text-decoration:none">↗ 前往前台</a>
             <button id="logout-btn" class="btn secondary small">退出登录</button>
-        </header>
+        </div>
+    </header>
         
         <div class="admin-tabs">
             <div class="admin-tab active" data-tab="products" onclick="switchTab('products')">产品管理</div>
@@ -268,6 +316,14 @@
                     <!-- Products rendered here -->
                 </tbody>
             </table>
+            
+            <div id="pagination-controls" style="display:flex; justify-content:flex-end; align-items:center; margin-top:15px; gap:15px;">
+                <span id="page-info" style="color:#666; font-size:14px"></span>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn secondary small" id="prev-page" onclick="changePage(-1)">上一页</button>
+                    <button class="btn secondary small" id="next-page" onclick="changePage(1)">下一页</button>
+                </div>
+            </div>
         </div>
 
         <!-- Tab: Categories -->
@@ -351,15 +407,28 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="form-label">产品图片</label>
-                                <input type="hidden" id="p-thumb-path">
-                                <label class="upload-zone">
-                                    <img id="p-thumb-preview" class="upload-preview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
-                                    <div class="upload-label">
-                                        <span id="upload-text">点击上传图片</span>
+                                <div class="form-group">
+                                    <label class="form-label">封面图 (Thumb)</label>
+                                    <input type="hidden" id="p-thumb-path">
+                                    <label class="upload-zone">
+                                        <img id="p-thumb-preview" class="upload-preview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                                        <div class="upload-label">
+                                            <span id="upload-text">点击上传封面</span>
+                                        </div>
+                                        <input type="file" id="p-thumb-file" style="display:none" onchange="uploadImage('thumb')">
+                                    </label>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">轮播图集 (Gallery) <span id="gallery-count" style="color:#6b7280;font-size:12px;font-weight:normal">(0)</span></label>
+                                    <div id="gallery-container" class="gallery-grid">
+                                        <!-- Gallery items will be added here -->
                                     </div>
-                                    <input type="file" id="p-thumb-file" style="display:none" onchange="uploadImage('thumb')">
-                                </label>
+                                    <label class="btn secondary small" style="width:100%; margin-top:8px; justify-content:center; cursor:pointer">
+                                        + 添加轮播图片
+                                        <input type="file" id="p-gallery-file" style="display:none" onchange="uploadImage('gallery')">
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
