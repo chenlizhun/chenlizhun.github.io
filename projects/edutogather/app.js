@@ -66,7 +66,8 @@ const state = {
     },
     
     // Kiosk Mode
-    hasAutoLaunched: false
+    hasAutoLaunched: false,
+    posterPaused: false
 };
 
 // Constants
@@ -375,6 +376,9 @@ function render() {
         // Auto-scale for small screens (iPad mini)
         setTimeout(() => {
             if (window.adjustPosterScale) window.adjustPosterScale();
+            if (window.adjustPosterColumns) window.adjustPosterColumns();
+            if (window.enforcePosterInlineStyles) window.enforcePosterInlineStyles();
+            if (state.posterPaused && window.renderPosterDebugOverlay) window.renderPosterDebugOverlay();
         }, 100);
         return;
     }
@@ -922,113 +926,7 @@ function renderHeader() {
     `;
 }
 
-function updatePosterViewDifferentially() {
-    if (!state.posterFamily || !state.posterFamily.kids) return;
 
-    // Series config logic same as renderPosterView
-    let family = state.posterFamily;
-    if (state.family && state.family._id === family._id) {
-        family = {
-            ...state.family,
-            kids: state.kids
-        };
-    }
-    const seriesId = family.display_series || 3;
-    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
-
-    family.kids.forEach(kid => {
-        // 1. Update Score
-        const scoreEl = document.getElementById(`poster-score-${kid._id}`);
-        if (scoreEl) {
-            // Only update if changed (optimization)
-            if (scoreEl.textContent.trim() != kid.current_points) {
-                scoreEl.textContent = kid.current_points;
-                const length = String(kid.current_points).length;
-                scoreEl.style.fontSize = `clamp(4rem, ${Math.floor(120 / Math.max(1.5, length))}cqw, 40rem)`;
-            }
-        }
-
-        // 2. Update Visualization
-        const vizEl = document.getElementById(`poster-viz-${kid._id}`);
-        if (vizEl) {
-            const icons = getSeriesIconsDecomposed(kid.current_points, series);
-            const icons1 = icons.filter(i => i.val === 1);
-            const icons10 = icons.filter(i => i.val === 10);
-            const icons100 = icons.filter(i => i.val === 100);
-            const icons1000 = icons.filter(i => i.val === 1000);
-
-            // Construct HTML (Copied from renderPosterView)
-            const newHtml = `
-                <!-- Row 1000s -->
-                ${icons1000.length > 0 ? `
-                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
-                    <div class="flex-1 flex flex-wrap gap-2">
-                        ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
-                    </div>
-                </div>` : ''}
-
-                <!-- Row 100s -->
-                ${icons100.length > 0 || icons1000.length > 0 ? `
-                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
-                    <div class="flex-1 flex flex-wrap gap-2">
-                        ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
-                    </div>
-                </div>` : ''}
-
-                <!-- Row 10s -->
-                ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
-                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
-                    <div class="flex-1 flex flex-wrap gap-2">
-                        ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
-                    </div>
-                </div>` : ''}
-
-                <!-- Row 1s -->
-                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
-                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
-                    <div class="flex-1 flex flex-wrap gap-2 items-center">
-                        ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
-                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
-                    </div>
-                </div>
-            `;
-            
-            // Compare normalized HTML to avoid unnecessary updates
-            if (vizEl.innerHTML.replace(/\s/g, '') !== newHtml.replace(/\s/g, '')) {
-                 vizEl.innerHTML = newHtml;
-            }
-        }
-
-        // 3. Update History Log
-        const historyEl = document.getElementById(`poster-history-${kid._id}`);
-        if (historyEl) {
-            const historyData = state.posterHistory[kid._id];
-            const newHistoryHtml = historyData ? `
-                <div class="mt-6 pt-4 border-t border-white/10">
-                    <div class="flex justify-between items-center">
-                        <div class="flex flex-col">
-                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest Update</span>
-                            <span class="text-base font-medium text-white line-clamp-1">${historyData.reason || 'No reason'}</span>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold font-mono ${historyData.delta >= 0 ? 'text-green-400' : 'text-red-400'}">
-                                ${historyData.delta > 0 ? '+' : ''}${historyData.delta}
-                            </div>
-                            <div class="text-[10px] text-white/30">${formatDate(historyData.timestamp)}</div>
-                        </div>
-                    </div>
-                </div>
-            ` : '';
-            
-            if (historyEl.innerHTML.replace(/\s/g, '') !== newHistoryHtml.replace(/\s/g, '')) {
-                historyEl.innerHTML = newHistoryHtml;
-            }
-        }
-    });
-}
 
 window.handleBackToFamilyList = () => {
     state.user = null;
@@ -1509,15 +1407,30 @@ window.openPoster = (familyId) => {
     if (family) {
         state.posterFamily = family;
         state.showPoster = true;
-        
-        // Start polling for real-time updates for the poster family
-        // Even if not logged in, we want updates for this specific family
-        DataStore.startPolling(3000, family._id);
-        
-        // Start polling for history
-        updatePosterHistory(); // Initial fetch
-        if (state.posterHistoryInterval) clearInterval(state.posterHistoryInterval);
-        state.posterHistoryInterval = setInterval(updatePosterHistory, 5000);
+        const qp = new URLSearchParams(window.location.search);
+        const pausedFlag = qp.get('posterPause') === '1' || qp.get('pause') === '1' || qp.get('debug') === '1';
+        if (pausedFlag) state.posterPaused = true;
+        if (!state.posterPaused) {
+            DataStore.startPolling(3000, family._id);
+            updatePosterHistory();
+            if (state.posterHistoryInterval) clearInterval(state.posterHistoryInterval);
+            state.posterHistoryInterval = setInterval(updatePosterHistory, 5000);
+        } else {
+            // One-shot fetch: briefly开启轮询以获取一次 poster_update，然后立即停止
+            try {
+                DataStore.startPolling(1000, family._id);
+                setTimeout(() => {
+                    DataStore.stopPolling();
+                }, 1600);
+                // 拉取一次历史用于页面补全
+                setTimeout(() => {
+                    updatePosterHistory();
+                }, 1800);
+            } catch(_) {
+                // 兜底：直接尝试一次历史拉取
+                try { updatePosterHistory(); } catch(__) {}
+            }
+        }
         
         render();
     } else {
@@ -1561,121 +1474,8 @@ async function updatePosterHistory() {
     }
     
     if (changed) {
-        // Differential Update if possible
-        const grid = document.getElementById('poster-kids-grid');
-        if (grid) {
-            updatePosterViewDifferentially();
-        } else {
-            render();
-        }
-    }
-}
-
-function updatePosterViewDifferentially() {
-    if (!state.showPoster || !state.posterFamily) return;
-
-    // If grid structure changed (number of kids), we must full render
-    const grid = document.getElementById('poster-kids-grid');
-    if (!grid) {
-        render(); // Fallback
-        return;
-    }
-    
-    const family = state.posterFamily;
-    // Check if kid count matches
-    const currentKidsInDOM = grid.children.length;
-    if (currentKidsInDOM !== family.kids.length) {
         render();
-        return;
     }
-
-    const seriesId = family.display_series || 3;
-    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
-
-    // Iterate all kids to check for updates
-    family.kids.forEach(kid => {
-        // 1. Update Score
-        const scoreEl = document.getElementById(`poster-score-${kid._id}`);
-        if (scoreEl && scoreEl.innerText != kid.current_points) {
-             scoreEl.innerText = kid.current_points;
-             
-             // Update Visualization
-             const vizEl = document.getElementById(`poster-viz-${kid._id}`);
-             if (vizEl) {
-                 const icons = getSeriesIconsDecomposed(kid.current_points, series);
-                 const icons1 = icons.filter(i => i.val === 1);
-                 const icons10 = icons.filter(i => i.val === 10);
-                 const icons100 = icons.filter(i => i.val === 100);
-                 const icons1000 = icons.filter(i => i.val === 1000);
-                 
-                 vizEl.innerHTML = `
-                    <!-- Row 1000s -->
-                    ${icons1000.length > 0 ? `
-                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
-                        <div class="flex-1 flex flex-wrap gap-2">
-                            ${icons1000.map(i => `<span class="text-5xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- Row 100s -->
-                    ${icons100.length > 0 || icons1000.length > 0 ? `
-                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
-                        <div class="flex-1 flex flex-wrap gap-2">
-                            ${icons100.map(i => `<span class="text-4xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- Row 10s -->
-                    ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
-                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition">
-                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
-                        <div class="flex-1 flex flex-wrap gap-2">
-                            ${icons10.map(i => `<span class="text-3xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- Row 1s -->
-                    <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-4 border border-white/5 hover:bg-black/30 transition min-h-[5rem]">
-                        <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
-                        <div class="flex-1 flex flex-wrap gap-2 items-center">
-                            ${icons1.map(i => `<span class="text-2xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
-                            ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting for points...</span>' : ''}
-                        </div>
-                    </div>
-                 `;
-             }
-        }
-        
-        // 2. Update History
-        const historyEl = document.getElementById(`poster-history-${kid._id}`);
-        if (historyEl) {
-             const history = state.posterHistory[kid._id];
-             const newHistoryHTML = history ? `
-                <div class="mt-6 pt-4 border-t border-white/10">
-                    <div class="flex justify-between items-center">
-                        <div class="flex flex-col">
-                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest Update</span>
-                            <span class="text-base font-medium text-white line-clamp-1">${history.reason || 'No reason'}</span>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold font-mono ${history.delta >= 0 ? 'text-green-400' : 'text-red-400'}">
-                                ${history.delta > 0 ? '+' : ''}${history.delta}
-                            </div>
-                            <div class="text-[10px] text-white/30">${formatDate(history.timestamp)}</div>
-                        </div>
-                    </div>
-                </div>
-             ` : '';
-             
-             // Normalize strings for comparison (remove extra spaces/newlines)
-             const normalize = (s) => s.replace(/\s+/g, '');
-             if (normalize(historyEl.innerHTML) !== normalize(newHistoryHTML)) {
-                 historyEl.innerHTML = newHistoryHTML;
-             }
-        }
-    });
 }
 
 function renderPosterView() {
@@ -1695,6 +1495,11 @@ function renderPosterView() {
     const seriesId = family.display_series || 3;
     const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
 
+    // Normalize kids array to avoid nested structures or invalid entries
+    const kidsNormalized = Array.isArray(family.kids)
+        ? family.kids.flatMap(k => Array.isArray(k) ? k : [k]).filter(k => k && typeof k === 'object')
+        : [];
+
     return `
         <div class="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white z-50 overflow-hidden font-sans">
             <div id="poster-content" class="h-screen flex flex-col p-4 md:p-6 origin-top">
@@ -1713,16 +1518,20 @@ function renderPosterView() {
                 </div>
 
                 <!-- Kids Grid -->
-                <div id="poster-kids-grid" class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-${Math.min(family.kids.length, 3)} gap-4 content-stretch items-stretch">
-                    ${family.kids.map(kid => {
+                <div id="poster-kids-grid" class="flex-1 min-h-0 content-stretch items-stretch" style="${window.innerWidth >= 768 ? 'display:flex; gap:16px; align-items:stretch' : 'display:grid; gap:16px; grid-template-columns: repeat(' + Math.max(1, Math.min(kidsNormalized.length, 3)) + ', minmax(0, 1fr))'};">
+                    ${kidsNormalized.map((kid, idx) => {
                         const icons = getSeriesIconsDecomposed(kid.current_points, series);
                         const icons1 = icons.filter(i => i.val === 1);
                         const icons10 = icons.filter(i => i.val === 10);
                         const icons100 = icons.filter(i => i.val === 100);
                         const icons1000 = icons.filter(i => i.val === 1000);
+                        const kidId = kid && kid._id ? kid._id : `idx-${idx}`;
+                        const wideStyle = (window.innerWidth >= 768)
+                            ? (kidsNormalized.length === 2 ? 'flex:0 0 calc(50% - 8px)' : 'flex:1 0 0')
+                            : '';
                         
                         return `
-                        <div id="poster-kid-${kid._id}" class="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl overflow-hidden transition-all duration-500 hover:bg-white/10 hover:shadow-purple-500/10 flex flex-col">
+                        <div id="poster-kid-${kidId}" class="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl overflow-hidden transition-all duration-500 hover:bg-white/10 hover:shadow-purple-500/10 flex flex-col" style="${wideStyle}">
                             <!-- Background Decoration -->
                             <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
                             
@@ -1732,7 +1541,7 @@ function renderPosterView() {
                                     ${kid.name}
                                 </div>
                                 <div class="flex items-baseline justify-center gap-3 w-full flex-wrap">
-                                    <span id="poster-score-${kid._id}" style="font-size: clamp(4rem, ${Math.floor(120 / Math.max(1.5, String(kid.current_points).length))}cqw, 40rem); line-height: 0.9;" class="font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)]">
+                                    <span id="poster-score-${kidId}" style="font-size: clamp(4rem, ${Math.floor(120 / Math.max(1.5, String(kid.current_points).length))}cqw, 40rem); line-height: 0.9;" class="font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)]">
                                         ${kid.current_points}
                                     </span>
                                     <span class="text-xl text-white/40 font-medium uppercase tracking-[0.2em] mb-4">Points</span>
@@ -1740,7 +1549,8 @@ function renderPosterView() {
                             </div>
 
                             <!-- Visualization Section -->
-                            <div id="poster-viz-${kid._id}" class="relative space-y-2 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                            <div id="poster-viz-${kidId}" class="relative flex-1 min-h-0 overflow-hidden flex flex-col">
+                                <div class="poster-viz-content origin-top-left w-full space-y-2">
                                 <!-- Row 1000s -->
                                 ${icons1000.length > 0 ? `
                                 <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
@@ -1777,9 +1587,10 @@ function renderPosterView() {
                                     </div>
                                 </div>
                             </div>
+                            </div>
                             
                             <!-- History Log -->
-                            <div id="poster-history-${kid._id}" class="flex-shrink-0">
+                            <div id="poster-history-${kidId}" class="flex-shrink-0">
                                 ${state.posterHistory[kid._id] ? `
                                 <div class="mt-4 pt-4 border-t border-white/10">
                                     <div class="flex justify-between items-center">
@@ -2345,6 +2156,7 @@ const initApp = async () => {
 
             // Handle Poster View Updates
             if (event.type === 'poster_update') {
+                if (state.posterPaused) return;
                 if (state.showPoster && state.posterFamily && state.posterFamily._id === event.familyId) {
                     console.log('Updating poster view with new data', event.kids);
                     // Update the posterFamily object with new kids data
@@ -2357,13 +2169,7 @@ const initApp = async () => {
                         state.kids = event.kids;
                     }
                     
-                    // Use differential update to avoid flicker
-                    const grid = document.getElementById('poster-kids-grid');
-                    if (grid) {
-                        updatePosterViewDifferentially();
-                    } else {
-                        render();
-                    }
+                    render();
                 }
                 return;
             }
@@ -2395,36 +2201,163 @@ const initApp = async () => {
 
 window.adjustPosterScale = () => {
     if (!state.showPoster) return;
-    const el = document.getElementById('poster-content');
-    if (!el) return;
     
-    // Reset to check natural height
-    el.style.zoom = '';
-    el.style.transform = '';
-    
-    // Allow browser to re-layout
-    requestAnimationFrame(() => {
-        const contentHeight = el.scrollHeight;
+    // 1. Global Scale (Ensure entire dashboard fits in viewport)
+    const globalEl = document.getElementById('poster-content');
+    if (globalEl) {
+        globalEl.style.zoom = '';
+        globalEl.style.transform = '';
+        
+        const contentHeight = globalEl.scrollHeight;
         const viewportHeight = window.innerHeight;
         
-        // Only scale down if content is taller than viewport
         if (contentHeight > viewportHeight) {
             const scale = viewportHeight / contentHeight;
-            // Use zoom for WebKit/iPad which handles this gracefully
-            // Fallback to transform scale if zoom not supported (Firefox)
             if ('zoom' in document.body.style) {
-                 el.style.zoom = scale * 0.96; // 4% safety margin
+                 globalEl.style.zoom = scale * 0.98;
             } else {
-                 el.style.transform = `scale(${scale * 0.96})`;
+                 globalEl.style.transform = `scale(${scale * 0.98})`;
             }
         }
+    }
+
+    // 2. Local Scale (Ensure icons fit in their container)
+    // We need to wait for the global scale to apply (reflow) before measuring local containers?
+    // Actually, if we use transform for global, layout dimensions might be tricky.
+    // But let's try to measure after a brief delay or force reflow.
+    
+    requestAnimationFrame(() => {
+        const vizContainers = document.querySelectorAll('[id^="poster-viz-"]');
+        vizContainers.forEach(container => {
+            const content = container.querySelector('.poster-viz-content');
+            if (!content) return;
+            
+            // Reset first
+            content.style.transform = 'scale(1)';
+            content.style.marginBottom = '0';
+            
+            const containerHeight = container.clientHeight;
+            const contentHeight = content.scrollHeight;
+            
+            if (contentHeight > containerHeight) {
+                const scale = containerHeight / contentHeight;
+                // Apply scale
+                content.style.transform = `scale(${scale * 0.95})`; // 5% margin
+                
+                // Adjust layout flow because transform doesn't affect flow size
+                // We might need to reduce the effective height of the content to avoid it taking up space?
+                // Actually, since it's inside overflow-hidden, it should be fine visually.
+                // But the transform-origin is top-left, so it shrinks up.
+                // We might want to center it vertically if it shrinks? 
+                // origin-top-left is already set in HTML class.
+            }
+        });
     });
+};
+
+window.adjustPosterColumns = () => {
+    if (!state.showPoster || !state.posterFamily) return;
+    const grid = document.getElementById('poster-kids-grid');
+    if (!grid) return;
+    const isWide = window.innerWidth >= 768;
+    const kids = Array.isArray(state.posterFamily.kids)
+        ? state.posterFamily.kids.flatMap(k => Array.isArray(k) ? k : [k]).filter(k => k && typeof k === 'object')
+        : [];
+    const count = kids.length || 1;
+    const cols = isWide ? Math.max(1, Math.min(count, 3)) : 1;
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+};
+
+window.enforcePosterInlineStyles = () => {
+    if (!state.showPoster) return;
+    const content = document.getElementById('poster-content');
+    if (content) {
+        content.style.height = '100vh';
+        content.style.display = 'flex';
+        content.style.flexDirection = 'column';
+        content.style.padding = '24px';
+        content.style.boxSizing = 'border-box';
+    }
+    const grid = document.getElementById('poster-kids-grid');
+    if (grid) {
+        const isWide = window.innerWidth >= 768;
+        grid.style.gap = '16px';
+        if (isWide) {
+            grid.style.display = 'flex';
+        } else {
+            const count = state.posterFamily && Array.isArray(state.posterFamily.kids) ? state.posterFamily.kids.length : 1;
+            const cols = Math.max(1, Math.min(count, 3));
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+        }
+    }
+    const kidCards = document.querySelectorAll('[id^="poster-kid-"]');
+    kidCards.forEach(el => {
+        el.style.display = 'flex';
+        el.style.flexDirection = 'column';
+        el.style.borderRadius = '40px';
+        el.style.padding = '24px';
+        el.style.border = '1px solid rgba(255,255,255,0.1)';
+        el.style.background = 'rgba(255,255,255,0.05)';
+        el.style.overflow = 'hidden';
+    });
+    const vizAreas = document.querySelectorAll('[id^="poster-viz-"]');
+    vizAreas.forEach(el => {
+        el.style.flex = '1';
+        el.style.minHeight = '0';
+        el.style.overflow = 'hidden';
+        el.style.display = 'flex';
+        el.style.flexDirection = 'column';
+    });
+};
+
+window.renderPosterDebugOverlay = () => {
+    if (!state.showPoster) return;
+    const existing = document.getElementById('poster-debug');
+    const grid = document.getElementById('poster-kids-grid');
+    const cards = Array.from(document.querySelectorAll('[id^="poster-kid-"]'));
+    const nested = cards.filter(card => card.querySelectorAll('[id^="poster-kid-"]').length > 1);
+    const computedCols = grid ? getComputedStyle(grid).gridTemplateColumns : '';
+    const rects = cards.map(el => {
+        const r = el.getBoundingClientRect();
+        return `${el.id}:${Math.round(r.width)}x${Math.round(r.height)}`;
+    }).join(', ');
+    const text = [
+        `paused=${String(state.posterPaused)}`,
+        `cards=${cards.length}`,
+        `nested=${nested.length}`,
+        `gridColsStyle=${grid ? grid.style.gridTemplateColumns : ''}`,
+        `gridColsComputed=${computedCols}`,
+        `cardRects=${rects}`
+    ].join(' | ');
+    if (!existing) {
+        const el = document.createElement('div');
+        el.id = 'poster-debug';
+        el.style.position = 'fixed';
+        el.style.top = '8px';
+        el.style.right = '8px';
+        el.style.zIndex = '9999';
+        el.style.background = 'rgba(0,0,0,0.6)';
+        el.style.color = '#fff';
+        el.style.fontSize = '12px';
+        el.style.padding = '8px 10px';
+        el.style.borderRadius = '8px';
+        el.style.maxWidth = '60vw';
+        el.style.pointerEvents = 'none';
+        el.textContent = text;
+        document.body.appendChild(el);
+    } else {
+        existing.textContent = text;
+    }
+    nested.forEach(el => { el.style.outline = '2px solid rgba(239,68,68,0.8)'; });
 };
 
 // Add resize listener
 window.addEventListener('resize', () => {
     if (state.showPoster) {
         window.adjustPosterScale();
+        if (window.adjustPosterColumns) window.adjustPosterColumns();
+        if (window.enforcePosterInlineStyles) window.enforcePosterInlineStyles();
     }
 });
 
