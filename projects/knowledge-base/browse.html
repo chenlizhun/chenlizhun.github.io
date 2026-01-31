@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览知识库 - Edutogather</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom Tailwind Utilities using Design System Variables */
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .text-brand-secondary { color: var(--color-brand-secondary, #764ba2); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-secondary { background-color: var(--color-brand-secondary, #764ba2); }
+        .border-brand-primary { border-color: var(--color-brand-primary, #D53F8C); }
+        
+        .filter-chip.active {
+            background-color: var(--color-brand-primary, #D53F8C);
+            color: white;
+            border-color: var(--color-brand-primary, #D53F8C);
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo Area -->
+                <div class="flex items-center gap-3">
+                    <a href="../edutogather/index.html" class="flex items-center gap-2 group">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain group-hover:scale-105 transition-transform">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg leading-tight text-slate-900 tracking-tight">Edutogather</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Knowledge Base</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center gap-1 sm:gap-4">
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="index.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">首页</a>
+                        <a href="browse.html" class="px-3 py-2 text-sm font-bold text-brand-primary bg-pink-50 rounded-full transition">浏览知识库</a>
+                        <!-- <a href="paper-center.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">组卷中心</a> -->
+                        <a href="export.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">知识导出</a>
+                        <a href="admin.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">管理后台</a>
+                    </div>
+                    
+                    <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                    
+                    <div id="user-status" class="flex items-center gap-2 pl-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <span class="text-sm font-bold text-slate-600 hidden sm:block">未登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow bg-slate-50">
+        <!-- Search Header -->
+        <div class="bg-white border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-2xl font-extrabold text-slate-900 mb-6">全库浏览</h1>
+                
+                <div class="relative max-w-3xl">
+                    <input type="text" placeholder="搜索知识点、试卷或标签..." class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-brand-primary focus:ring-0 text-lg transition-colors placeholder-slate-400">
+                    <svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <button class="absolute right-2 top-2 bottom-2 px-6 bg-brand-primary text-white font-bold rounded-xl hover:bg-pink-600 transition">搜索</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Filters Sidebar -->
+                <div class="w-full lg:w-64 flex-shrink-0 space-y-8">
+                    <!-- Subject Filter -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">科目</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">语文</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">数学</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">英语</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Grade Filter -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">年级</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-chip active px-3 py-1.5 text-sm font-bold rounded-lg border border-transparent bg-white text-slate-600 hover:border-brand-primary transition">全部</button>
+                            <button class="filter-chip px-3 py-1.5 text-sm font-bold rounded-lg border border-transparent bg-white text-slate-600 hover:border-brand-primary transition">一年级</button>
+                            <button class="filter-chip px-3 py-1.5 text-sm font-bold rounded-lg border border-transparent bg-white text-slate-600 hover:border-brand-primary transition">二年级</button>
+                            <button class="filter-chip px-3 py-1.5 text-sm font-bold rounded-lg border border-transparent bg-white text-slate-600 hover:border-brand-primary transition">三年级</button>
+                        </div>
+                    </div>
+
+                    <!-- Course Filter -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">课程</h3>
+                        <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-slate-600 font-medium">
+                            <option>全部课程</option>
+                            <option>上册</option>
+                            <option>下册</option>
+                        </select>
+                    </div>
+
+                    <!-- Unit Filter -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">单元</h3>
+                        <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-slate-600 font-medium">
+                            <option>全部单元</option>
+                            <option>第一单元</option>
+                            <option>第二单元</option>
+                            <option>第三单元</option>
+                            <option>第四单元</option>
+                        </select>
+                    </div>
+
+                    <!-- Type Filter -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">类型</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">知识点讲解</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">试卷/练习</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="rounded text-brand-primary focus:ring-brand-primary border-slate-300">
+                                <span class="text-slate-600 font-medium group-hover:text-brand-primary transition">视频课程</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Grid -->
+                <div class="flex-1">
+                    <!-- Sort & Count -->
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-slate-500 font-medium">找到 <span class="font-bold text-slate-900" id="result-count">0</span> 个资源</span>
+                        <select class="text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 font-bold text-slate-600">
+                            <option>最新发布</option>
+                            <option>最多浏览</option>
+                            <option>最多收藏</option>
+                        </select>
+                    </div>
+
+                    <!-- Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="results-container">
+                        <!-- Loading Skeleton -->
+                        <div class="col-span-full text-center py-20 text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary mb-2"></div>
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="mt-10 flex justify-center">
+                        <button id="load-more-btn" class="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-full hover:border-brand-primary hover:text-brand-primary transition shadow-sm hidden">
+                            加载更多
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain">
+                        <span class="font-bold text-xl text-slate-800">Edutogather</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed max-w-sm">
+                        Edutogather 是一个专注于家庭教育互助的开源项目。我们致力于连接每一个热爱教育的家庭，通过技术手段降低教育成本，提升陪伴质量。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">功能模块</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="../edutogather/index.html" class="hover:text-brand-primary">家庭积分系统</a></li>
+                        <li><a href="browse.html" class="hover:text-brand-primary text-brand-primary font-bold">知识库 & 题库</a></li>
+                        <!-- <li><a href="paper-center.html" class="hover:text-brand-primary">组卷中心</a></li> -->
+                        <li><a href="export.html" class="hover:text-brand-primary">知识导出</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">关于我们</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-brand-primary">项目介绍</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">联系开发者</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 mt-12 pt-8 flex justify-between items-center">
+                <p class="text-sm text-slate-400">© 2025 Edutogather. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let app, db;
+        
+        // Mock Data for UI Dev
+        const MOCK_DATA = [
+            {
+                id: 1,
+                title: "一年级上册 20以内进位加法 凑十法详解",
+                subject: "数学",
+                grade: "一年级",
+                author: "张妈妈",
+                authorAvatar: "bg-blue-100 text-blue-600",
+                authorInitial: "张",
+                tags: ["含视频", "重点"],
+                likes: 24,
+                views: 156,
+                date: "2025-01-28"
+            },
+            {
+                id: 2,
+                title: "一年级语文第一单元拼音专项测试卷",
+                subject: "语文",
+                grade: "一年级",
+                author: "李爸爸",
+                authorAvatar: "bg-pink-100 text-pink-600",
+                authorInitial: "李",
+                tags: ["试卷", "PDF"],
+                likes: 45,
+                views: 320,
+                date: "2025-01-27"
+            },
+            {
+                id: 3,
+                title: "英语自然拼读法 Phonics 基础规则表",
+                subject: "英语",
+                grade: "一年级",
+                author: "Wang Family",
+                authorAvatar: "bg-amber-100 text-amber-600",
+                authorInitial: "W",
+                tags: ["图文", "口语"],
+                likes: 112,
+                views: 890,
+                date: "2025-01-25"
+            },
+            {
+                id: 4,
+                title: "二年级数学 乘法口诀表快速记忆法",
+                subject: "数学",
+                grade: "二年级",
+                author: "陈子轩家庭",
+                authorAvatar: "bg-green-100 text-green-600",
+                authorInitial: "陈",
+                tags: ["技巧", "视频"],
+                likes: 67,
+                views: 445,
+                date: "2025-01-20"
+            }
+        ];
+
+        async function init() {
+            try {
+                if (window.cloudbase) {
+                    app = cloudbase.init({ env: CONFIG.ENV_ID });
+                    db = app.database();
+                    const auth = app.auth();
+                    if (!await auth.getLoginState()) {
+                        await auth.anonymousAuthProvider().signIn();
+                    }
+                    console.log('✅ CloudBase Connected');
+                    // In real implementation, fetch from DB here
+                    // For now, render mock data
+                }
+                
+                renderResults(MOCK_DATA);
+                document.getElementById('result-count').innerText = MOCK_DATA.length;
+                document.getElementById('load-more-btn').classList.remove('hidden');
+
+            } catch (e) {
+                console.error('Init failed', e);
+                // Fallback to mock data on error
+                renderResults(MOCK_DATA);
+                document.getElementById('result-count').innerText = MOCK_DATA.length;
+            }
+        }
+
+        function renderResults(items) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden hover:shadow-md hover:-translate-y-1 transition group cursor-pointer';
+                
+                // Subject Color Mapping
+                let subjectColor = 'bg-slate-500';
+                if (item.subject === '数学') subjectColor = 'bg-blue-500';
+                if (item.subject === '语文') subjectColor = 'bg-red-500';
+                if (item.subject === '英语') subjectColor = 'bg-purple-500';
+
+                card.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold text-white ${subjectColor}">
+                                ${item.subject}
+                            </span>
+                            <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">${item.grade}</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-900 mb-2 line-clamp-2 group-hover:text-brand-primary transition-colors">
+                            ${item.title}
+                        </h3>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            ${item.tags.map(tag => `<span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-50 text-slate-500 border border-slate-100">${tag}</span>`).join('')}
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full ${item.authorAvatar} flex items-center justify-center text-[10px] font-bold">
+                                    ${item.authorInitial}
+                                </div>
+                                <span class="text-xs font-medium text-slate-500 truncate max-w-[80px]">${item.author}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-400 text-xs font-bold">
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> ${item.views}</span>
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg> ${item.likes}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

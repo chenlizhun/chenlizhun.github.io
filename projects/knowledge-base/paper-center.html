@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组卷中心 - Edutogather</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom Tailwind Utilities using Design System Variables */
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .text-brand-secondary { color: var(--color-brand-secondary, #764ba2); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-secondary { background-color: var(--color-brand-secondary, #764ba2); }
+        .border-brand-primary { border-color: var(--color-brand-primary, #D53F8C); }
+        
+        .filter-chip.active {
+            background-color: var(--color-brand-primary, #D53F8C);
+            color: white;
+            border-color: var(--color-brand-primary, #D53F8C);
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo Area -->
+                <div class="flex items-center gap-3">
+                    <a href="../edutogather/index.html" class="flex items-center gap-2 group">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain group-hover:scale-105 transition-transform">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg leading-tight text-slate-900 tracking-tight">Edutogather</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Knowledge Base</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center gap-1 sm:gap-4">
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="index.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">首页</a>
+                        <a href="browse.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">浏览知识库</a>
+                        <!-- <a href="paper-center.html" class="px-3 py-2 text-sm font-bold text-brand-primary bg-pink-50 rounded-full transition">组卷中心</a> -->
+                        <a href="export.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">知识导出</a>
+                        <a href="admin.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">管理后台</a>
+                    </div>
+                    
+                    <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                    
+                    <div id="user-status" class="flex items-center gap-2 pl-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <span class="text-sm font-bold text-slate-600 hidden sm:block">未登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Left: Filters & Question Bank -->
+                <div class="flex-1">
+                    <!-- Filters -->
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-slate-800 text-lg">题库筛选</h2>
+                            <a href="add-question.html" class="text-sm font-bold text-brand-primary hover:bg-pink-50 px-3 py-1.5 rounded-lg transition border border-pink-100 flex items-center gap-1">
+                                <span>➕</span> 录入新题
+                            </a>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Subject -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">科目</label>
+                                <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 font-bold text-slate-600">
+                                    <option>数学</option>
+                                    <option>语文</option>
+                                    <option>英语</option>
+                                </select>
+                            </div>
+                            <!-- Grade -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">年级</label>
+                                <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 font-bold text-slate-600">
+                                    <option>一年级</option>
+                                    <option>二年级</option>
+                                    <option>三年级</option>
+                                </select>
+                            </div>
+                            <!-- Course -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">课程</label>
+                                <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 font-bold text-slate-600">
+                                    <option>全部课程</option>
+                                    <option>上册</option>
+                                    <option>下册</option>
+                                </select>
+                            </div>
+                            <!-- Unit -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">单元</label>
+                                <select class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary focus:ring focus:ring-pink-200 focus:ring-opacity-50 font-bold text-slate-600">
+                                    <option>全部单元</option>
+                                    <option>第一单元</option>
+                                    <option>第二单元</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question List -->
+                    <div class="space-y-4" id="question-list">
+                        <!-- Question Item Mockup 1 -->
+                        <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 hover:shadow-md transition group">
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-600">单选题</span>
+                                        <span class="text-xs font-bold text-slate-400">难度: ⭐⭐</span>
+                                    </div>
+                                    <p class="text-slate-800 font-medium mb-4">
+                                        计算：8 + 5 = (   )
+                                    </p>
+                                    <div class="grid grid-cols-4 gap-4 text-sm text-slate-600 mb-4">
+                                        <span>A. 11</span>
+                                        <span>B. 12</span>
+                                        <span>C. 13</span>
+                                        <span>D. 14</span>
+                                    </div>
+                                    <div class="text-xs text-slate-400">
+                                        知识点：20以内进位加法 / 凑十法
+                                    </div>
+                                </div>
+                                <button class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 text-slate-400 hover:bg-brand-primary hover:text-white flex items-center justify-center transition" onclick="toggleQuestion(this)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Question Item Mockup 2 -->
+                        <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 hover:shadow-md transition group">
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-purple-50 text-purple-600">填空题</span>
+                                        <span class="text-xs font-bold text-slate-400">难度: ⭐⭐⭐</span>
+                                    </div>
+                                    <p class="text-slate-800 font-medium mb-4">
+                                        看图列式计算：★★★★ ★★★
+                                        <br>
+                                        4 + (   ) = (   )
+                                    </p>
+                                    <div class="text-xs text-slate-400">
+                                        知识点：10以内加法
+                                    </div>
+                                </div>
+                                <button class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 text-slate-400 hover:bg-brand-primary hover:text-white flex items-center justify-center transition" onclick="toggleQuestion(this)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                         <!-- Question Item Mockup 3 -->
+                         <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 hover:shadow-md transition group">
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-green-50 text-green-600">应用题</span>
+                                        <span class="text-xs font-bold text-slate-400">难度: ⭐⭐⭐</span>
+                                    </div>
+                                    <p class="text-slate-800 font-medium mb-4">
+                                        小明有5个苹果，妈妈又给了他3个，小明现在一共有多少个苹果？
+                                    </p>
+                                    <div class="text-xs text-slate-400">
+                                        知识点：10以内加法应用
+                                    </div>
+                                </div>
+                                <button class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 text-slate-400 hover:bg-brand-primary hover:text-white flex items-center justify-center transition" onclick="toggleQuestion(this)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Paper Basket (Sticky) -->
+                <div class="w-full lg:w-80 flex-shrink-0">
+                    <div class="sticky top-24 space-y-6">
+                        <!-- Basket Card -->
+                        <div class="bg-white rounded-[20px] shadow-lg border border-slate-100 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="font-bold text-lg text-slate-900">当前试卷</h3>
+                                <span class="bg-brand-primary text-white text-xs font-bold px-2 py-1 rounded-full" id="question-count">0 题</span>
+                            </div>
+                            
+                            <!-- Basket Stats -->
+                            <div class="space-y-4 mb-6">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500">单选题</span>
+                                    <span class="font-bold text-slate-800">0</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500">填空题</span>
+                                    <span class="font-bold text-slate-800">0</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500">应用题</span>
+                                    <span class="font-bold text-slate-800">0</span>
+                                </div>
+                                <div class="h-px bg-slate-100 my-2"></div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500 font-bold">总分估算</span>
+                                    <span class="font-bold text-brand-primary">0 分</span>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="space-y-3">
+                                <button class="w-full py-3 bg-brand-primary text-white font-bold rounded-xl hover:bg-pink-600 transition shadow-lg shadow-pink-200">
+                                    生成试卷
+                                </button>
+                                <button class="w-full py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:border-brand-primary hover:text-brand-primary transition">
+                                    清空试卷
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tips -->
+                        <div class="bg-blue-50 rounded-[20px] p-6 border border-blue-100">
+                            <div class="flex items-start gap-3">
+                                <span class="text-xl">💡</span>
+                                <p class="text-sm text-blue-800 leading-relaxed font-medium">
+                                    选择题目加入试卷后，点击"生成试卷"可导出为 PDF 格式，支持 A4 纸打印。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain">
+                        <span class="font-bold text-xl text-slate-800">Edutogather</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed max-w-sm">
+                        Edutogather 是一个专注于家庭教育互助的开源项目。我们致力于连接每一个热爱教育的家庭，通过技术手段降低教育成本，提升陪伴质量。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">功能模块</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="../edutogather/index.html" class="hover:text-brand-primary">家庭积分系统</a></li>
+                        <li><a href="browse.html" class="hover:text-brand-primary">知识库 & 题库</a></li>
+                        <!-- <li><a href="paper-center.html" class="hover:text-brand-primary text-brand-primary font-bold">组卷中心</a></li> -->
+                        <li><a href="export.html" class="hover:text-brand-primary">知识导出</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">关于我们</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-brand-primary">项目介绍</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">联系开发者</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 mt-12 pt-8 flex justify-between items-center">
+                <p class="text-sm text-slate-400">© 2025 Edutogather. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let app, db;
+        let currentQuestions = [];
+        let paperBasket = []; // Array of question objects
+
+        // Initialize CloudBase
+        (async function init() {
+            try {
+                if (!window.cloudbase) {
+                    console.error('CloudBase SDK not loaded');
+                    return;
+                }
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                
+                const auth = app.auth();
+                const loginState = await auth.getLoginState();
+                if (!loginState) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                
+                db = app.database();
+                console.log('CloudBase Connected');
+                
+                // Load initial data
+                loadQuestions();
+                
+            } catch (e) {
+                console.error('Init failed', e);
+                alert('数据库连接失败，请检查配置');
+            }
+        })();
+
+        // Load Questions from DB
+        async function loadQuestions() {
+            const listContainer = document.getElementById('question-list');
+            listContainer.innerHTML = '<div class="text-center py-10 text-slate-400">加载中...</div>';
+
+            try {
+                // Build query based on filters
+                const subject = document.querySelector('select:nth-of-type(1)').value; // Simply taking first select for now, ideally give IDs
+                
+                // For demo, just get all (limit 20)
+                // In real app, apply filters: db.collection('k_questions').where({ ... }).get()
+                const res = await db.collection('k_questions')
+                    .limit(20)
+                    .orderBy('created_at', 'desc')
+                    .get();
+
+                currentQuestions = res.data;
+                renderQuestions(currentQuestions);
+
+            } catch (e) {
+                console.error('Load questions failed', e);
+                // Fallback to mock if DB empty or error (for demo continuity)
+                if (e.code === 'COLLECTION_NOT_EXIST' || res && res.data.length === 0) {
+                     listContainer.innerHTML = '<div class="text-center py-10 text-slate-400">暂无题目，请先去录入。</div>';
+                } else {
+                     listContainer.innerHTML = `<div class="text-center py-10 text-red-400">加载失败: ${e.message}</div>`;
+                }
+            }
+        }
+
+        function renderQuestions(list) {
+            const container = document.getElementById('question-list');
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400">暂无题目</div>';
+                return;
+            }
+
+            list.forEach(q => {
+                const isAdded = paperBasket.find(item => item._id === q._id);
+                const btnClass = isAdded ? 'bg-brand-primary text-white' : 'bg-slate-100 text-slate-400 hover:bg-brand-primary hover:text-white';
+                const icon = isAdded 
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>';
+
+                const typeLabels = { 'choice': '单选题', 'fill': '填空题', 'calc': '应用题' };
+                const typeColors = { 'choice': 'bg-blue-50 text-blue-600', 'fill': 'bg-purple-50 text-purple-600', 'calc': 'bg-green-50 text-green-600' };
+
+                let contentHtml = `<p class="text-slate-800 font-medium mb-4">${q.content}</p>`;
+                if (q.type === 'choice' && q.options) {
+                    contentHtml += `<div class="grid grid-cols-4 gap-4 text-sm text-slate-600 mb-4">
+                        ${q.options.map((opt, i) => `<span>${String.fromCharCode(65+i)}. ${opt}</span>`).join('')}
+                    </div>`;
+                }
+
+                const html = `
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6 hover:shadow-md transition group">
+                        <div class="flex justify-between items-start gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold ${typeColors[q.type] || 'bg-slate-100'}">${typeLabels[q.type] || '未知'}</span>
+                                    <span class="text-xs font-bold text-slate-400">难度: ${'⭐'.repeat(q.difficulty || 1)}</span>
+                                </div>
+                                ${contentHtml}
+                                <div class="text-xs text-slate-400">
+                                    ID: ${q._id}
+                                </div>
+                            </div>
+                            <button onclick="toggleQuestion('${q._id}')" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition ${btnClass}">
+                                ${icon}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function toggleQuestion(id) {
+            const question = currentQuestions.find(q => q._id === id);
+            if (!question) return;
+
+            const idx = paperBasket.findIndex(q => q._id === id);
+            if (idx >= 0) {
+                paperBasket.splice(idx, 1);
+            } else {
+                paperBasket.push(question);
+            }
+            
+            // Re-render to update button state
+            renderQuestions(currentQuestions);
+            updateBasketStats();
+        }
+
+        function updateBasketStats() {
+            document.getElementById('question-count').innerText = paperBasket.length + ' 题';
+            
+            // Simple stats
+            const counts = { choice: 0, fill: 0, calc: 0 };
+            paperBasket.forEach(q => {
+                if (counts[q.type] !== undefined) counts[q.type]++;
+            });
+
+            // Update UI (assuming fixed structure for now, ideally dynamic)
+            const statsContainer = document.querySelector('.sticky .space-y-4');
+            if (statsContainer) {
+                statsContainer.innerHTML = `
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">单选题</span>
+                        <span class="font-bold text-slate-800">${counts.choice}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">填空题</span>
+                        <span class="font-bold text-slate-800">${counts.fill}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">应用题</span>
+                        <span class="font-bold text-slate-800">${counts.calc}</span>
+                    </div>
+                    <div class="h-px bg-slate-100 my-2"></div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500 font-bold">总分估算</span>
+                        <span class="font-bold text-brand-primary">${paperBasket.length * 5} 分</span>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

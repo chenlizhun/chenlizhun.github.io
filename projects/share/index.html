@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家庭资源共享 - Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .filter-chip { transition: all 0.2s; }
+        .filter-chip.active { background: var(--color-brand-primary, #D53F8C); color: #fff; border-color: var(--color-brand-primary); }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14 items-center">
+                <a href="../edutogatherhome/index.html" class="flex items-center gap-2 text-slate-700 hover:text-brand-primary transition font-bold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Edutogather</span>
+                </a>
+                <a href="publish.html" class="px-4 py-2 bg-brand-primary text-white rounded-full text-sm font-bold hover:opacity-90 transition shadow">发布资源</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900">家庭资源共享</h1>
+            <p class="text-slate-500 mt-2">图片、视频、PDF、压缩包……大家共享，方便家庭之间互通有无</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">资源类型</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" class="filter-chip active px-3 py-1.5 rounded-lg border text-sm font-medium" data-filter-type="">全部</button>
+                        <button type="button" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-type="image">图片</button>
+                        <button type="button" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-type="video">视频</button>
+                        <button type="button" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-type="pdf">PDF</button>
+                        <button type="button" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-type="archive">压缩包</button>
+                        <button type="button" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-type="other">其他</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">分类</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" class="filter-chip-cat active px-3 py-1.5 rounded-lg border text-sm font-medium" data-filter-cat="">全部</button>
+                        <button type="button" class="filter-chip-cat px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-cat="学习资料">学习资料</button>
+                        <button type="button" class="filter-chip-cat px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-cat="娱乐">娱乐</button>
+                        <button type="button" class="filter-chip-cat px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-cat="绘本">绘本</button>
+                        <button type="button" class="filter-chip-cat px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-cat="课程">课程</button>
+                        <button type="button" class="filter-chip-cat px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium" data-filter-cat="其他">其他</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="search-keyword" placeholder="搜索标题、描述、标签..." class="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none">
+                </div>
+                <select id="sort-by" class="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 focus:ring-2 focus:ring-brand-primary outline-none">
+                    <option value="newest">最新优先</option>
+                    <option value="oldest">最早优先</option>
+                </select>
+                <button type="button" id="btn-apply" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition">应用筛选</button>
+            </div>
+        </div>
+
+        <p class="text-slate-500 text-sm mb-4">共 <span id="result-count">0</span> 个资源</p>
+
+        <div id="list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-slate-400">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-brand-primary border-t-transparent mb-2"></div>
+                <p>加载中...</p>
+            </div>
+        </div>
+
+        <div id="load-more-wrap" class="mt-8 text-center hidden">
+            <button type="button" id="btn-load-more" class="px-6 py-3 border border-slate-200 text-slate-600 rounded-full text-sm font-bold hover:border-brand-primary hover:text-brand-primary transition">加载更多</button>
+        </div>
+    </main>
+
+    <script>
+        let app, db, storage;
+        let filterType = '', filterCat = '', keyword = '', sortBy = 'newest';
+        let lastDoc = null;
+        const PAGE_SIZE = 12;
+
+        const TYPE_LABELS = { image: '图片', video: '视频', pdf: 'PDF', archive: '压缩包', other: '其他' };
+        const TYPE_ICONS = { image: '🖼️', video: '🎬', pdf: '📄', archive: '📦', other: '📎' };
+
+        async function init() {
+            try {
+                if (!window.cloudbase) return;
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                const auth = app.auth();
+                if (!await auth.getLoginState()) await auth.anonymousAuthProvider().signIn();
+                db = app.database();
+                storage = app.storage ? app.storage() : null;
+                await fetchList(true);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('list-container').innerHTML = '<p class="col-span-full text-center text-red-500 py-8">连接失败：' + (e.message || e) + '</p>';
+            }
+        }
+
+        function buildQuery(append) {
+            let query = db.collection('share_resources');
+            if (filterType) query = query.where('type', '==', filterType);
+            if (filterCat) query = query.where('category', '==', filterCat);
+            query = query.orderBy('created_at', sortBy === 'newest' ? 'desc' : 'asc').limit(PAGE_SIZE);
+            if (append && lastDoc) query = query.startAfter(lastDoc);
+            return query;
+        }
+
+        async function fetchList(append) {
+            const container = document.getElementById('list-container');
+            if (!append) container.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400">加载中...</div>';
+
+            try {
+                var query = buildQuery(append);
+                var res = await query.get();
+                var rawList = res.data || [];
+                if (rawList.length > 0 && !keyword) lastDoc = rawList[rawList.length - 1];
+
+                var list = rawList;
+                if (keyword) {
+                    var k = keyword.toLowerCase();
+                    list = list.filter(function (item) {
+                        var t = (item.title || '').toLowerCase();
+                        var d = (item.description || '').toLowerCase();
+                        var tags = (item.tags || []).join(' ').toLowerCase();
+                        return t.indexOf(k) >= 0 || d.indexOf(k) >= 0 || tags.indexOf(k) >= 0;
+                    });
+                }
+
+                if (!append) container.innerHTML = '';
+                if (list.length === 0 && !append) {
+                    container.innerHTML = '<p class="col-span-full text-center text-slate-500 py-12">暂无资源，去 <a href="publish.html" class="text-brand-primary font-bold hover:underline">发布第一个</a> 吧</p>';
+                    document.getElementById('result-count').textContent = '0';
+                    document.getElementById('load-more-wrap').classList.add('hidden');
+                    return;
+                }
+
+                list.forEach(function (item) {
+                    container.appendChild(renderCard(item));
+                });
+                var countEl = document.getElementById('result-count');
+                countEl.textContent = append ? (parseInt(countEl.textContent, 10) + list.length) : list.length;
+                document.getElementById('load-more-wrap').classList.toggle('hidden', keyword ? true : rawList.length < PAGE_SIZE);
+            } catch (e) {
+                console.error(e);
+                if (!append) container.innerHTML = '<p class="col-span-full text-center text-red-500 py-8">加载失败：' + (e.message || e) + '</p>';
+            }
+        }
+
+        function renderCard(item) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col';
+            const icon = TYPE_ICONS[item.type] || '📎';
+            const typeLabel = TYPE_LABELS[item.type] || item.type || '其他';
+            const desc = (item.description || '').slice(0, 80) + ((item.description || '').length > 80 ? '…' : '');
+            const dateStr = item.created_at ? (item.created_at.toDate ? item.created_at.toDate() : new Date(item.created_at)).toLocaleDateString('zh-CN') : '';
+            div.innerHTML =
+                '<div class="p-4 flex-1 flex flex-col">' +
+                '  <div class="flex items-start justify-between gap-2 mb-2">' +
+                '    <span class="text-2xl">' + icon + '</span>' +
+                '    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-500">' + (item.category || '其他') + '</span>' +
+                '  </div>' +
+                '  <h3 class="font-bold text-slate-900 mb-1 line-clamp-2">' + (item.title || '未命名') + '</h3>' +
+                '  <p class="text-sm text-slate-500 flex-1 line-clamp-2">' + desc + '</p>' +
+                '  <div class="mt-2 flex items-center justify-between text-xs text-slate-400">' +
+                '    <span>' + (item.uploader_name || '匿名') + ' · ' + dateStr + '</span>' +
+                '    <span class="px-2 py-0.5 rounded bg-slate-100">' + typeLabel + '</span>' +
+                '  </div>' +
+                '</div>' +
+                '<div class="p-4 pt-0">' +
+                '  <a href="#" class="block w-full text-center py-2 rounded-lg bg-brand-primary text-white text-sm font-bold hover:opacity-90 transition" data-id="' + (item._id || '') + '" data-file-id="' + (item.file_id || '') + '" data-url="' + (item.url || '') + '">查看 / 下载</a>' +
+                '</div>';
+            const link = div.querySelector('a[data-id]');
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = link.getAttribute('data-url');
+                const fileId = link.getAttribute('data-file-id');
+                if (url) window.open(url, '_blank');
+                else if (fileId && storage) {
+                    storage.getTempFileURL({ fileList: [fileId] }).then(function (res) {
+                        const fileList = res.fileList || res;
+                        const info = fileList[0];
+                        if (info && info.tempFileURL) window.open(info.tempFileURL, '_blank');
+                        else alert('获取下载链接失败');
+                    }).catch(function (err) {
+                        alert('获取下载链接失败：' + (err.message || err));
+                    });
+                } else if (fileId) alert('当前环境暂不支持云存储下载，请使用外链发布');
+                else alert('该资源暂无下载链接');
+            });
+            return div;
+        }
+
+        document.querySelectorAll('.filter-chip').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-chip').forEach(function (b) { b.classList.remove('active'); b.classList.add('border-slate-200', 'text-slate-600'); });
+                btn.classList.add('active', 'bg-brand-primary', 'text-white', 'border-brand-primary');
+                btn.classList.remove('border-slate-200', 'text-slate-600');
+                filterType = btn.getAttribute('data-filter-type') || '';
+            });
+        });
+        document.querySelectorAll('.filter-chip-cat').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-chip-cat').forEach(function (b) { b.classList.remove('active'); b.classList.add('border-slate-200', 'text-slate-600'); });
+                btn.classList.add('active', 'bg-brand-primary', 'text-white', 'border-brand-primary');
+                btn.classList.remove('border-slate-200', 'text-slate-600');
+                filterCat = btn.getAttribute('data-filter-cat') || '';
+            });
+        });
+        document.getElementById('sort-by').addEventListener('change', function () { sortBy = this.value; });
+        document.getElementById('btn-apply').addEventListener('click', function () {
+            keyword = document.getElementById('search-keyword').value.trim();
+            lastDoc = null;
+            fetchList(false);
+        });
+        document.getElementById('btn-load-more').addEventListener('click', function () { fetchList(true); });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

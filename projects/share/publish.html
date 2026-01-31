@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布资源 - Edutogather Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .form-input { @apply w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition; }
+        .form-label { @apply block text-sm font-bold text-slate-700 mb-2; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14 items-center">
+                <a href="index.html" class="flex items-center gap-2 text-slate-700 hover:text-brand-primary transition font-bold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>返回列表</span>
+                </a>
+                <span class="font-bold text-lg">发布资源</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+        <form id="publish-form" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 space-y-6">
+            
+            <!-- Type & Category -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="form-label">资源类型 <span class="text-red-500">*</span></label>
+                    <select name="type" required class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                        <option value="">请选择...</option>
+                        <option value="image">🖼️ 图片</option>
+                        <option value="video">🎬 视频</option>
+                        <option value="pdf">📄 PDF文档</option>
+                        <option value="archive">📦 压缩包</option>
+                        <option value="other">📎 其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">分类 <span class="text-red-500">*</span></label>
+                    <select name="category" required class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                        <option value="">请选择...</option>
+                        <option value="学习资料">📚 学习资料</option>
+                        <option value="娱乐">🎮 娱乐</option>
+                        <option value="绘本">📖 绘本</option>
+                        <option value="课程">🎓 课程</option>
+                        <option value="其他">🧩 其他</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div>
+                <label class="form-label">标题 <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required placeholder="给资源起个名字" class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="form-label">描述</label>
+                <textarea name="description" rows="3" placeholder="介绍一下这个资源..." class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none"></textarea>
+            </div>
+
+            <!-- Upload Mode Switch -->
+            <div>
+                <label class="form-label">资源来源 <span class="text-red-500">*</span></label>
+                <div class="flex gap-4 mb-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="upload_mode" value="file" checked class="text-pink-600 focus:ring-pink-500">
+                        <span>本地上传</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="upload_mode" value="url" class="text-pink-600 focus:ring-pink-500">
+                        <span>网络链接</span>
+                    </label>
+                </div>
+
+                <!-- File Input -->
+                <div id="mode-file" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="space-y-2 pointer-events-none">
+                        <div class="text-4xl">📂</div>
+                        <p class="text-sm text-slate-500 font-medium" id="file-name-display">点击或拖拽文件到这里</p>
+                    </div>
+                </div>
+
+                <!-- URL Input -->
+                <div id="mode-url" class="hidden">
+                    <input type="url" name="url" placeholder="https://..." class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                    <p class="text-xs text-slate-400 mt-1">请输入完整的链接地址（以 http:// 或 https:// 开头）</p>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div>
+                <label class="form-label">标签</label>
+                <input type="text" name="tags" placeholder="用空格或逗号分隔，如：数学,一年级" class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+            </div>
+
+            <!-- Uploader & Visibility -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="form-label">上传者 / 家庭名 <span class="text-red-500">*</span></label>
+                    <input type="text" name="uploader_name" required placeholder="例如：乐乐爸爸" class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                </div>
+                <div>
+                    <label class="form-label">可见性</label>
+                    <select name="visibility" class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                        <option value="public">公开 (所有家庭可见)</option>
+                        <option value="family_only">私有 (仅本家庭可见)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Submit Btn -->
+            <div class="pt-4">
+                <button type="submit" id="btn-submit" class="w-full bg-brand-primary text-white font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                    <span>发布资源</span>
+                </button>
+            </div>
+            
+            <div id="status-msg" class="text-center text-sm font-bold hidden"></div>
+        </form>
+    </main>
+
+    <script>
+        let app, db;
+        
+        // Init CloudBase
+        async function init() {
+            try {
+                if (!window.cloudbase) return;
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                const auth = app.auth();
+                if (!await auth.getLoginState()) await auth.anonymousAuthProvider().signIn();
+                db = app.database();
+            } catch (e) {
+                console.error(e);
+                alert('初始化失败: ' + e.message);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', init);
+
+        // UI Logic
+        const modeRadios = document.getElementsByName('upload_mode');
+        const modeFile = document.getElementById('mode-file');
+        const modeUrl = document.getElementById('mode-url');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'file') {
+                    modeFile.classList.remove('hidden');
+                    modeUrl.classList.add('hidden');
+                    document.querySelector('input[name="url"]').required = false;
+                } else {
+                    modeFile.classList.add('hidden');
+                    modeUrl.classList.remove('hidden');
+                    document.querySelector('input[name="url"]').required = true;
+                }
+            });
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = '已选择: ' + e.target.files[0].name;
+                fileNameDisplay.classList.add('text-brand-primary');
+            } else {
+                fileNameDisplay.textContent = '点击或拖拽文件到这里';
+                fileNameDisplay.classList.remove('text-brand-primary');
+            }
+        });
+
+        // Form Submit
+        document.getElementById('publish-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            const msgEl = document.getElementById('status-msg');
+            const formData = new FormData(e.target);
+            
+            const mode = formData.get('upload_mode');
+            const file = fileInput.files[0];
+            
+            if (mode === 'file' && !file) {
+                alert('请选择要上传的文件');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> <span>处理中...</span>';
+                msgEl.className = 'text-center text-sm font-bold text-slate-500 block mt-2';
+                msgEl.textContent = '正在提交...';
+
+                let fileId = '';
+                let fileSize = 0;
+                let fileName = '';
+
+                // 1. Upload File if needed
+                if (mode === 'file') {
+                    msgEl.textContent = '正在上传文件...';
+                    const ext = file.name.split('.').pop();
+                    const cloudPath = `share/${new Date().getFullYear()}/${new Date().getMonth()+1}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                    
+                    const res = await app.uploadFile({
+                        cloudPath: cloudPath,
+                        filePath: file,
+                        onUploadProgress: function (progressEvent) {
+                            var percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                            msgEl.textContent = `上传中 ${percentCompleted}%`;
+                        }
+                    });
+                    
+                    fileId = res.fileID;
+                    fileSize = file.size;
+                    fileName = file.name;
+                }
+
+                // 2. Save to Database
+                msgEl.textContent = '正在保存信息...';
+                const tags = (formData.get('tags') || '').split(/[,，\s]+/).filter(t => t.trim());
+                
+                const doc = {
+                    title: formData.get('title'),
+                    description: formData.get('description'),
+                    type: formData.get('type'),
+                    category: formData.get('category'),
+                    uploader_name: formData.get('uploader_name'),
+                    visibility: formData.get('visibility'),
+                    tags: tags,
+                    created_at: db.serverDate(),
+                    updated_at: db.serverDate(),
+                    // File or URL
+                    file_id: fileId || '',
+                    file_name: fileName || '',
+                    file_size: fileSize || 0,
+                    url: mode === 'url' ? formData.get('url') : ''
+                };
+
+                await db.collection('share_resources').add(doc);
+
+                msgEl.className = 'text-center text-sm font-bold text-green-500 block mt-2';
+                msgEl.textContent = '发布成功！正在跳转...';
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = '<span>发布资源</span>';
+                msgEl.className = 'text-center text-sm font-bold text-red-500 block mt-2';
+                msgEl.textContent = '发布失败: ' + (err.message || err);
+            }
+        });
+    </script>
+</body>
+</html>

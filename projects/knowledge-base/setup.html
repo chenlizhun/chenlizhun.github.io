@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KnowledgeBase 数据库初始化工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f1f5f9; }
+        .log-entry { font-family: monospace; font-size: 0.9em; border-bottom: 1px solid #eee; padding: 4px 0; }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #64748b; }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2">KnowledgeBase 数据库初始化</h1>
+        <p class="text-slate-500 mb-8">用于快速创建数据库集合并填充初始分类数据。</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Configuration -->
+            <div>
+                <h2 class="text-xl font-bold text-slate-700 mb-4">1. 环境配置</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">环境 ID (Env ID)</label>
+                        <input type="text" id="env-id" class="w-full border border-gray-300 rounded px-3 py-2 text-slate-600 bg-gray-50" value="chenlizhun-projects-2ckab9e1cd47">
+                        <p class="text-xs text-slate-400 mt-1">默认使用 Edutogather 所在环境</p>
+                    </div>
+                    <button id="btn-connect" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition">
+                        连接 CloudBase
+                    </button>
+                    <div id="connection-status" class="hidden p-3 bg-green-50 text-green-700 rounded text-sm font-medium flex items-center gap-2">
+                        <span>✅ 连接成功</span>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold text-slate-700 mt-8 mb-4">2. 执行操作</h2>
+                <div class="space-y-4">
+                    <button id="btn-create-collections" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-3 px-4 rounded cursor-not-allowed flex items-center justify-center gap-2 transition">
+                        <span>📦 创建集合 (Collections)</span>
+                    </button>
+                    <p class="text-xs text-slate-500">将创建：k_metadata, k_knowledge_points, k_questions, k_papers, k_exam_records, k_learning_paths, k_user_mastery</p>
+
+                    <button id="btn-seed-data" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-3 px-4 rounded cursor-not-allowed flex items-center justify-center gap-2 transition">
+                        <span>🌱 填充初始元数据 (Metadata)</span>
+                    </button>
+                    <p class="text-xs text-slate-500">将写入：基础科目（语数英）、年级（1-6年级）、学期（上下册）</p>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 overflow-hidden flex flex-col h-[500px]">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-2">
+                    <span class="font-mono text-sm font-bold text-slate-400">> Console Output</span>
+                    <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-300">Clear</button>
+                </div>
+                <div id="console-logs" class="flex-1 overflow-y-auto space-y-1 font-mono text-xs">
+                    <div class="log-info">Waiting for connection...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let app, db;
+        const COLLECTIONS = [
+            'k_metadata',
+            'k_knowledge_points',
+            'k_questions',
+            'k_papers',
+            'k_exam_records',
+            'k_learning_paths',
+            'k_user_mastery'
+        ];
+
+        const SEED_DATA = [
+            // Subjects (Root Nodes)
+            { _id: 'meta_subject_math', type: 'subject', name: '📐 数学', order: 1, parent_id: null },
+            { _id: 'meta_subject_chinese', type: 'subject', name: '📖 语文', order: 2, parent_id: null },
+            { _id: 'meta_subject_english', type: 'subject', name: '🔤 英语', order: 3, parent_id: null },
+
+            // Grades for Math (Children of Math)
+            { _id: 'meta_math_g1', type: 'grade', name: '一年级', order: 1, parent_id: 'meta_subject_math' },
+            { _id: 'meta_math_g2', type: 'grade', name: '二年级', order: 2, parent_id: 'meta_subject_math' },
+            
+            // Semesters for Math Grade 1
+            { _id: 'meta_math_g1_s1', type: 'semester', name: '上册', order: 1, parent_id: 'meta_math_g1' },
+            { _id: 'meta_math_g1_s2', type: 'semester', name: '下册', order: 2, parent_id: 'meta_math_g1' },
+
+            // Grades for Chinese
+            { _id: 'meta_chi_g1', type: 'grade', name: '一年级', order: 1, parent_id: 'meta_subject_chinese' },
+            { _id: 'meta_chi_g2', type: 'grade', name: '二年级', order: 2, parent_id: 'meta_subject_chinese' },
+
+            // Semesters for Chinese Grade 1
+            { _id: 'meta_chi_g1_s1', type: 'semester', name: '上册', order: 1, parent_id: 'meta_chi_g1' },
+            { _id: 'meta_chi_g1_s2', type: 'semester', name: '下册', order: 2, parent_id: 'meta_chi_g1' }
+        ];
+
+        // UI Elements
+        const envInput = document.getElementById('env-id');
+        const btnConnect = document.getElementById('btn-connect');
+        const btnCreate = document.getElementById('btn-create-collections');
+        const btnSeed = document.getElementById('btn-seed-data');
+        const statusDiv = document.getElementById('connection-status');
+        const logContainer = document.getElementById('console-logs');
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-entry log-${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            logContainer.innerHTML = '';
+        }
+
+        // 1. Connect
+        btnConnect.addEventListener('click', async () => {
+            const envId = envInput.value.trim();
+            if (!envId) return alert('请输入 Environment ID');
+
+            try {
+                log(`Connecting to environment: ${envId}...`);
+                app = cloudbase.init({ env: envId });
+                const auth = app.auth();
+                
+                // Anonymous login to ensure we have access
+                const loginState = await auth.getLoginState();
+                if (!loginState) {
+                    log('Attempting anonymous login...', 'info');
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                
+                db = app.database();
+                
+                // Enable buttons
+                btnCreate.disabled = false;
+                btnCreate.className = btnCreate.className.replace('bg-slate-200 text-slate-400 cursor-not-allowed', 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer');
+                
+                btnSeed.disabled = false;
+                btnSeed.className = btnSeed.className.replace('bg-slate-200 text-slate-400 cursor-not-allowed', 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer');
+
+                statusDiv.classList.remove('hidden');
+                btnConnect.classList.add('hidden');
+                envInput.disabled = true;
+                
+                log('Connected successfully!', 'success');
+            } catch (e) {
+                log(`Connection failed: ${e.message}`, 'error');
+                console.error(e);
+            }
+        });
+
+        // 2. Create Collections
+        btnCreate.addEventListener('click', async () => {
+            if (!db) return;
+            
+            for (const colName of COLLECTIONS) {
+                try {
+                    log(`Creating collection: ${colName}...`);
+                    await db.createCollection(colName);
+                    log(`✅ Collection '${colName}' created.`, 'success');
+                } catch (e) {
+                    const msg = e.message || String(e);
+                    const code = e.code || e.errCode;
+                    if (code === 'COLLECTION_EXIST' || /exist|已存在|already exists/i.test(msg)) {
+                        log(`ℹ️ Collection '${colName}' already exists.`, 'info');
+                    } else {
+                        log(`❌ Failed to create '${colName}': ${msg}`, 'error');
+                    }
+                }
+            }
+            log('Collection initialization process finished.', 'info');
+        });
+
+        // 3. Seed Data
+        btnSeed.addEventListener('click', async () => {
+            if (!db) return;
+
+            log('Starting data seeding for k_metadata...', 'info');
+
+            for (const item of SEED_DATA) {
+                try {
+                    const res = await db.collection('k_metadata').doc(item._id).get();
+                    const exists = res.data && (Array.isArray(res.data) ? res.data.length > 0 : true);
+                    if (exists) {
+                        log(`Skipping ${item.name} (already exists)`, 'info');
+                        continue;
+                    }
+                } catch (e) {
+                    // 文档不存在或未开通集合时会报错，继续执行写入
+                }
+
+                try {
+                    // Use set to ensure _id is respected
+                    await db.collection('k_metadata').doc(item._id).set(item);
+                    log(`✅ Inserted metadata: ${item.name}`, 'success');
+                } catch (e) {
+                    log(`❌ Failed to seed ${item.name}: ${e.message}`, 'error');
+                }
+            }
+            log('Data seeding process finished.', 'info');
+        });
+
+    </script>
+</body>
+</html>

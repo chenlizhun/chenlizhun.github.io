@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>录入题目 - KnowledgeBase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f8fafc; }
+        .form-label { @apply block text-sm font-bold text-slate-700 mb-1; }
+        .form-select { @apply w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition; }
+        .form-input { @apply w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition; }
+        .form-textarea { @apply w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition min-h-[100px]; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-8 shadow-sm flex-shrink-0 z-10">
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="bg-indigo-100 text-indigo-600 p-2 rounded-lg hover:bg-indigo-200 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <h1 class="font-bold text-lg text-slate-800">录入题目</h1>
+        </div>
+        <div class="flex gap-3">
+            <span id="status-msg" class="text-sm text-slate-500 self-center hidden">保存中...</span>
+            <button id="btn-save-manual" onclick="saveQuestion()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-200 transition">
+                保存并继续录入
+            </button>
+            <button id="btn-save-ai" onclick="saveBatchQuestions()" class="hidden px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-200 transition">
+                批量保存题目
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mode Switcher -->
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 mt-6">
+        <div class="flex space-x-1 bg-slate-100 p-1 rounded-xl w-fit">
+            <button onclick="switchMode('manual')" id="tab-manual" class="px-6 py-2 rounded-lg text-sm font-bold bg-white text-indigo-600 shadow-sm transition">✍️ 手动录入</button>
+            <button onclick="switchMode('ai')" id="tab-ai" class="px-6 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-indigo-600 transition">🤖 AI 智能导入</button>
+        </div>
+    </div>
+
+    <!-- Manual Mode -->
+    <div id="mode-manual" class="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full p-4 lg:p-8 gap-8">
+        
+        <!-- Left: Metadata (Shared in UI, but logic handles it) -->
+        <div class="w-full lg:w-80 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span>🏷️</span> 归属维度
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">科目</label>
+                        <select id="inp-subject" class="form-select" onchange="updateDimensions()">
+                            <option value="">选择科目...</option>
+                            <option value="math">📐 数学</option>
+                            <option value="chinese">📖 语文</option>
+                            <option value="english">🔤 英语</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">年级</label>
+                        <select id="inp-grade" class="form-select">
+                            <option value="1">一年级</option>
+                            <option value="2">二年级</option>
+                            <option value="3">三年级</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">课程</label>
+                        <select id="inp-course" class="form-select">
+                            <option value="vol1">上册</option>
+                            <option value="vol2">下册</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">单元</label>
+                        <select id="inp-unit" class="form-select">
+                            <option value="u1">第一单元</option>
+                            <option value="u2">第二单元</option>
+                            <option value="u3">第三单元</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span>⚙️</span> 属性
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">难度</label>
+                        <select id="inp-difficulty" class="form-select">
+                            <option value="1">⭐ 简单</option>
+                            <option value="2">⭐⭐ 普通</option>
+                            <option value="3">⭐⭐⭐ 困难</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">关联知识点ID (可选)</label>
+                        <input type="text" id="inp-kp-id" class="form-input" placeholder="例如: kp_123456">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Question Content -->
+        <div class="flex-1 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                
+                <div class="mb-6">
+                    <label class="form-label">题型</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="q-type" value="choice" checked onchange="toggleType()" class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="font-bold text-slate-700">单选题</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="q-type" value="fill" onchange="toggleType()" class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="font-bold text-slate-700">填空题</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="q-type" value="calc" onchange="toggleType()" class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="font-bold text-slate-700">计算/应用题</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="form-label">题干内容</label>
+                    <textarea id="inp-content" class="form-textarea text-lg" placeholder="请输入题目内容..."></textarea>
+                </div>
+
+                <!-- Choice Options Area -->
+                <div id="area-choice" class="mb-6 space-y-3">
+                    <label class="form-label">选项设置</label>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-400 w-6 text-center">A.</span>
+                        <input type="text" class="form-input option-input" data-idx="0" placeholder="选项 A">
+                        <input type="radio" name="correct-opt" value="0" class="w-4 h-4 text-green-600">
+                        <span class="text-xs text-slate-400">正确</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-400 w-6 text-center">B.</span>
+                        <input type="text" class="form-input option-input" data-idx="1" placeholder="选项 B">
+                        <input type="radio" name="correct-opt" value="1" class="w-4 h-4 text-green-600">
+                        <span class="text-xs text-slate-400">正确</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-400 w-6 text-center">C.</span>
+                        <input type="text" class="form-input option-input" data-idx="2" placeholder="选项 C">
+                        <input type="radio" name="correct-opt" value="2" class="w-4 h-4 text-green-600">
+                        <span class="text-xs text-slate-400">正确</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-400 w-6 text-center">D.</span>
+                        <input type="text" class="form-input option-input" data-idx="3" placeholder="选项 D">
+                        <input type="radio" name="correct-opt" value="3" class="w-4 h-4 text-green-600">
+                        <span class="text-xs text-slate-400">正确</span>
+                    </div>
+                </div>
+
+                <!-- Text Answer Area -->
+                <div id="area-text" class="mb-6 hidden">
+                    <label class="form-label">参考答案</label>
+                    <textarea id="inp-answer-text" class="form-textarea" placeholder="请输入参考答案..."></textarea>
+                </div>
+
+                <div class="pt-6 border-t border-slate-100">
+                    <label class="form-label">解析 (可选)</label>
+                    <textarea id="inp-explanation" class="form-textarea h-20 text-sm" placeholder="请输入题目解析..."></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Mode -->
+    <div id="mode-ai" class="hidden flex-1 flex flex-col max-w-7xl mx-auto w-full p-4 lg:p-8 gap-8">
+        
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+            <span class="text-xl">💡</span>
+            <div class="text-sm text-blue-800">
+                <p class="font-bold mb-1">使用说明：</p>
+                <p>直接将 Word/PDF 中的题目文本复制粘贴到下方。AI 将自动识别题干、选项和答案。<br>
+                支持格式示例：<br>
+                <code class="bg-blue-100 px-1 rounded">1. 1+1=? A.1 B.2 C.3 D.4 答案:B</code></p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[600px]">
+            <!-- Input Area -->
+            <div class="flex flex-col h-full">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="form-label">原始文本</label>
+                    <button onclick="parseText()" class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-bold hover:bg-indigo-200 transition">✨ 开始识别</button>
+                </div>
+                <textarea id="ai-input" class="flex-1 w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none font-mono text-sm" placeholder="在此粘贴题目文本..."></textarea>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="flex flex-col h-full">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="form-label">识别结果预览</label>
+                    <span id="parse-count" class="text-xs text-slate-500 font-bold">0 题</span>
+                </div>
+                <div id="ai-preview" class="flex-1 w-full border border-slate-300 rounded-xl bg-slate-50 overflow-y-auto p-4 space-y-4">
+                    <div class="text-center text-slate-400 mt-20">
+                        <div class="text-4xl mb-2">👈</div>
+                        <p>请在左侧粘贴文本并点击识别</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let app, db;
+
+        let parsedQuestions = [];
+
+        function switchMode(mode) {
+            const manualTab = document.getElementById('tab-manual');
+            const aiTab = document.getElementById('tab-ai');
+            const manualMode = document.getElementById('mode-manual');
+            const aiMode = document.getElementById('mode-ai');
+            const btnSaveManual = document.getElementById('btn-save-manual');
+            const btnSaveAi = document.getElementById('btn-save-ai');
+
+            if (mode === 'manual') {
+                manualTab.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                manualTab.classList.remove('text-slate-500');
+                aiTab.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                aiTab.classList.add('text-slate-500');
+                
+                manualMode.classList.remove('hidden');
+                aiMode.classList.add('hidden');
+                btnSaveManual.classList.remove('hidden');
+                btnSaveAi.classList.add('hidden');
+            } else {
+                aiTab.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                aiTab.classList.remove('text-slate-500');
+                manualTab.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                manualTab.classList.add('text-slate-500');
+                
+                aiMode.classList.remove('hidden');
+                manualMode.classList.add('hidden');
+                btnSaveAi.classList.remove('hidden');
+                btnSaveManual.classList.add('hidden');
+            }
+        }
+
+        function parseText() {
+            const text = document.getElementById('ai-input').value;
+            if (!text.trim()) return;
+
+            parsedQuestions = [];
+            const lines = text.split('\n');
+            let currentQ = null;
+
+            // Simple Heuristic Parser
+            // Regex for Question Start: "1. " or "1、" or "(1)"
+            const qStartRegex = /^(\d+)[\.、\s](.*)/;
+            // Regex for Options: "A." or "A、"
+            const optRegex = /([A-D])[\.、]([^A-D]+)/g;
+            // Regex for Answer: "答案：" or "Answer:"
+            const ansRegex = /(?:答案|Answer)[:：]\s*([A-D])/i;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+
+                const qMatch = line.match(qStartRegex);
+                const ansMatch = line.match(ansRegex);
+
+                if (qMatch) {
+                    // Save previous question
+                    if (currentQ) parsedQuestions.push(currentQ);
+                    
+                    // Start new question
+                    currentQ = {
+                        content: qMatch[2],
+                        options: [],
+                        answer: null,
+                        type: 'choice' // default
+                    };
+                } else if (currentQ) {
+                    // Check for Answer
+                    if (ansMatch) {
+                        currentQ.answer = ansMatch[1].toUpperCase();
+                    } 
+                    // Check for Options (Simple check: contains A. B. etc)
+                    else if (line.match(/[A-D][\.、]/)) {
+                         let match;
+                         while ((match = optRegex.exec(line)) !== null) {
+                             // This simple regex might fail on complex lines, but works for standard "A. xx B. xx"
+                             // Better approach: Split by A., B., etc.
+                         }
+                         // Fallback: Split manually
+                         const parts = line.split(/[A-D][\.、]/).filter(p => p.trim());
+                         if (parts.length > 0) currentQ.options.push(...parts);
+                    } else {
+                        // Append to content if not an option/answer (multiline question)
+                        // But if options exist, ignore or append to last option? 
+                        // Simplified: Append to content if no options yet
+                        if (currentQ.options.length === 0) {
+                            currentQ.content += '\n' + line;
+                        }
+                    }
+                }
+            });
+            // Push last one
+            if (currentQ) parsedQuestions.push(currentQ);
+
+            // Refine Options Extraction (The loop above was buggy for regex exec)
+            // Let's re-process options more robustly in a second pass or better logic
+            // Actually, let's simplify the parser for this demo version:
+            // Assume format: 
+            // 1. Question...
+            // A. Op1 B. Op2 ...
+            // 答案: A
+            
+            parsedQuestions = [];
+            const chunks = text.split(/\n(?=\d+[\.、])/); // Split by question number
+            
+            chunks.forEach(chunk => {
+                if (!chunk.trim()) return;
+                
+                const lines = chunk.split('\n').map(l => l.trim()).filter(l => l);
+                if (lines.length === 0) return;
+
+                // First line is content
+                let contentLine = lines[0].replace(/^\d+[\.、]\s*/, '');
+                let options = [];
+                let answer = null;
+                
+                // Process remaining lines
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    
+                    // Check Answer
+                    const am = line.match(/(?:答案|Answer)[:：]\s*([A-D])/i);
+                    if (am) {
+                        answer = am[1].toUpperCase();
+                        continue;
+                    }
+
+                    // Check Options
+                    // Try to extract A. B. C. D.
+                    // Strategy: Split by "A.", "B.", etc.
+                    // This is tricky. Let's try a regex replace to add newlines before options
+                    const formatted = line.replace(/([A-D][\.、])/g, '\n$1');
+                    const parts = formatted.split('\n');
+                    parts.forEach(p => {
+                        p = p.trim();
+                        if (p.match(/^[A-D][\.、]/)) {
+                            options.push(p.replace(/^[A-D][\.、]\s*/, ''));
+                        } else if (p) {
+                             // maybe part of content?
+                        }
+                    });
+                }
+
+                parsedQuestions.push({
+                    content: contentLine,
+                    options: options,
+                    answer: answer,
+                    type: options.length > 0 ? 'choice' : 'fill'
+                });
+            });
+
+            renderPreview();
+        }
+
+        function renderPreview() {
+            const container = document.getElementById('ai-preview');
+            const countEl = document.getElementById('parse-count');
+            
+            countEl.innerText = parsedQuestions.length + ' 题';
+            container.innerHTML = '';
+
+            parsedQuestions.forEach((q, idx) => {
+                let html = `
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 text-sm relative group">
+                        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition cursor-pointer text-red-400" onclick="removeParsed(${idx})">🗑️</div>
+                        <p class="font-bold text-slate-800 mb-2"><span class="text-indigo-600">${idx+1}.</span> ${q.content}</p>
+                `;
+                
+                if (q.options && q.options.length > 0) {
+                    html += `<div class="grid grid-cols-2 gap-2 mb-2 text-slate-600">`;
+                    q.options.forEach((opt, i) => {
+                        html += `<div><span class="font-bold">${String.fromCharCode(65+i)}.</span> ${opt}</div>`;
+                    });
+                    html += `</div>`;
+                }
+                
+                if (q.answer) {
+                    html += `<div class="text-green-600 font-bold text-xs bg-green-50 inline-block px-2 py-1 rounded">答案: ${q.answer}</div>`;
+                } else {
+                    html += `<div class="text-amber-500 font-bold text-xs bg-amber-50 inline-block px-2 py-1 rounded">⚠️ 未识别到答案</div>`;
+                }
+                
+                html += `</div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+        
+        function removeParsed(idx) {
+            parsedQuestions.splice(idx, 1);
+            renderPreview();
+        }
+
+        async function saveBatchQuestions() {
+            if (parsedQuestions.length === 0) {
+                alert('没有可保存的题目');
+                return;
+            }
+
+            const btn = document.getElementById('btn-save-ai');
+            const status = document.getElementById('status-msg');
+            
+            try {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+                status.classList.remove('hidden');
+                status.innerText = '批量保存中...';
+
+                // Get Common Metadata
+                const dimensions = {
+                    subject: document.getElementById('inp-subject').value,
+                    grade: document.getElementById('inp-grade').value,
+                    course: document.getElementById('inp-course').value,
+                    unit: document.getElementById('inp-unit').value
+                };
+                const difficulty = parseInt(document.getElementById('inp-difficulty').value);
+
+                // Prepare Batch
+                const batch = parsedQuestions.map(q => ({
+                    ...q,
+                    dimensions,
+                    difficulty,
+                    created_at: new Date()
+                }));
+
+                // CloudBase usually supports add() for single, let's loop for now (or use bulk add if available)
+                // For safety in this demo, loop promises
+                const promises = batch.map(data => db.collection('k_questions').add(data));
+                await Promise.all(promises);
+
+                alert(`✅ 成功导入 ${parsedQuestions.length} 道题目！`);
+                parsedQuestions = [];
+                document.getElementById('ai-input').value = '';
+                renderPreview();
+
+            } catch (e) {
+                alert('❌ 保存失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                status.classList.add('hidden');
+                status.innerText = '保存中...';
+            }
+        }
+
+        // Init
+        (async function() {
+            try {
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                const auth = app.auth();
+                if (!await auth.getLoginState()) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                db = app.database();
+                console.log('DB Connected');
+            } catch (e) {
+                console.error('Init Error', e);
+            }
+        })();
+
+        function toggleType() {
+            const type = document.querySelector('input[name="q-type"]:checked').value;
+            if (type === 'choice') {
+                document.getElementById('area-choice').classList.remove('hidden');
+                document.getElementById('area-text').classList.add('hidden');
+            } else {
+                document.getElementById('area-choice').classList.add('hidden');
+                document.getElementById('area-text').classList.remove('hidden');
+            }
+        }
+
+        async function saveQuestion() {
+            const btn = document.querySelector('button[onclick="saveQuestion()"]');
+            const status = document.getElementById('status-msg');
+            
+            try {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+                status.classList.remove('hidden');
+                
+                // Collect Data
+                const type = document.querySelector('input[name="q-type"]:checked').value;
+                const content = document.getElementById('inp-content').value;
+                if (!content) throw new Error('请输入题目内容');
+
+                const kpIdRaw = document.getElementById('inp-kp-id').value?.trim() || '';
+                const data = {
+                    type,
+                    content,
+                    dimensions: {
+                        subject: document.getElementById('inp-subject').value,
+                        grade: document.getElementById('inp-grade').value,
+                        course: document.getElementById('inp-course').value,
+                        unit: document.getElementById('inp-unit').value
+                    },
+                    difficulty: parseInt(document.getElementById('inp-difficulty').value),
+                    related_kp_ids: kpIdRaw ? [kpIdRaw] : [],
+                    explanation: document.getElementById('inp-explanation').value,
+                    created_at: new Date()
+                };
+
+                if (type === 'choice') {
+                    const options = [];
+                    document.querySelectorAll('.option-input').forEach(inp => {
+                        if (inp.value) options.push(inp.value);
+                    });
+                    data.options = options;
+                    
+                    const correctIndex = document.querySelector('input[name="correct-opt"]:checked')?.value;
+                    if (correctIndex === undefined) throw new Error('请选择正确选项');
+                    data.answer = ["A","B","C","D"][parseInt(correctIndex)];
+                } else {
+                    data.answer = document.getElementById('inp-answer-text').value;
+                }
+
+                // Save to DB
+                // Ensure collection exists
+                try {
+                    await db.collection('k_questions').add(data);
+                } catch (e) {
+                    // Try to create collection if not exists (usually manual in console, but good to try)
+                    console.error('Save failed', e);
+                    throw e;
+                }
+
+                alert('✅ 保存成功！');
+                
+                // Reset form
+                document.getElementById('inp-content').value = '';
+                document.querySelectorAll('.option-input').forEach(i => i.value = '');
+                document.getElementById('inp-answer-text').value = '';
+                document.getElementById('inp-explanation').value = '';
+
+            } catch (e) {
+                alert('❌ 保存失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                status.classList.add('hidden');
+            }
+        }
+
+        function updateDimensions() {
+            // Placeholder for cascading selects logic
+        }
+    </script>
+</body>
+</html>

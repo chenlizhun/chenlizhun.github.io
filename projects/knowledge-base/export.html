@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识导出 - Edutogather</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom Tailwind Utilities using Design System Variables */
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .border-brand-primary { border-color: var(--color-brand-primary, #D53F8C); }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo Area -->
+                <div class="flex items-center gap-3">
+                    <a href="../edutogather/index.html" class="flex items-center gap-2 group">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain group-hover:scale-105 transition-transform">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg leading-tight text-slate-900 tracking-tight">Edutogather</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Knowledge Base</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center gap-1 sm:gap-4">
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="index.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">首页</a>
+                        <a href="browse.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">浏览知识库</a>
+                        <!-- <a href="paper-center.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">组卷中心</a> -->
+                        <a href="export.html" class="px-3 py-2 text-sm font-bold text-brand-primary bg-pink-50 rounded-full transition">知识导出</a>
+                        <a href="admin.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">管理后台</a>
+                    </div>
+                    
+                    <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                    
+                    <div id="user-status" class="flex items-center gap-2 pl-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <span class="text-sm font-bold text-slate-600 hidden sm:block">未登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-2xl font-extrabold text-slate-900">知识导出 (Export JSON)</h1>
+                <p class="text-slate-500 mt-2">筛选知识点或题目，导出为 JSON 格式，方便利用 AI 进行组卷。</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Filters Sidebar -->
+                <div class="w-full lg:w-72 flex-shrink-0 space-y-6">
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6">
+                        <h2 class="font-bold text-slate-800 text-lg mb-4">导出筛选</h2>
+                        
+                        <!-- Export Type -->
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">导出内容</label>
+                            <div class="flex bg-slate-100 p-1 rounded-lg">
+                                <button class="flex-1 py-1.5 text-sm font-bold rounded-md bg-white text-brand-primary shadow-sm transition" id="btn-type-kp" onclick="toggleType('kp')">知识点</button>
+                                <button class="flex-1 py-1.5 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition" id="btn-type-q" onclick="toggleType('q')">题目</button>
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">科目</label>
+                                <select id="filter-subject" class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary font-bold text-slate-600">
+                                    <option value="">全部科目</option>
+                                    <option value="math">数学</option>
+                                    <option value="chinese">语文</option>
+                                    <option value="english">英语</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">年级</label>
+                                <select id="filter-grade" class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary font-bold text-slate-600">
+                                    <option value="">全部年级</option>
+                                    <option value="1">一年级</option>
+                                    <option value="2">二年级</option>
+                                    <option value="3">三年级</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">课程 (学期)</label>
+                                <select id="filter-course" class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary font-bold text-slate-600">
+                                    <option value="">全部课程</option>
+                                    <option value="vol1">上册</option>
+                                    <option value="vol2">下册</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">单元</label>
+                                <select id="filter-unit" class="w-full text-sm border-slate-200 rounded-lg focus:border-brand-primary font-bold text-slate-600">
+                                    <option value="">全部单元</option>
+                                    <option value="u1">第一单元</option>
+                                    <option value="u2">第二单元</option>
+                                    <option value="u3">第三单元</option>
+                                    <option value="u4">第四单元</option>
+                                    <option value="u5">第五单元</option>
+                                    <option value="u6">第六单元</option>
+                                    <option value="u7">第七单元</option>
+                                    <option value="u8">第八单元</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <button onclick="fetchPreview()" class="w-full py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition mb-3">
+                                刷新预览
+                            </button>
+                            <button onclick="exportJSON()" class="w-full py-3 bg-brand-primary text-white font-bold rounded-xl hover:bg-pink-600 transition shadow-lg shadow-pink-200 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                导出 JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Area -->
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-slate-800 text-lg">导出预览</h2>
+                        <span class="text-sm text-slate-500">仅展示前 10 条，导出时包含所有数据</span>
+                    </div>
+
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden min-h-[500px]">
+                        <!-- JSON Preview Block -->
+                        <div class="p-4 bg-slate-900 text-slate-300 font-mono text-xs overflow-auto h-[600px]" id="preview-content">
+                            // 点击“刷新预览”查看数据结构...
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let app, db;
+        let exportType = 'kp'; // 'kp' or 'q'
+
+        function toggleType(type) {
+            exportType = type;
+            document.getElementById('btn-type-kp').className = type === 'kp' ? 
+                'flex-1 py-1.5 text-sm font-bold rounded-md bg-white text-brand-primary shadow-sm transition' : 
+                'flex-1 py-1.5 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition';
+            
+            document.getElementById('btn-type-q').className = type === 'q' ? 
+                'flex-1 py-1.5 text-sm font-bold rounded-md bg-white text-brand-primary shadow-sm transition' : 
+                'flex-1 py-1.5 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition';
+            
+            fetchPreview();
+        }
+
+        async function init() {
+            try {
+                if (window.cloudbase) {
+                    app = cloudbase.init({ env: CONFIG.ENV_ID });
+                    db = app.database();
+                    const auth = app.auth();
+                    if (!await auth.getLoginState()) {
+                        await auth.anonymousAuthProvider().signIn();
+                    }
+                    console.log('✅ CloudBase Connected');
+                    fetchPreview();
+                }
+            } catch (e) {
+                console.error('Init failed', e);
+                document.getElementById('preview-content').innerText = '// CloudBase 初始化失败: ' + e.message;
+            }
+        }
+
+        function getQuery() {
+            const collectionName = exportType === 'kp' ? 'k_knowledge_points' : 'k_questions';
+            let query = db.collection(collectionName);
+            
+            const subject = document.getElementById('filter-subject').value;
+            const grade = document.getElementById('filter-grade').value;
+            const course = document.getElementById('filter-course').value;
+            const unit = document.getElementById('filter-unit').value;
+            
+            const conditions = {};
+            
+            // Common dimensions
+            if (subject) conditions['dimensions.subject'] = subject;
+            if (grade) conditions['dimensions.grade'] = grade;
+            if (unit) conditions['dimensions.unit'] = unit;
+
+            // Handle schema difference between KP (semester) and Q (course)
+            if (course) {
+                // Unified to use 'course' dimension for both KPs and Questions
+                // (Old KP data using 'semester' might need migration)
+                conditions['dimensions.course'] = course;
+            }
+            
+            if (Object.keys(conditions).length > 0) {
+                return query.where(conditions);
+            }
+            return query;
+        }
+
+        async function fetchPreview() {
+            const previewEl = document.getElementById('preview-content');
+            previewEl.innerHTML = '// 加载中...';
+            
+            try {
+                const query = getQuery();
+                const res = await query.limit(10).get();
+                
+                if (res.data.length === 0) {
+                    previewEl.innerText = '// 未找到匹配数据';
+                    return;
+                }
+
+                previewEl.innerText = JSON.stringify(res.data, null, 2);
+            } catch (e) {
+                console.error('Fetch failed', e);
+                previewEl.innerText = '// 加载失败: ' + e.message + '\n// 可能集合不存在或权限不足';
+                
+                // Fallback Mock
+                if (exportType === 'kp') {
+                    previewEl.innerText += '\n\n// 展示模拟数据:\n' + JSON.stringify([
+                        { title: "示例知识点1", subject: "数学", grade: "一年级" },
+                        { title: "示例知识点2", subject: "语文", grade: "一年级" }
+                    ], null, 2);
+                }
+            }
+        }
+
+        async function exportJSON() {
+            const btn = document.querySelector('button[onclick="exportJSON()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '导出中...';
+            btn.disabled = true;
+
+            try {
+                // Fetch ALL data (batching if necessary, but for now simple 1000 limit)
+                const query = getQuery();
+                const countRes = await query.count();
+                const total = countRes.total;
+                
+                if (total === 0) {
+                    alert('没有可导出的数据');
+                    return;
+                }
+
+                // CloudBase limit is 1000 per request usually
+                const res = await query.limit(1000).get();
+                const data = res.data;
+
+                // Create Download
+                const subject = document.getElementById('filter-subject').value;
+                const unit = document.getElementById('filter-unit').value;
+                let filename = `edutogather_${exportType}`;
+                if (subject) filename += `_${subject}`;
+                if (unit) filename += `_${unit}`;
+                filename += `_export_${new Date().toISOString().slice(0,10)}.json`;
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+            } catch (e) {
+                alert('导出失败: ' + e.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

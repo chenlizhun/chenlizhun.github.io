@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库管理 - KnowledgeBase Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f8fafc; }
+        /* Tree View Styles */
+        .tree-node { @apply pl-4 border-l border-slate-200 ml-2; }
+        .tree-item { @apply flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer text-slate-600 hover:bg-slate-100 transition text-sm; }
+        .tree-item.active { @apply bg-indigo-50 text-indigo-700 font-medium; }
+        .tree-toggle { @apply w-4 h-4 flex items-center justify-center text-slate-400 hover:text-slate-600 transition; }
+        .tree-toggle.collapsed { @apply -rotate-90; }
+        .node-type-badge { @apply text-[10px] px-1.5 py-0.5 rounded border uppercase font-semibold; }
+        
+        .badge-subject { @apply bg-blue-50 text-blue-600 border-blue-200; }
+        .badge-grade { @apply bg-green-50 text-green-600 border-green-200; }
+        .badge-semester { @apply bg-amber-50 text-amber-600 border-amber-200; }
+        .badge-unit { @apply bg-purple-50 text-purple-600 border-purple-200; }
+        .badge-course { @apply bg-slate-50 text-slate-600 border-slate-200; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-8 shadow-sm flex-shrink-0 z-10">
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="bg-slate-100 text-slate-600 p-2 rounded-lg hover:bg-slate-200 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <h1 class="font-bold text-lg text-slate-800">分类维度管理</h1>
+        </div>
+        <div class="flex gap-3">
+            <span id="connection-status" class="text-xs text-slate-400 self-center">Connecting...</span>
+            <button onclick="exportJSON()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">导出 JSON</button>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar: Tree View -->
+        <div class="w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="font-bold text-slate-700">目录结构</h2>
+                <button onclick="addRootSubject()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition flex items-center gap-1">
+                    <span>+</span> 新增科目
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4" id="tree-container">
+                <!-- Tree Rendered Here -->
+            </div>
+        </div>
+
+        <!-- Main Area: Node Editor -->
+        <div class="flex-1 bg-slate-50 p-8 overflow-y-auto flex justify-center">
+            
+            <div id="editor-empty" class="text-center text-slate-400 mt-20">
+                <div class="text-6xl mb-4">👈</div>
+                <p>请在左侧选择一个节点进行编辑，或添加新科目</p>
+            </div>
+
+            <div id="editor-form" class="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-slate-200 p-8 hidden h-fit">
+                
+                <div class="flex justify-between items-start mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800" id="form-title">编辑节点</h2>
+                        <p class="text-sm text-slate-500 mt-1">ID: <span id="form-id" class="font-mono text-xs bg-slate-100 px-1 rounded">--</span></p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="deleteNode()" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded border border-transparent hover:border-red-200 text-sm transition">删除</button>
+                        <button onclick="saveNode()" class="px-4 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 shadow-sm text-sm transition">保存修改</button>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    
+                    <!-- Basic Info -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">节点名称</label>
+                            <input type="text" id="inp-name" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="例如：一年级上册">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">节点类型</label>
+                            <select id="inp-type" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 text-slate-500 outline-none" disabled>
+                                <option value="subject">科目 (Subject)</option>
+                                <option value="grade">年级 (Grade)</option>
+                                <option value="semester">学期 (Semester)</option>
+                                <option value="unit">单元 (Unit)</option>
+                                <option value="course">课程 (Course)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">排序权重 (Order)</label>
+                        <input type="number" id="inp-order" class="w-32 border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1">
+                        <p class="text-xs text-slate-400 mt-1">数字越小越靠前</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">描述/备注</label>
+                        <textarea id="inp-desc" rows="3" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="可选备注信息..."></textarea>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100">
+                        <h3 class="font-medium text-slate-800 mb-4">子节点管理</h3>
+                        <div class="bg-indigo-50 rounded-lg p-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-indigo-900 font-medium" id="child-prompt">下级节点类型：年级</p>
+                                <p class="text-xs text-indigo-600 mt-0.5">在此节点下创建新的子项</p>
+                            </div>
+                            <button onclick="addChildNode()" class="px-3 py-1.5 bg-white text-indigo-600 border border-indigo-200 rounded text-sm font-medium hover:bg-indigo-100 transition shadow-sm">
+                                + 添加子节点
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let metadata = []; // Loaded from DB
+        let app, db;
+        
+        let selectedNodeId = null;
+
+        // Type Hierarchy Map
+        const TYPE_HIERARCHY = {
+            'subject': { next: 'grade', label: '年级' },
+            'grade': { next: 'semester', label: '学期' },
+            'semester': { next: 'unit', label: '单元' },
+            'unit': { next: 'course', label: '课程' },
+            'course': { next: null, label: null }
+        };
+
+        const TYPE_LABELS = {
+            'subject': '科目', 'grade': '年级', 'semester': '学期', 'unit': '单元', 'course': '课程'
+        };
+
+        // --- Core Functions ---
+
+        async function init() {
+            try {
+                if (!window.cloudbase) {
+                    throw new Error('CloudBase SDK not loaded');
+                }
+                
+                app = cloudbase.init({
+                    env: CONFIG.ENV_ID
+                });
+                
+                const auth = app.auth();
+                const loginState = await auth.getLoginState();
+                
+                if (!loginState) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                
+                db = app.database();
+                document.getElementById('connection-status').innerText = '✅ CloudBase Connected';
+                document.getElementById('connection-status').classList.remove('text-slate-400');
+                document.getElementById('connection-status').classList.add('text-green-600');
+                
+                await loadData();
+            } catch (e) {
+                console.error('Init failed', e);
+                document.getElementById('connection-status').innerText = '❌ Connection Failed';
+                document.getElementById('connection-status').classList.add('text-red-500');
+                alert('数据库连接失败: ' + e.message);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const res = await db.collection('k_metadata')
+                    .limit(1000)
+                    .get();
+                
+                metadata = res.data;
+                renderTree();
+            } catch (e) {
+                console.error('Load data failed', e);
+                alert('数据加载失败: ' + e.message);
+            }
+        }
+
+        // Convert flat list to tree
+        function buildTree(items, parentId = null) {
+            return items
+                .filter(item => item.parent_id === parentId)
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map(item => ({
+                    ...item,
+                    children: buildTree(items, item._id)
+                }));
+        }
+
+        function renderTree() {
+            const treeRoot = document.getElementById('tree-container');
+            const treeData = buildTree(metadata);
+            treeRoot.innerHTML = generateTreeHTML(treeData);
+        }
+
+        function generateTreeHTML(nodes, level = 0) {
+            if (!nodes || nodes.length === 0) return '';
+            
+            let html = `<div class="${level > 0 ? 'tree-node' : ''}">`;
+            
+            nodes.forEach(node => {
+                const hasChildren = node.children && node.children.length > 0;
+                const isSelected = node._id === selectedNodeId;
+                
+                html += `
+                    <div>
+                        <div class="tree-item ${isSelected ? 'active' : ''}" onclick="selectNode('${node._id}')">
+                            <span class="tree-toggle ${hasChildren ? '' : 'invisible'}">▼</span>
+                            <span class="node-type-badge badge-${node.type}">${TYPE_LABELS[node.type] || node.type}</span>
+                            <span class="truncate flex-1">${node.name}</span>
+                        </div>
+                        ${generateTreeHTML(node.children, level + 1)}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function selectNode(id) {
+            selectedNodeId = id;
+            renderTree(); // Re-render to update active state
+            
+            const node = metadata.find(m => m._id === id);
+            if (node) {
+                showEditor(node);
+            }
+        }
+
+        function showEditor(node) {
+            document.getElementById('editor-empty').classList.add('hidden');
+            document.getElementById('editor-form').classList.remove('hidden');
+
+            // Populate Form
+            document.getElementById('form-id').innerText = node._id;
+            document.getElementById('inp-name').value = node.name || '';
+            document.getElementById('inp-type').value = node.type;
+            document.getElementById('inp-order').value = node.order || 1;
+            document.getElementById('inp-desc').value = node.description || '';
+
+            // Update Child Prompt
+            const nextTypeInfo = TYPE_HIERARCHY[node.type];
+            const childSection = document.getElementById('child-prompt').parentElement.parentElement;
+            
+            if (nextTypeInfo && nextTypeInfo.next) {
+                childSection.classList.remove('hidden');
+                document.getElementById('child-prompt').innerText = `下级节点类型：${nextTypeInfo.label} (${nextTypeInfo.next})`;
+            } else {
+                childSection.classList.add('hidden');
+            }
+        }
+
+        async function saveNode() {
+            if (!selectedNodeId) return;
+            
+            const node = metadata.find(m => m._id === selectedNodeId);
+            if (node) {
+                const newName = document.getElementById('inp-name').value;
+                const newOrder = parseInt(document.getElementById('inp-order').value) || 0;
+                const newDesc = document.getElementById('inp-desc').value;
+
+                // Optimistic UI update
+                node.name = newName;
+                node.order = newOrder;
+                node.description = newDesc;
+                renderTree();
+
+                // DB Update
+                try {
+                    await db.collection('k_metadata').doc(selectedNodeId).update({
+                        name: newName,
+                        order: newOrder,
+                        description: newDesc
+                    });
+                    // alert('已保存'); // Optional: remove alert for smoother UX
+                } catch (e) {
+                    alert('保存失败: ' + e.message);
+                    console.error(e);
+                    // Revert? (Complex for MVP)
+                }
+            }
+        }
+
+        async function addRootSubject() {
+            // Use CloudBase generated ID logic usually, but here we might want custom ID logic or let DB generate
+            // Ideally let DB generate _id, or use uuid. CloudBase 'add' returns id.
+            
+            const newNode = {
+                // _id will be assigned by DB or we can pre-generate
+                parent_id: null,
+                type: 'subject',
+                name: '新科目',
+                order: 99
+            };
+
+            try {
+                const res = await db.collection('k_metadata').add(newNode);
+                newNode._id = res.id; // Assign real ID
+                metadata.push(newNode);
+                selectNode(res.id);
+            } catch (e) {
+                alert('创建失败: ' + e.message);
+            }
+        }
+
+        async function addChildNode() {
+            if (!selectedNodeId) return;
+            const parent = metadata.find(m => m._id === selectedNodeId);
+            if (!parent) return;
+
+            const nextType = TYPE_HIERARCHY[parent.type]?.next;
+            if (!nextType) return;
+
+            const newNode = {
+                parent_id: parent._id,
+                type: nextType,
+                name: `新${TYPE_LABELS[nextType]}`,
+                order: 99
+            };
+            
+            try {
+                const res = await db.collection('k_metadata').add(newNode);
+                newNode._id = res.id;
+                metadata.push(newNode);
+                selectNode(res.id);
+            } catch (e) {
+                alert('创建失败: ' + e.message);
+            }
+        }
+
+        async function deleteNode() {
+            if (!selectedNodeId) return;
+            
+            if (!confirm('确定要删除此节点及其所有子节点吗？此操作不可恢复！')) return;
+
+            // Recursive delete IDs
+            const idsToDelete = getAllDescendantIds(selectedNodeId);
+            idsToDelete.push(selectedNodeId);
+
+            // Optimistic UI
+            metadata = metadata.filter(m => !idsToDelete.includes(m._id));
+            selectedNodeId = null;
+            document.getElementById('editor-empty').classList.remove('hidden');
+            document.getElementById('editor-form').classList.add('hidden');
+            renderTree();
+
+            // DB Delete (Batch or Loop)
+            // CloudBase doesn't support bulk delete by array of IDs easily in client SDK without 'where' + 'in' command
+            // We can loop for MVP
+            const _ = db.command;
+            try {
+                // Using where().remove() is efficient
+                await db.collection('k_metadata').where({
+                    _id: _.in(idsToDelete)
+                }).remove();
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+                // Reload data to ensure consistency
+                await loadData();
+            }
+        }
+
+        function getAllDescendantIds(parentId) {
+            const children = metadata.filter(m => m.parent_id === parentId);
+            let ids = children.map(c => c._id);
+            children.forEach(c => {
+                ids = ids.concat(getAllDescendantIds(c._id));
+            });
+            return ids;
+        }
+
+        function exportJSON() {
+            console.log(JSON.stringify(metadata, null, 2));
+            alert('JSON 已输出到控制台');
+        }
+
+        // Initialize
+        init();
+
+    </script>
+</body>
+</html>

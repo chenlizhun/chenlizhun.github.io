@@ -1405,6 +1405,9 @@ window.openPoster = (familyId) => {
     }
 
     if (family) {
+        // Ensure kids array exists to prevent crashes
+        if (!family.kids) family.kids = [];
+        
         state.posterFamily = family;
         state.showPoster = true;
         const qp = new URLSearchParams(window.location.search);
@@ -1454,6 +1457,9 @@ async function updatePosterHistory() {
     
     const familyId = state.posterFamily._id;
     const kids = state.posterFamily.kids;
+    
+    if (!kids || kids.length === 0) return;
+
     let changed = false;
     
     for (const kid of kids) {
@@ -1474,8 +1480,255 @@ async function updatePosterHistory() {
     }
     
     if (changed) {
+        updatePosterContentOnly();
+    }
+}
+
+function renderPosterViz(kid, series) {
+    const icons = getSeriesIconsDecomposed(kid.current_points, series);
+    const icons1 = icons.filter(i => i.val === 1);
+    const icons10 = icons.filter(i => i.val === 10);
+    const icons100 = icons.filter(i => i.val === 100);
+    const icons1000 = icons.filter(i => i.val === 1000);
+
+    return `
+        <div class="poster-viz-content origin-top-left w-full space-y-2">
+        <!-- Row 1000s -->
+        ${icons1000.length > 0 ? `
+        <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
+            <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
+            <div class="flex-1 flex flex-wrap gap-2">
+                ${icons1000.map(i => `<span class="text-4xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
+            </div>
+        </div>` : ''}
+
+        <!-- Row 100s -->
+        ${icons100.length > 0 || icons1000.length > 0 ? `
+        <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
+            <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
+            <div class="flex-1 flex flex-wrap gap-2">
+                ${icons100.map(i => `<span class="text-3xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
+            </div>
+        </div>` : ''}
+
+        <!-- Row 10s -->
+        ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
+        <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
+            <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
+            <div class="flex-1 flex flex-wrap gap-2">
+                ${icons10.map(i => `<span class="text-2xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
+            </div>
+        </div>` : ''}
+
+        <!-- Row 1s -->
+        <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition min-h-[4rem]">
+            <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
+            <div class="flex-1 flex flex-wrap gap-2 items-center">
+                ${icons1.map(i => `<span class="text-xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
+                ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting...</span>' : ''}
+            </div>
+        </div>
+    </div>`;
+}
+
+window.showPosterHistoryModal = async (kidId) => {
+    const kid = state.posterFamily.kids.find(k => k._id === kidId);
+    if (!kid) return;
+
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    state.posterModal = {
+        visible: true,
+        loading: true,
+        kidId: kidId,
+        kidName: kid.name,
+        selectedDate: dateStr,
+        logs: []
+    };
+    render();
+
+    try {
+        // Fetch 2 pages to cover 3 days
+        const [res1, res2] = await Promise.all([
+            DataStore.getHistory(kidId, 1, state.posterFamily._id),
+            DataStore.getHistory(kidId, 2, state.posterFamily._id)
+        ]);
+        
+        let allLogs = [];
+        if (res1.success && res1.data && res1.data.logs) {
+            allLogs = allLogs.concat(res1.data.logs);
+        }
+        if (res2.success && res2.data && res2.data.logs) {
+            allLogs = allLogs.concat(res2.data.logs);
+        }
+        
+        state.posterModal.logs = allLogs;
+
+    } catch (e) {
+        console.error('Failed to load history', e);
+        if(window.Toast) Toast.error('加载失败');
+    } finally {
+        state.posterModal.loading = false;
         render();
     }
+};
+
+window.switchPosterHistoryDate = (dateStr) => {
+    if (state.posterModal) {
+        state.posterModal.selectedDate = dateStr;
+        render();
+    }
+};
+
+window.closePosterHistoryModal = () => {
+    state.posterModal = { visible: false };
+    render();
+};
+
+function renderPosterHistoryModal() {
+    if (!state.posterModal || !state.posterModal.visible) return '';
+    const { kidName, logs, loading, selectedDate } = state.posterModal;
+    
+    // Calculate last 3 days
+    const dates = [];
+    for (let i = 0; i < 3; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        
+        let label = '今天';
+        if (i === 1) label = '昨天';
+        if (i === 2) label = '前天';
+        
+        dates.push({ dateStr, label, fullDate: `${mm}/${dd}` });
+    }
+
+    const filteredLogs = logs.filter(log => {
+        const logDate = new Date(log.timestamp);
+        const logDateStr = logDate.toISOString().split('T')[0];
+        // Handle timezone offset if needed, but ISO string split is UTC.
+        // Better to use local date string for comparison
+        const localLogDate = new Date(log.timestamp).toLocaleDateString('zh-CN', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+        // Actually, simple comparison might fail due to timezone.
+        // Let's use simple Day comparison
+        const targetDate = new Date(selectedDate);
+        const currentLogDate = new Date(log.timestamp);
+        return targetDate.getDate() === currentLogDate.getDate() && 
+               targetDate.getMonth() === currentLogDate.getMonth() && 
+               targetDate.getFullYear() === currentLogDate.getFullYear();
+    });
+
+    return `
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in" onclick="closePosterHistoryModal()">
+            <div class="bg-slate-900 border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh] animate-scale-in" onclick="event.stopPropagation()">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <h3 class="text-2xl font-bold text-white"><span class="text-yellow-400">${kidName}</span> 的动态</h3>
+                    <button onclick="closePosterHistoryModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition">✕</button>
+                </div>
+                
+                <!-- Date Tabs -->
+                <div class="flex p-2 gap-2 bg-black/20">
+                    ${dates.map(d => {
+                        const isActive = d.dateStr === selectedDate;
+                        return `
+                            <button onclick="switchPosterHistoryDate('${d.dateStr}')" 
+                                class="flex-1 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-yellow-500 text-black shadow-lg' : 'bg-white/5 text-white/50 hover:bg-white/10'}">
+                                <div>${d.label}</div>
+                                <div class="text-xs opacity-60">${d.fullDate}</div>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="overflow-y-auto p-6 custom-scrollbar flex-1 min-h-0">
+                    ${loading ? `<div class="flex flex-col items-center justify-center py-8 text-white/50"><div class="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-4"></div><div>正在加载...</div></div>` : 
+                      filteredLogs.length === 0 ? `<div class="text-center py-12 flex flex-col items-center text-white/30"><div class="text-4xl mb-2">🍃</div><div>该日暂无记录</div></div>` : 
+                      `<div class="space-y-3">
+                        ${filteredLogs.map(log => {
+                            const timeStr = new Date(log.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                            return `<div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition group">
+                                <div class="flex flex-col gap-1">
+                                    <div class="text-base font-medium text-white group-hover:text-yellow-200 transition-colors">${log.reason || '未填写'}</div>
+                                    <div class="text-xs text-white/40 font-mono">${timeStr}</div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-xl font-mono font-bold tabular-nums ${log.delta > 0 ? 'text-green-400' : 'text-red-400'}">${log.delta > 0 ? '+' : ''}${log.delta}</div>
+                                    <div class="text-[10px] text-white/30">${log.operator_name || 'System'}</div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                      </div>`}
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderPosterHistory(kid) {
+    if (!state.posterHistory[kid._id]) return '';
+    return `
+    <div class="mt-4 pt-4 border-t border-white/10">
+        <div class="flex justify-between items-center cursor-pointer hover:bg-white/5 rounded p-2 -m-2 transition group/history" onclick="showPosterHistoryModal('${kid._id}')">
+            <div class="flex flex-col">
+                <span class="text-xs text-white/50 uppercase tracking-wider mb-1 group-hover/history:text-yellow-400 transition-colors">Latest ⧉</span>
+                <span class="text-sm font-medium text-white line-clamp-1">${state.posterHistory[kid._id].reason || 'No reason'}</span>
+            </div>
+            <div class="text-right">
+                <div class="text-xl font-bold font-mono tabular-nums ${state.posterHistory[kid._id].delta >= 0 ? 'text-green-400' : 'text-red-400'}">
+                    ${state.posterHistory[kid._id].delta > 0 ? '+' : ''}${state.posterHistory[kid._id].delta}
+                </div>
+                <div class="text-[10px] text-white/30">${formatDate(state.posterHistory[kid._id].timestamp)}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function updatePosterContentOnly() {
+    let family = state.posterFamily;
+    if (!family || !document.getElementById('poster-content')) return;
+    
+    // Sync logic from renderPosterView
+    if (state.family && state.family._id === family._id) {
+        family = { ...state.family, kids: state.kids };
+    }
+    const seriesId = family.display_series || 3;
+    const series = SERIES_CONFIG[seriesId] || SERIES_CONFIG[3];
+
+    const kidsNormalized = Array.isArray(family.kids)
+        ? family.kids.flatMap(k => Array.isArray(k) ? k : [k]).filter(k => k && typeof k === 'object')
+        : [];
+        
+    kidsNormalized.forEach((kid, idx) => {
+        const kidId = kid && kid._id ? kid._id : `idx-${idx}`;
+        
+        // 1. Update Score
+        const scoreEl = document.getElementById(`poster-score-${kidId}`);
+        if (scoreEl && scoreEl.innerText != kid.current_points) {
+            scoreEl.innerText = kid.current_points;
+        }
+        
+        // 2. Update Viz
+        const vizEl = document.getElementById(`poster-viz-${kidId}`);
+        if (vizEl) {
+            const newVizHtml = renderPosterViz(kid, series);
+            // Differential update to avoid flicker (remove whitespace for loose comparison)
+            if (vizEl.innerHTML.replace(/\s/g, '') !== newVizHtml.replace(/\s/g, '')) {
+                vizEl.innerHTML = newVizHtml;
+            }
+        }
+        
+        // 3. Update History
+        const historyEl = document.getElementById(`poster-history-${kidId}`);
+        if (historyEl) {
+            const newHistoryHtml = renderPosterHistory(kid);
+             if (historyEl.innerHTML.replace(/\s/g, '') !== newHistoryHtml.replace(/\s/g, '')) {
+                historyEl.innerHTML = newHistoryHtml;
+            }
+        }
+    });
 }
 
 function renderPosterView() {
@@ -1519,12 +1772,8 @@ function renderPosterView() {
 
                 <!-- Kids Grid -->
                 <div id="poster-kids-grid" class="flex-1 min-h-0 content-stretch items-stretch" style="${window.innerWidth >= 768 ? 'display:flex; gap:16px; align-items:stretch' : 'display:grid; gap:16px; grid-template-columns: repeat(' + Math.max(1, Math.min(kidsNormalized.length, 3)) + ', minmax(0, 1fr))'};">
+                    ${kidsNormalized.length === 0 ? '<div class="w-full h-full flex flex-col items-center justify-center text-white/50 animate-pulse"><div class="text-2xl font-bold mb-2">正在加载数据...</div><div class="text-sm">如长时间未显示，请尝试刷新页面</div></div>' : ''}
                     ${kidsNormalized.map((kid, idx) => {
-                        const icons = getSeriesIconsDecomposed(kid.current_points, series);
-                        const icons1 = icons.filter(i => i.val === 1);
-                        const icons10 = icons.filter(i => i.val === 10);
-                        const icons100 = icons.filter(i => i.val === 100);
-                        const icons1000 = icons.filter(i => i.val === 1000);
                         const kidId = kid && kid._id ? kid._id : `idx-${idx}`;
                         const wideStyle = (window.innerWidth >= 768)
                             ? (kidsNormalized.length === 2 ? 'flex:0 0 calc(50% - 8px)' : 'flex:1 0 0')
@@ -1541,7 +1790,7 @@ function renderPosterView() {
                                     ${kid.name}
                                 </div>
                                 <div class="flex items-baseline justify-center gap-3 w-full flex-wrap">
-                                    <span id="poster-score-${kidId}" style="font-size: clamp(4rem, ${Math.floor(120 / Math.max(1.5, String(kid.current_points).length))}cqw, 40rem); line-height: 0.9;" class="font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)]">
+                                    <span id="poster-score-${kidId}" style="font-size: clamp(3rem, ${Math.floor(80 / Math.max(1.5, String(kid.current_points).length))}cqw, 12rem); line-height: 0.9;" class="font-bold text-yellow-400 font-mono tracking-tighter drop-shadow-[0_4px_10px_rgba(250,204,21,0.3)] tabular-nums">
                                         ${kid.current_points}
                                     </span>
                                     <span class="text-xl text-white/40 font-medium uppercase tracking-[0.2em] mb-4">Points</span>
@@ -1550,63 +1799,12 @@ function renderPosterView() {
 
                             <!-- Visualization Section -->
                             <div id="poster-viz-${kidId}" class="relative flex-1 min-h-0 overflow-hidden flex flex-col">
-                                <div class="poster-viz-content origin-top-left w-full space-y-2">
-                                <!-- Row 1000s -->
-                                ${icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
-                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1k</div>
-                                    <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons1000.map(i => `<span class="text-4xl md:text-6xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1000">${i.char}</span>`).join('')}
-                                    </div>
-                                </div>` : ''}
-
-                                <!-- Row 100s -->
-                                ${icons100.length > 0 || icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
-                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">100</div>
-                                    <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons100.map(i => `<span class="text-3xl md:text-5xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="100">${i.char}</span>`).join('')}
-                                    </div>
-                                </div>` : ''}
-
-                                <!-- Row 10s -->
-                                ${icons10.length > 0 || icons100.length > 0 || icons1000.length > 0 ? `
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition">
-                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">10</div>
-                                    <div class="flex-1 flex flex-wrap gap-2">
-                                        ${icons10.map(i => `<span class="text-2xl md:text-4xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="10">${i.char}</span>`).join('')}
-                                    </div>
-                                </div>` : ''}
-
-                                <!-- Row 1s -->
-                                <div class="flex items-center gap-4 bg-black/20 rounded-2xl p-3 border border-white/5 hover:bg-black/30 transition min-h-[4rem]">
-                                    <div class="w-12 text-center text-xs text-white/30 font-bold uppercase tracking-wider font-mono">1</div>
-                                    <div class="flex-1 flex flex-wrap gap-2 items-center">
-                                        ${icons1.map(i => `<span class="text-xl md:text-3xl drop-shadow-lg filter hover:brightness-125 transition cursor-default transform hover:scale-110 duration-200" title="1">${i.char}</span>`).join('')}
-                                        ${icons1.length === 0 ? '<span class="text-white/10 text-sm italic pl-2">waiting...</span>' : ''}
-                                    </div>
-                                </div>
-                            </div>
+                                ${renderPosterViz(kid, series)}
                             </div>
                             
                             <!-- History Log -->
                             <div id="poster-history-${kidId}" class="flex-shrink-0">
-                                ${state.posterHistory[kid._id] ? `
-                                <div class="mt-4 pt-4 border-t border-white/10">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex flex-col">
-                                            <span class="text-xs text-white/50 uppercase tracking-wider mb-1">Latest</span>
-                                            <span class="text-sm font-medium text-white line-clamp-1">${state.posterHistory[kid._id].reason || 'No reason'}</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-xl font-bold font-mono ${state.posterHistory[kid._id].delta >= 0 ? 'text-green-400' : 'text-red-400'}">
-                                                ${state.posterHistory[kid._id].delta > 0 ? '+' : ''}${state.posterHistory[kid._id].delta}
-                                            </div>
-                                            <div class="text-[10px] text-white/30">${formatDate(state.posterHistory[kid._id].timestamp)}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                ` : ''}
+                                ${renderPosterHistory(kid)}
                             </div>
                         </div>
                         `;
@@ -1621,6 +1819,7 @@ function renderPosterView() {
                 </div>
             </div>
         </div>
+        ${renderPosterHistoryModal()}
     `;
 }
 
@@ -2159,6 +2358,9 @@ const initApp = async () => {
                 if (state.posterPaused) return;
                 if (state.showPoster && state.posterFamily && state.posterFamily._id === event.familyId) {
                     console.log('Updating poster view with new data', event.kids);
+                    
+                    const oldKidsCount = (state.posterFamily.kids || []).length;
+                    
                     // Update the posterFamily object with new kids data
                     state.posterFamily = {
                         ...state.posterFamily,
@@ -2169,7 +2371,17 @@ const initApp = async () => {
                         state.kids = event.kids;
                     }
                     
-                    render();
+                    const newKidsCount = (event.kids || []).length;
+
+                    // If kids count changed (especially from 0 to N), we MUST full render
+                    // to ensure DOM elements are created.
+                    if (oldKidsCount !== newKidsCount) {
+                        render();
+                        // Also trigger history update immediately since we have new kids
+                        setTimeout(() => updatePosterHistory(), 500);
+                    } else {
+                        updatePosterContentOnly();
+                    }
                 }
                 return;
             }

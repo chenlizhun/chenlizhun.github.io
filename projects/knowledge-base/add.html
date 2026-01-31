@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加知识点 / JSON 批量导入 - KnowledgeBase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <!-- Simple Markdown Editor (EasyMDE) for Rich Text Simulation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f8fafc; }
+        .tab-btn { @apply px-4 py-2 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-indigo-600 transition; }
+        .tab-btn.active { @apply text-indigo-600 border-indigo-600; }
+        .form-label { @apply block text-sm font-medium text-slate-700 mb-1; }
+        .form-select { @apply w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none; }
+        .form-input { @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-8 shadow-sm flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="bg-indigo-100 text-indigo-600 p-2 rounded-lg hover:bg-indigo-200 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <h1 class="font-bold text-lg text-slate-800">AI 智能导入</h1>
+        </div>
+    </nav>
+
+    <!-- 手动录入已隐藏，仅保留 JSON 批量导入 -->
+    <div id="mode-manual" class="hidden" aria-hidden="true"></div>
+
+    <!-- 主内容：AI 智能导入（JSON 批量导入） -->
+    <div id="mode-ai" class="flex-1 max-w-7xl mx-auto w-full p-4 lg:px-8 space-y-6">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">📋 AI 智能导入</h2>
+                    <p class="text-sm text-slate-500 mt-1">将 AI（如 ChatGPT/Claude）生成的 JSON 粘贴到下方，或点击「复制 JSON 模板」填入后解析并导入。格式见 <a href="design.md" class="text-indigo-600 hover:underline" target="_blank" rel="noopener">design.md 批量导入结构</a>。</p>
+                </div>
+                <button onclick="copyTemplate()" class="text-sm text-indigo-600 font-medium hover:bg-indigo-50 px-3 py-1.5 rounded transition border border-indigo-200 whitespace-nowrap">
+                    📋 复制 JSON 模板
+                </button>
+            </div>
+
+            <!-- 本批导入的归属维度（用户选择，导入时统一写入） -->
+            <div class="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-700 mb-3">归属维度（本批导入统一使用以下选择，可覆盖 JSON 内的 dimensions）</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="form-label text-xs">科目</label>
+                        <select id="batch-subject" class="form-select text-sm">
+                            <option value="">不指定</option>
+                            <option value="数学">数学</option>
+                            <option value="语文">语文</option>
+                            <option value="英语">英语</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label text-xs">年级</label>
+                        <select id="batch-grade" class="form-select text-sm">
+                            <option value="">不指定</option>
+                            <option value="一年级">一年级</option>
+                            <option value="二年级">二年级</option>
+                            <option value="三年级">三年级</option>
+                            <option value="四年级">四年级</option>
+                            <option value="五年级">五年级</option>
+                            <option value="六年级">六年级</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">课程</label>
+                        <select class="form-select" disabled>
+                            <option>请先选择年级</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">单元</label>
+                        <select class="form-select" disabled>
+                            <option>请先选择课程</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <textarea id="ai-input" class="w-full h-64 bg-slate-800 text-green-400 font-mono text-sm p-4 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="// 在此粘贴 JSON 数组，每项含 title、summary、content、questions 等；dimensions 可由上方选择统一写入..."></textarea>
+            
+            <div class="mt-4 flex justify-end">
+                <button onclick="parseAIJson()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700 transition">
+                    🔍 解析并预览
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div id="ai-preview" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <span>👀</span> 解析结果预览 <span id="preview-count" class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full">0</span>
+                </h3>
+                <button onclick="importAIItems()" class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition">
+                    🚀 确认导入
+                </button>
+            </div>
+            
+            <div id="preview-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Cards injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Init Markdown Editor
+        const easyMDE = new EasyMDE({ 
+            element: document.getElementById('markdown-editor'),
+            spellChecker: false,
+            placeholder: "在此输入知识点内容...",
+            status: false,
+            minHeight: "400px"
+        });
+
+        // Tab Switching
+        function switchEditor(mode) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('editor-rich').classList.add('hidden');
+            document.getElementById('editor-json').classList.add('hidden');
+            document.getElementById('editor-file').classList.add('hidden');
+
+            document.getElementById(`editor-${mode}`).classList.remove('hidden');
+        }
+
+        // --- CloudBase Init ---
+        let app, db;
+        async function initDB() {
+            try {
+                if (!window.cloudbase) return;
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                const auth = app.auth();
+                if (!await auth.getLoginState()) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                db = app.database();
+                console.log('CloudBase connected');
+            } catch (e) {
+                console.error('Init error', e);
+            }
+        }
+        initDB();
+
+        // --- URL: ?mode=import 时默认打开 JSON 批量导入 ---
+        function applyImportModeFromUrl() {
+            if (new URLSearchParams(location.search).get('mode') === 'import') {
+                switchMode('ai');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', applyImportModeFromUrl);
+        if (document.readyState !== 'loading') applyImportModeFromUrl();
+
+        // --- AI Import Logic ---
+        
+        let parsedItems = [];
+
+        function switchMode(mode) {
+            document.getElementById('mode-manual').classList.add('hidden');
+            document.getElementById('mode-ai').classList.add('hidden');
+            document.getElementById('btn-mode-manual').className = 'mode-btn px-6 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-indigo-600 transition';
+            document.getElementById('btn-mode-ai').className = 'mode-btn px-6 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-indigo-600 transition';
+            
+            document.getElementById(`mode-${mode}`).classList.remove('hidden');
+            document.getElementById(`btn-mode-${mode}`).className = 'mode-btn px-6 py-2 rounded-lg text-sm font-bold bg-white text-indigo-600 shadow-sm transition';
+        }
+
+        const AI_TEMPLATE = [
+            {
+                "title": "示例：10以内加法",
+                "summary": "掌握10以内的基本加法运算",
+                "keywords": ["数学", "加法", "一年级"],
+                "difficulty": 1,
+                "content": {
+                    "type": "markdown",
+                    "body": "# 知识点详解\n\n这里是**Markdown**格式的内容..."
+                },
+                "dimensions": {
+                    "subject": "数学",
+                    "grade": "一年级",
+                    "course": "上册",
+                    "unit": "第一单元"
+                },
+                "questions": [
+                    {
+                        "type": "choice",
+                        "content": "1 + 1 = ?",
+                        "options": ["1", "2", "3", "4"],
+                        "answer": "B",
+                        "difficulty": 1
+                    }
+                ]
+            }
+        ];
+
+        function copyTemplate() {
+            const jsonStr = JSON.stringify(AI_TEMPLATE, null, 2);
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                alert('模板已复制到剪贴板');
+            });
+            document.getElementById('ai-input').value = jsonStr; // Also fill textarea for convenience
+        }
+
+        function parseAIJson() {
+            const input = document.getElementById('ai-input').value;
+            try {
+                parsedItems = JSON.parse(input);
+                if (!Array.isArray(parsedItems)) {
+                    parsedItems = [parsedItems];
+                }
+                renderPreview();
+            } catch (e) {
+                alert('JSON 解析失败: ' + e.message);
+            }
+        }
+
+        function renderPreview() {
+            const grid = document.getElementById('preview-grid');
+            grid.innerHTML = '';
+            document.getElementById('preview-count').innerText = parsedItems.length;
+            document.getElementById('ai-preview').classList.remove('hidden');
+
+            parsedItems.forEach((item, index) => {
+                const qCount = item.questions ? item.questions.length : 0;
+                const dimStr = item.dimensions ? Object.values(item.dimensions).join(' > ') : '未指定维度';
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-slate-800 truncate flex-1" title="${item.title}">${item.title || '无标题'}</h4>
+                        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded">#${index + 1}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-2 truncate">${dimStr}</p>
+                    <div class="flex gap-2 text-xs">
+                        <span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded">难度: ${item.difficulty || 1}</span>
+                        <span class="bg-green-50 text-green-600 px-2 py-1 rounded">题目: ${qCount}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function importAIItems() {
+            if (!db) {
+                alert('数据库未连接');
+                return;
+            }
+            if (parsedItems.length === 0) return;
+
+            if (!confirm(`确定导入 ${parsedItems.length} 条数据吗？`)) return;
+
+            let successCount = 0;
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = '导入中...';
+            btn.disabled = true;
+
+            try {
+                for (const item of parsedItems) {
+                    // Normalize dimensions: semester -> course
+                    if (item.dimensions && item.dimensions.semester && !item.dimensions.course) {
+                        item.dimensions.course = item.dimensions.semester;
+                        delete item.dimensions.semester;
+                    }
+
+                    // 1. Prepare KP Data
+                    // Note: Ideally we should resolve dimension strings to IDs here.
+                    // For MVP, we save strings if IDs are missing, or logic handles it later.
+                    // Assuming AI provides valid structure or we accept loose structure.
+                    
+                    const kpData = {
+                        ...item,
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                        status: 'published'
+                    };
+                    
+                    // Separate questions
+                    const questions = kpData.questions || [];
+                    delete kpData.questions;
+
+                    // 2. Add KP
+                    const res = await db.collection('k_knowledge_points').add(kpData);
+                    const kpId = res.id;
+
+                    // 3. Add Questions
+                    if (questions.length > 0) {
+                        for (const q of questions) {
+                            q.related_kp_ids = [kpId];
+                            q.created_at = new Date();
+                            await db.collection('k_questions').add(q);
+                        }
+                    }
+                    successCount++;
+                }
+                alert(`成功导入 ${successCount} 条数据！`);
+                document.getElementById('ai-input').value = '';
+                document.getElementById('ai-preview').classList.add('hidden');
+            } catch (e) {
+                console.error(e);
+                alert('导入部分失败: ' + e.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // 若从首页「JSON 批量导入」进入（?mode=import），默认显示导入页
+        applyImportModeFromUrl();
+    </script>
+</body>
+</html>

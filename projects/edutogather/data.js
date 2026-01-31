@@ -24,6 +24,11 @@ const DataStore = (() => {
             console.log('Initializing CloudBase with env:', env);
             app = cloudbase.init({ env });
             auth = app.auth();
+            
+            // Init Analytics
+            if (window.Analytics) {
+                window.Analytics.init(app);
+            }
 
             // Check for shared session from EdutogatherHome/AuthSDK
             const sharedSessionJson = localStorage.getItem(STORAGE_KEY);
@@ -334,30 +339,57 @@ const DataStore = (() => {
         async updatePoints(kidId, delta, reason, operator) {
             if (!_currentFamily) return;
             
-            // Optimistic update
+            // 1. Optimistic update (Immediate UI feedback)
             const kid = _kids.find(k => k._id === kidId);
             if (kid) {
                 kid.current_points += delta;
                 notifyChange();
             }
 
-            const res = await callApi('update_points', {
-                familyId: _currentFamily._id,
-                kidId,
-                delta,
-                reason,
-                operatorName: operator
-            });
-            
-            if (!res.success) {
-                if (window.Toast) {
-                    window.Toast.error('Failed to update points: ' + res.message);
-                } else {
-                    alert('Failed to update points: ' + res.message);
-                }
-                // Rollback logic could go here
-                await refreshFamilyData(); // Re-sync to be safe
+            // 2. Debounced API Call (Batch continuous clicks)
+            const key = `${kidId}|${reason}|${operator}`;
+            const DEBOUNCE_MS = 800;
+
+            // Clear existing timer if any
+            if (_pendingUpdates[key]) {
+                clearTimeout(_pendingUpdates[key].timer);
+                _pendingUpdates[key].delta += delta;
+            } else {
+                _pendingUpdates[key] = {
+                    delta: delta,
+                    timer: null
+                };
             }
+
+            // Set new timer
+            _pendingUpdates[key].timer = setTimeout(async () => {
+                const finalDelta = _pendingUpdates[key].delta;
+                delete _pendingUpdates[key]; // Remove from buffer
+
+                if (finalDelta === 0) return; // Nothing to do
+
+                try {
+                    console.log(`[DataStore] Committing batched update: ${finalDelta} points for ${kidId}`);
+                    const res = await callApi('update_points', {
+                        familyId: _currentFamily._id,
+                        kidId,
+                        delta: finalDelta,
+                        reason,
+                        operatorName: operator
+                    });
+                    
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                } catch (e) {
+                    console.error('Failed to update points', e);
+                    if (window.Toast) {
+                        window.Toast.error('同步积分失败: ' + (e.message || 'Unknown error'));
+                    }
+                    // Rollback/Re-sync
+                    await refreshFamilyData();
+                }
+            }, DEBOUNCE_MS);
         },
         // Getters
         getData() {
@@ -398,16 +430,20 @@ const DataStore = (() => {
             this.stopPolling();
             
             const fetchFn = async () => {
-                // Fetch latest family data
-                const res = await callApi('get_family_data', { familyId });
-                if (res.success && res.data) {
-                     if (_onDataChange) {
-                         _onDataChange({
-                             type: 'poster_update',
-                             familyId: familyId,
-                             kids: res.data.kids || []
-                         });
-                     }
+                try {
+                    // Fetch latest family data
+                    const res = await callApi('get_family_data', { familyId });
+                    if (res.success && res.data) {
+                         if (_onDataChange) {
+                             _onDataChange({
+                                 type: 'poster_update',
+                                 familyId: familyId,
+                                 kids: res.data.kids || []
+                             });
+                         }
+                    }
+                } catch (e) {
+                    console.error('Poster polling failed', e);
                 }
             };
             

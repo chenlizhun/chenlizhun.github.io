@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edutogather Admin Setup</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- CloudBase SDK (Local) -->
+    <script src="../common/cloudbase.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div id="app" class="bg-white p-8 rounded-xl shadow-xl max-w-lg w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">系统初始化配置</h1>
+            <p class="text-gray-500 mt-2">Edutogather Admin Environment Setup</p>
+        </div>
+
+        <!-- Step 1: Deploy Function -->
+        <div class="mb-8 border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r-lg">
+            <h3 class="font-bold text-blue-800">第一步：部署 edu_common 云函数</h3>
+            <p class="text-sm text-blue-600 mt-1">
+                请先在 CloudBase 控制台手动部署 <code>projects/admin/cloud_functions/edu_common</code> 目录。
+                <br>
+                <span class="text-xs text-gray-500">* 此函数拥有管理员权限，用于自动创建数据库集合。</span>
+            </p>
+        </div>
+
+        <!-- Step 2: Run Setup -->
+        <div v-if="!isFinished" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-700 font-medium">状态检测:</span>
+                <span :class="authStatusClass">{{ authStatusText }}</span>
+            </div>
+
+            <button 
+                @click="runSetup" 
+                :disabled="loading || !isAuthReady"
+                class="w-full py-3 px-4 rounded-lg text-white font-bold transition flex items-center justify-center gap-2"
+                :class="btnClass">
+                
+                <svg v-if="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                
+                <span>{{ loading ? '正在初始化...' : '开始自动初始化' }}</span>
+            </button>
+            
+            <p v-if="error" class="text-red-500 text-sm bg-red-50 p-3 rounded mt-2">
+                {{ error }}
+            </p>
+        </div>
+
+        <!-- Result -->
+        <div v-else class="space-y-4">
+            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <h3 class="font-bold text-green-800">初始化完成</h3>
+                </div>
+                <ul class="text-sm text-green-700 space-y-1 ml-8 list-disc">
+                    <li v-for="res in results" :key="res.collection">
+                        集合 <strong>{{ res.collection }}</strong>: {{ res.status === 'created' ? '创建成功' : '已存在 (跳过)' }}
+                    </li>
+                </ul>
+            </div>
+            
+            <a href="index.html" class="block w-full text-center bg-gray-800 text-white py-3 rounded-lg hover:bg-gray-700 transition">
+                进入管理后台
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue;
+
+        createApp({
+            setup() {
+                const loading = ref(false);
+                const isFinished = ref(false);
+                const results = ref([]);
+                const error = ref(null);
+                const user = ref(null);
+                const isAuthReady = ref(false);
+
+                let app, auth;
+                const ENV_ID = 'chenlizhun-projects-2ckab9e1cd47';
+
+                const init = async () => {
+                    try {
+                        app = cloudbase.init({ env: ENV_ID });
+                        auth = app.auth();
+                        
+                        // Try anonymous login first
+                        const loginState = await auth.getLoginState();
+                        if (loginState) {
+                            user.value = loginState.user;
+                            isAuthReady.value = true;
+                        } else {
+                            await auth.signInAnonymously();
+                            user.value = (await auth.getLoginState()).user;
+                            isAuthReady.value = true;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        error.value = 'CloudBase 初始化失败: ' + e.message;
+                    }
+                };
+
+                const runSetup = async () => {
+                    loading.value = true;
+                    error.value = null;
+
+                    try {
+                        // Call the setup cloud function
+                        const res = await app.callFunction({
+                            name: 'edu_common',
+                            data: {
+                                action: 'setup_project'
+                            }
+                        });
+
+                        if (res.result && res.result.success) {
+                            results.value = res.result.results;
+                            isFinished.value = true;
+                        } else {
+                            throw new Error('Setup function returned failure: ' + JSON.stringify(res.result));
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        if (e.message && e.message.includes('-404011')) {
+                            error.value = '错误：找不到云函数 [edu_common]。请确保您已在控制台部署了该函数。';
+                        } else {
+                            error.value = '初始化失败: ' + e.message;
+                        }
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const authStatusText = computed(() => {
+                    if (error.value && error.value.includes('CloudBase')) return 'SDK 错误';
+                    return isAuthReady.value ? '已连接 CloudBase' : '连接中...';
+                });
+
+                const authStatusClass = computed(() => {
+                    if (error.value && error.value.includes('CloudBase')) return 'text-red-500 font-bold';
+                    return isAuthReady.value ? 'text-green-600 font-bold' : 'text-yellow-600';
+                });
+                
+                const btnClass = computed(() => {
+                    if (loading.value || !isAuthReady.value) return 'bg-gray-400 cursor-not-allowed';
+                    return 'bg-blue-600 hover:bg-blue-700 shadow-lg';
+                });
+
+                onMounted(() => {
+                    init();
+                });
+
+                return {
+                    loading,
+                    isFinished,
+                    results,
+                    error,
+                    runSetup,
+                    authStatusText,
+                    authStatusClass,
+                    isAuthReady,
+                    btnClass
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

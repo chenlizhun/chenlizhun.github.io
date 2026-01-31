@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目初始化 - Edutogather Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">项目初始化</h1>
+            <p class="text-gray-500">Edutogather Share & Common Setup</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                <p>点击下方按钮将调用 <strong>edu_common</strong> 云函数执行初始化操作，包括：</p>
+                <ul class="list-disc list-inside mt-2 ml-1">
+                    <li>创建 <code>share_resources</code> 数据库集合</li>
+                    <li>创建 <code>analytics_events</code> 数据库集合</li>
+                </ul>
+            </div>
+
+            <button id="btn-setup" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition flex justify-center items-center">
+                开始初始化
+            </button>
+
+            <div id="result-area" class="hidden mt-6 border-t pt-4">
+                <h3 class="font-bold text-gray-700 mb-2">执行结果：</h3>
+                <pre id="log-output" class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-x-auto font-mono whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="index.html" class="text-gray-400 hover:text-gray-600 text-sm">返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        let app;
+
+        async function init() {
+            try {
+                if (!window.cloudbase) {
+                    throw new Error('CloudBase SDK 未加载');
+                }
+                app = cloudbase.init({ env: CONFIG.ENV_ID });
+                
+                const auth = app.auth();
+                const loginState = await auth.getLoginState();
+                if (!loginState) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                
+                document.getElementById('btn-setup').addEventListener('click', runSetup);
+                
+            } catch (e) {
+                console.error(e);
+                alert('初始化 SDK 失败: ' + e.message);
+            }
+        }
+
+        async function runSetup() {
+            const btn = document.getElementById('btn-setup');
+            const resultArea = document.getElementById('result-area');
+            const logOutput = document.getElementById('log-output');
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div> 正在执行...';
+                resultArea.classList.remove('hidden');
+                logOutput.textContent = 'Calling cloud function [edu_common] with action: setup_project...\n';
+
+                const res = await app.callFunction({
+                    name: 'edu_common',
+                    data: {
+                        action: 'setup_project'
+                    }
+                });
+
+                logOutput.textContent += `\nStatus: ${res.result ? 'Success' : 'Failed'}\n`;
+                logOutput.textContent += JSON.stringify(res.result, null, 2);
+
+                if (res.result && res.result.success) {
+                    btn.innerHTML = '✅ 初始化完成';
+                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                } else {
+                    throw new Error(res.result ? res.result.msg : 'Unknown error');
+                }
+
+            } catch (err) {
+                console.error(err);
+                logOutput.textContent += `\n❌ Error: ${err.message || JSON.stringify(err)}`;
+                btn.innerHTML = '❌ 执行出错';
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-red-600', 'hover:bg-red-700');
+            } finally {
+                // btn.disabled = false; // Keep disabled to show status
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

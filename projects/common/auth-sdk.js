@@ -45,6 +45,11 @@
                 state.app = cloudbase.init({ env: CONFIG.env });
                 state.auth = state.app.auth();
                 
+                // Init Analytics
+                if (window.Analytics) {
+                    window.Analytics.init(state.app);
+                }
+                
                 // Login anonymously if needed (Required for TCB access)
                 const loginState = await state.auth.getLoginState();
                 if (!loginState) {

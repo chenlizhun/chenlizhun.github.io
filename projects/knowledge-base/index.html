@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edutogather 知识库 - 家庭互助教育平台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../guide/css/design-system.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../common/cloudbase.js"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; background-color: var(--color-bg-body, #f7fafc); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom Tailwind Utilities using Design System Variables */
+        .text-brand-primary { color: var(--color-brand-primary, #D53F8C); }
+        .text-brand-secondary { color: var(--color-brand-secondary, #764ba2); }
+        .bg-brand-primary { background-color: var(--color-brand-primary, #D53F8C); }
+        .bg-brand-secondary { background-color: var(--color-brand-secondary, #764ba2); }
+    </style>
+</head>
+<body class="text-slate-800">
+    
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo Area -->
+                <div class="flex items-center gap-3">
+                    <a href="../edutogather/index.html" class="flex items-center gap-2 group">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain group-hover:scale-105 transition-transform">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg leading-tight text-slate-900 tracking-tight">Edutogather</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Knowledge Base</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center gap-1 sm:gap-4">
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="browse.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">浏览知识库</a>
+                        <!-- <a href="paper-center.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">组卷中心</a> -->
+                        <a href="export.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">知识导出</a>
+                        <a href="admin.html" class="px-3 py-2 text-sm font-bold text-slate-600 hover:text-brand-primary hover:bg-pink-50 rounded-full transition">管理后台</a>
+                    </div>
+                    
+                    <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                    
+                    <div id="user-status" class="flex items-center gap-2 pl-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <span class="text-sm font-bold text-slate-600 hidden sm:block">未登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-gradient-to-br from-[#D53F8C] to-[#764ba2] overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')]"></div>
+        <div class="max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center">
+                <span class="inline-block py-1 px-3 rounded-full bg-white/20 border border-white/30 text-white text-sm font-bold mb-6 backdrop-blur-sm">
+                    🚀 Edutogather 2.0 新版上线
+                </span>
+                <h1 class="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl mb-6 drop-shadow-md">
+                    家庭互助知识库
+                </h1>
+                <p class="mt-4 max-w-2xl mx-auto text-xl text-white/90 leading-relaxed font-medium">
+                    连接每个家庭的智慧，共同构建孩子的第二课堂。<br class="hidden sm:block">
+                    让每一次记录，都成为孩子成长的阶梯。
+                </p>
+                <div class="mt-10 flex flex-wrap justify-center gap-4">
+                    <a href="add.html?mode=import" class="px-8 py-4 bg-white text-[#D53F8C] rounded-full font-bold hover:bg-pink-50 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 transform flex items-center gap-2 group border-2 border-white/50">
+                        <span class="text-xl group-hover:scale-110 transition-transform">📋</span>
+                        <span>JSON 批量导入</span>
+                    </a>
+                    <a href="add.html" class="px-8 py-4 bg-white/20 text-white rounded-full font-bold hover:bg-white/30 transition shadow-lg border border-white/30 backdrop-blur-sm flex items-center gap-2">
+                        <span class="text-xl">✨</span>
+                        <span>添加知识点</span>
+                    </a>
+                    <a href="export.html" class="px-8 py-4 bg-white/20 text-white rounded-full font-bold hover:bg-white/30 transition shadow-lg border border-white/30 backdrop-blur-sm flex items-center gap-2">
+                        <span>📤 导出知识</span>
+                    </a>
+                </div>
+                <p class="mt-4 text-white/80 text-sm">推荐使用 JSON 批量导入：粘贴 AI（如 ChatGPT/Claude）生成的 JSON，一键写入知识库与题库</p>
+            </div>
+        </div>
+        
+        <!-- Bottom Wave -->
+        <div class="absolute bottom-0 w-full text-[#f7fafc]">
+             <svg class="w-full h-12" preserveAspectRatio="none" viewBox="0 0 1440 54"><path fill="currentColor" d="M0 22L120 16.7C240 11.3 480 0.7 720 0.7C960 0.7 1200 11.3 1320 16.7L1440 22V54H1320C1200 54 960 54 720 54C480 54 240 54 120 54H0V22Z"></path></svg>
+        </div>
+    </div>
+
+    <!-- Stats & Recent Contributions -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Stat Card 1 -->
+            <div class="glass-card rounded-[20px] p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-3xl font-bold text-brand-primary mb-1" id="stat-kp">--</div>
+                <div class="text-sm text-slate-500 font-bold">累计知识点</div>
+            </div>
+            <!-- Stat Card 2 -->
+            <div class="glass-card rounded-[20px] p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-3xl font-bold text-brand-secondary mb-1" id="stat-q">--</div>
+                <div class="text-sm text-slate-500 font-bold">共享题库</div>
+            </div>
+            <!-- Stat Card 3 -->
+            <div class="glass-card rounded-[20px] p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-3xl font-bold text-amber-500 mb-1">12</div>
+                <div class="text-sm text-slate-500 font-bold">参与家庭</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Left: Recent Updates Stream -->
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-brand-primary rounded-full"></span>
+                        最新动态
+                    </h2>
+                    <select class="text-sm border-gray-300 rounded-md shadow-sm focus:border-pink-300 focus:ring focus:ring-pink-200 focus:ring-opacity-50">
+                        <option>所有科目</option>
+                        <option>数学</option>
+                        <option>语文</option>
+                        <option>英语</option>
+                    </select>
+                </div>
+
+                <div class="space-y-4" id="feed-container">
+                    <!-- Feed Item Mockup -->
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-5 hover:shadow-md transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                张
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-bold text-slate-900">张妈妈</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 ml-2 font-bold">海淀家庭</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400">10分钟前</span>
+                                </div>
+                                <p class="text-slate-600 mt-1">添加了数学知识点：<span class="font-bold text-slate-800">一年级上册 / 20以内进位加法 / 凑十法详解</span></p>
+                                <div class="mt-3 flex gap-2">
+                                    <span class="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded font-bold">含视频</span>
+                                    <span class="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded font-bold">3道例题</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-5 hover:shadow-md transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold">
+                                李
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-bold text-slate-900">李爸爸</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-pink-50 text-pink-600 ml-2 font-bold">朝阳家庭</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400">1小时前</span>
+                                </div>
+                                <p class="text-slate-600 mt-1">上传了试卷模板：<span class="font-bold text-slate-800">一年级语文第一单元拼音专项测试卷</span></p>
+                                <div class="mt-3 flex gap-2">
+                                    <button class="text-brand-primary text-sm font-bold hover:underline">预览试卷</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Categories & Tools -->
+            <div class="w-full lg:w-80 space-y-8">
+                
+                <!-- Quick Entry -->
+                <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6">
+                    <h3 class="font-bold text-slate-800 mb-4">快速录入</h3>
+                    <div class="space-y-3">
+                        <a href="add.html?mode=import" class="block w-full text-left px-4 py-3 rounded-xl bg-pink-50 border border-pink-100 hover:bg-pink-100 hover:text-brand-primary transition flex items-center gap-3 text-brand-primary font-bold">
+                            <span class="text-xl">📋</span>
+                            <span class="text-sm">JSON 批量导入</span>
+                        </a>
+                        <p class="text-xs text-slate-500 px-1">粘贴 AI 生成的 JSON，一键导入知识点与题目</p>
+                        <button class="w-full text-left px-4 py-3 rounded-xl bg-slate-50 hover:bg-pink-50 hover:text-brand-primary transition flex items-center gap-3 text-slate-600">
+                            <span class="text-xl">📸</span>
+                            <span class="text-sm font-bold">拍照识别题目</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-6">
+                    <h3 class="font-bold text-slate-800 mb-4">贡献榜单 (本周)</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-500 font-bold w-4">1</span>
+                                <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                                <span class="text-sm font-medium">王乐乐家庭</span>
+                            </div>
+                            <span class="text-xs font-bold text-brand-primary">+120 pts</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-400 font-bold w-4">2</span>
+                                <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                                <span class="text-sm font-medium">陈子轩家庭</span>
+                            </div>
+                            <span class="text-xs font-bold text-brand-primary">+85 pts</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-400 font-bold w-4">3</span>
+                                <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                                <span class="text-sm font-medium">刘一一家庭</span>
+                            </div>
+                            <span class="text-xs font-bold text-brand-primary">+64 pts</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="../guide/logo.png" alt="Edutogather" class="w-10 h-10 object-contain">
+                        <span class="font-bold text-xl text-slate-800">Edutogather</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed max-w-sm">
+                        Edutogather 是一个专注于家庭教育互助的开源项目。我们致力于连接每一个热爱教育的家庭，通过技术手段降低教育成本，提升陪伴质量。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">功能模块</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="../edutogather/index.html" class="hover:text-brand-primary">家庭积分系统</a></li>
+                        <li><a href="browse.html" class="hover:text-brand-primary text-brand-primary font-bold">知识库 & 题库</a></li>
+                        <!-- <li><a href="paper-center.html" class="hover:text-brand-primary">组卷中心</a></li> -->
+                        <li><a href="export.html" class="hover:text-brand-primary">知识导出</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">学习路径规划</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-4">关于我们</h3>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-brand-primary">项目介绍</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">开源贡献</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">使用指南</a></li>
+                        <li><a href="#" class="hover:text-brand-primary">联系开发者</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-slate-400">© 2025 Edutogather. All rights reserved.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="text-slate-400 hover:text-brand-primary transition">
+                        <span class="sr-only">GitHub</span>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- CloudBase Init ---
+        let app, db;
+        
+        async function init() {
+            try {
+                if (!window.cloudbase) return;
+                
+                app = cloudbase.init({
+                    env: CONFIG.ENV_ID
+                });
+                
+                const auth = app.auth();
+                if (!await auth.getLoginState()) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                
+                db = app.database();
+                console.log('✅ CloudBase Connected');
+                
+                // Fetch Data in Parallel
+                Promise.all([
+                    fetchStats(),
+                    fetchFeed()
+                ]);
+
+            } catch (e) {
+                console.error('Init failed', e);
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                const countKP = await db.collection('k_knowledge_points').count();
+                const countQ = await db.collection('k_questions').count();
+                
+                document.getElementById('stat-kp').innerText = countKP.total.toLocaleString();
+                document.getElementById('stat-q').innerText = countQ.total.toLocaleString();
+                // Families count might be hard to get efficiently without aggregation, stick to mock or count distinct if possible.
+                // For MVP, leave families as is or random.
+            } catch (e) {
+                console.error('Stats error', e);
+            }
+        }
+
+        async function fetchFeed() {
+            try {
+                const res = await db.collection('k_knowledge_points')
+                    .orderBy('created_at', 'desc')
+                    .limit(10)
+                    .get();
+                
+                renderFeed(res.data);
+            } catch (e) {
+                console.error('Feed error', e);
+            }
+        }
+
+        function renderFeed(items) {
+            const container = document.getElementById('feed-container');
+            if (items.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-400 py-8">暂无动态，快去添加第一个知识点吧！</p>';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => {
+                const timeAgo = getTimeAgo(new Date(item.created_at));
+                const subject = item.dimensions?.subject || '通用';
+                const grade = item.dimensions?.grade || '';
+                
+                return `
+                    <div class="bg-white rounded-[20px] shadow-sm border border-slate-100 p-5 hover:shadow-md transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-brand-primary font-bold">
+                                📚
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-bold text-slate-900">新知识点</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-pink-50 text-brand-primary ml-2 font-bold">${subject}</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400">${timeAgo}</span>
+                                </div>
+                                <p class="text-slate-600 mt-1">添加了：<span class="font-bold text-slate-800">${grade} / ${item.title}</span></p>
+                                <p class="text-xs text-slate-400 mt-1 truncate">${item.summary || '无摘要'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return '刚刚';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}分钟前`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}小时前`;
+            return `${Math.floor(hours / 24)}天前`;
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
