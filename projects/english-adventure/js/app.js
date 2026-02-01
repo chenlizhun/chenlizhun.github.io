@@ -98,6 +98,27 @@ const App = {
         this.render();
     },
 
+    updateHeaderUser() {
+        const widget = document.getElementById('user-status-widget');
+        if (!widget) return;
+
+        if (this.state.user) {
+            widget.innerHTML = `
+                <img src="${this.state.user.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + this.state.user.nickName}" class="w-5 h-5 rounded-full border border-gray-200">
+                <span class="truncate max-w-[100px]">${this.state.user.nickName}</span>
+            `;
+            widget.classList.remove('hidden');
+            widget.classList.add('flex');
+        } else {
+             widget.innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                <span id="header-user-name">Guest</span>
+             `;
+             // Keep it hidden on mobile if guest, or show? The HTML has hidden md:flex
+             // We'll respect the initial classes which are hidden md:flex
+        }
+    },
+
     renderStickers() {
         const div = document.createElement('div');
         div.className = 'flex flex-col h-full p-6 relative animate-pop';
@@ -382,16 +403,16 @@ const App = {
 
     renderMemory() {
         const div = document.createElement('div');
-        div.className = 'flex flex-col h-full p-6 relative animate-pop';
+        div.className = 'flex flex-col h-full p-4 relative animate-pop';
         
         div.innerHTML = `
-            <div class="flex items-center gap-4 mb-6">
+            <div class="flex items-center gap-4 mb-4">
                 <button onclick="App.navigate('home')" class="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-600 hover:bg-slate-50">←</button>
                 <h2 class="text-2xl font-bold text-slate-800">Memory Game</h2>
                 <div class="ml-auto bg-white/50 px-3 py-1 rounded-full text-sm font-bold text-slate-500">Moves: ${this.state.memoryMoves}</div>
             </div>
             
-            <div class="grid grid-cols-3 gap-3 md:gap-4 flex-1 content-center max-w-md mx-auto w-full">
+            <div class="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 flex-1 content-center max-w-md md:max-w-4xl mx-auto w-full">
                 ${this.state.memoryCards.map((card, index) => `
                     <div class="aspect-[3/4] relative perspective-1000 cursor-pointer" onclick="App.flipCard(${index})">
                         <div class="w-full h-full transition-all duration-500 transform-style-3d ${card.isFlipped || card.isMatched ? 'rotate-y-180' : ''} ${card.isMatched ? 'opacity-0 pointer-events-none scale-90' : ''}">
@@ -431,21 +452,21 @@ const App = {
 
     renderHome() {
         const div = document.createElement('div');
-        div.className = 'flex flex-col h-full p-6 animate-pop';
+        div.className = 'flex flex-col h-full p-4 animate-pop';
         
         const dailyWord = this.getDailyWord();
 
         const userHtml = this.state.user 
-            ? `<div class="flex items-center gap-2 mb-6 bg-white/60 p-2 rounded-full w-max mx-auto shadow-sm backdrop-blur-sm">
+            ? `<div class="flex items-center gap-2 mb-3 bg-white/60 p-2 rounded-full w-max mx-auto shadow-sm backdrop-blur-sm">
                 <img src="${this.state.user.avatarUrl}" class="w-8 h-8 rounded-full border-2 border-white">
                 <span class="font-bold text-slate-700 pr-3">Hi, ${this.state.user.nickName}</span>
                </div>`
-            : `<div class="text-center mb-6"><h1 class="text-4xl font-bold text-sky-600 drop-shadow-sm tracking-tight">English<br><span class="text-yellow-500">Adventure</span></h1></div>`;
+            : `<div class="text-center mb-3"><h1 class="text-3xl font-bold text-sky-600 drop-shadow-sm tracking-tight">English<br><span class="text-yellow-500">Adventure</span></h1></div>`;
 
         div.innerHTML = `
             ${userHtml}
             
-            <div onclick="App.speak('${dailyWord.word}')" class="bg-gradient-to-r from-pink-400 to-purple-400 rounded-2xl p-4 mb-6 text-white shadow-lg cursor-pointer active:scale-95 transition relative overflow-hidden group">
+            <div onclick="App.speak('${dailyWord.word}')" class="bg-gradient-to-r from-pink-400 to-purple-400 rounded-2xl p-3 mb-4 text-white shadow-lg cursor-pointer active:scale-95 transition relative overflow-hidden group">
                 <div class="absolute right-[-10px] top-[-10px] text-6xl opacity-20 rotate-12 group-hover:scale-110 transition">${dailyWord.emoji}</div>
                 <div class="text-xs font-bold opacity-80 uppercase tracking-wide mb-1">Word of the Day</div>
                 <div class="flex items-center gap-3">
@@ -458,7 +479,7 @@ const App = {
                 </div>
             </div>
 
-            <div class="flex justify-between mb-4 px-2">
+            <div class="flex justify-between md:justify-start md:gap-6 mb-4 px-2">
                  <button onclick="App.navigate('memory')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-md shadow-indigo-200 flex items-center gap-2 transition active:scale-95">
                     <span>🧠</span> Memory Game
                  </button>
@@ -467,7 +488,7 @@ const App = {
                  </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 flex-1 content-start pb-20">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 flex-1 content-start pb-8">
                 ${Object.keys(VOCABULARY).map(key => {
                     const cat = VOCABULARY[key];
                     return `
@@ -491,27 +512,27 @@ const App = {
         }
         const cat = VOCABULARY[this.state.categoryKey];
         const div = document.createElement('div');
-        div.className = 'flex flex-col h-full p-6 relative animate-pop';
+        div.className = 'flex flex-col h-full p-4 relative animate-pop';
         div.innerHTML = `
-            <button onclick="App.navigate('home')" class="absolute top-6 left-6 w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-600 hover:bg-slate-50">←</button>
+            <button onclick="App.navigate('home')" class="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-600 hover:bg-slate-50">←</button>
             
-            <div class="flex flex-col items-center mt-12 mb-12">
-                <div class="text-6xl mb-4 animate-bounce-short">${cat.icon}</div>
+            <div class="flex flex-col items-center mt-6 mb-6">
+                <div class="text-6xl mb-2 animate-bounce-short">${cat.icon}</div>
                 <h2 class="text-3xl font-bold text-slate-800">${cat.title}</h2>
-                <p class="text-slate-500 mt-2">${cat.words.length} Words</p>
+                <p class="text-slate-500 mt-1">${cat.words.length} Words</p>
             </div>
 
-            <div class="flex flex-col gap-4 max-w-xs w-full mx-auto">
+            <div class="flex flex-col md:flex-row gap-3 md:gap-4 max-w-xs md:max-w-4xl w-full mx-auto justify-center">
                 <button onclick="App.navigate('learn', {categoryKey: '${this.state.categoryKey}'})" 
-                    class="bg-sky-500 text-white p-4 rounded-2xl font-bold text-xl shadow-lg shadow-sky-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-sky-600">
+                    class="bg-sky-500 text-white p-4 rounded-2xl font-bold text-xl shadow-lg shadow-sky-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-sky-600 md:flex-1 md:py-6">
                     <span>📖</span> Learn Words
                 </button>
                 <button onclick="App.navigate('quiz', {categoryKey: '${this.state.categoryKey}'})" 
-                    class="bg-yellow-400 text-yellow-900 p-4 rounded-2xl font-bold text-xl shadow-lg shadow-yellow-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-yellow-500">
+                    class="bg-yellow-400 text-yellow-900 p-4 rounded-2xl font-bold text-xl shadow-lg shadow-yellow-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-yellow-500 md:flex-1 md:py-6">
                     <span>🎮</span> Play Quiz
                 </button>
                 <button onclick="App.navigate('imageQuiz', {categoryKey: '${this.state.categoryKey}'})" 
-                    class="bg-green-500 text-white p-4 rounded-2xl font-bold text-xl shadow-lg shadow-green-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-green-600">
+                    class="bg-green-500 text-white p-4 rounded-2xl font-bold text-xl shadow-lg shadow-green-200 active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-green-600 md:flex-1 md:py-6">
                     <span>🖼️</span> Word Match
                 </button>
             </div>
@@ -530,7 +551,7 @@ const App = {
         const isLast = this.state.currentWordIndex === cat.words.length - 1;
 
         const div = document.createElement('div');
-        div.className = 'flex flex-col h-full p-6 relative animate-pop';
+        div.className = 'flex flex-col h-full p-4 relative animate-pop';
         
         // Auto speak when entering view
         setTimeout(() => this.speak(word.word), 300);
@@ -538,7 +559,7 @@ const App = {
         const progress = ((this.state.currentWordIndex + 1) / cat.words.length) * 100;
 
         div.innerHTML = `
-            <div class="flex items-center gap-4 mb-6">
+            <div class="flex items-center gap-4 mb-4">
                 <button onclick="App.navigate('category', {categoryKey: '${this.state.categoryKey}'})" class="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-600 hover:scale-110 transition">✕</button>
                 <div class="flex-1 bg-white/50 h-4 rounded-full overflow-hidden border border-white/50 shadow-inner">
                     <div class="h-full bg-sky-500 transition-all duration-500 relative overflow-hidden" style="width: ${progress}%">
@@ -549,17 +570,17 @@ const App = {
             </div>
 
             <div class="flex-1 flex flex-col items-center justify-center relative perspective-1000">
-                <div onclick="App.speak('${word.word}')" class="bg-white w-full aspect-[3/4] max-h-[400px] rounded-[2rem] shadow-2xl flex flex-col items-center justify-center gap-6 p-8 cursor-pointer active:scale-[0.98] transition border-4 border-slate-100 relative overflow-hidden group">
+                <div onclick="App.speak('${word.word}')" class="bg-white w-full aspect-[3/4] max-h-[400px] md:max-h-[500px] md:max-w-md rounded-[2rem] shadow-2xl flex flex-col items-center justify-center gap-6 p-6 cursor-pointer active:scale-[0.98] transition border-4 border-slate-100 relative overflow-hidden group">
                     <div class="absolute top-4 right-4 text-slate-300">🔊</div>
-                    <div class="text-[8rem] group-hover:scale-110 transition duration-500">${word.emoji}</div>
+                    <div class="text-[6rem] md:text-[8rem] group-hover:scale-110 transition duration-500">${word.emoji}</div>
                     <div class="text-center">
-                        <div class="text-4xl font-bold text-slate-800 mb-2">${word.word}</div>
-                        <div class="text-xl text-slate-400 font-medium">${word.translation}</div>
+                        <div class="text-4xl md:text-5xl font-bold text-slate-800 mb-2">${word.word}</div>
+                        <div class="text-xl md:text-2xl text-slate-400 font-medium">${word.translation}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center mt-8 px-4">
+            <div class="flex justify-between items-center mt-6 px-4 max-w-3xl mx-auto w-full">
                 <button onclick="App.prevWord()" class="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center text-2xl text-slate-600 active:scale-90 transition disabled:opacity-30 disabled:pointer-events-none" ${isFirst ? 'disabled' : ''}>←</button>
                 
                 <div class="flex gap-2">
@@ -625,9 +646,9 @@ const App = {
                     <div class="text-[8rem] animate-bounce-short">${this.state.targetWord.emoji}</div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 w-full">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                     ${this.state.quizOptions.map(word => `
-                        <button onclick="App.checkImageQuizAnswer('${word.word}')" class="bg-white p-4 rounded-2xl shadow-lg flex items-center justify-center text-xl font-bold text-slate-700 hover:bg-sky-50 active:scale-95 transition border-4 border-transparent hover:border-sky-200 min-h-[80px]">
+                        <button onclick="App.checkImageQuizAnswer('${word.word}')" class="bg-white p-4 rounded-2xl shadow-lg flex items-center justify-center text-xl font-bold text-slate-700 hover:bg-sky-50 active:scale-95 transition border-4 border-transparent hover:border-sky-200 min-h-[80px] md:min-h-[120px] md:text-2xl">
                             ${word.word}
                         </button>
                     `).join('')}
@@ -691,10 +712,10 @@ const App = {
         }
 
         const div = document.createElement('div');
-        div.className = 'flex flex-col h-full p-6 relative animate-pop';
+        div.className = 'flex flex-col h-full p-4 relative animate-pop';
         
         div.innerHTML = `
-            <div class="flex justify-between items-center mb-8">
+            <div class="flex justify-between items-center mb-4">
                 <button onclick="App.navigate('category', {categoryKey: '${this.state.categoryKey}'})" class="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-600 hover:scale-110 transition">✕</button>
                 <div class="flex flex-col items-end">
                     <div class="flex gap-1 text-2xl filter drop-shadow-sm">
@@ -706,14 +727,14 @@ const App = {
             </div>
 
             <div class="flex-1 flex flex-col items-center">
-                <div class="bg-white p-6 rounded-3xl shadow-xl w-full text-center mb-8 border-b-8 border-slate-100">
-                    <h3 class="text-xl text-slate-500 mb-4 font-bold uppercase tracking-wider">Which one is...</h3>
+                <div class="bg-white p-4 rounded-3xl shadow-xl w-full text-center mb-4 border-b-8 border-slate-100">
+                    <h3 class="text-lg text-slate-500 mb-2 font-bold uppercase tracking-wider">Which one is...</h3>
                     <button onclick="App.speak('${this.state.targetWord.word}')" class="text-4xl font-bold text-sky-600 flex items-center justify-center gap-3 hover:scale-105 transition">
                         <span>🔊</span> ${this.state.targetWord.word}
                     </button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 w-full">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full">
                     ${this.state.quizOptions.map(word => `
                         <button onclick="App.checkAnswer('${word.word}')" class="bg-white aspect-square rounded-2xl shadow-lg flex items-center justify-center text-6xl hover:bg-sky-50 active:scale-95 transition border-4 border-transparent hover:border-sky-200">
                             ${word.emoji}

@@ -9,6 +9,7 @@ const DataStore = (() => {
     let _onDataChange = null;
     let _loading = true;
     let _pollingInterval = null;
+    let _pendingUpdates = {};
 
     // Initialize CloudBase
     async function init({ env, onDataChange }) {
