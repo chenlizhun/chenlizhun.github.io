@@ -26,6 +26,13 @@ const SoundManager = {
         
         osc.connect(gain);
         gain.connect(this.ctx.destination);
+        
+        // Cleanup to prevent memory leaks/node limits
+        osc.onended = () => {
+            osc.disconnect();
+            gain.disconnect();
+        };
+
         osc.start(this.ctx.currentTime + startTime);
         osc.stop(this.ctx.currentTime + startTime + duration);
     },
@@ -61,6 +68,15 @@ const App = {
     },
 
     init() {
+        // Global Audio Unlock
+        document.body.addEventListener('click', () => {
+            if (SoundManager.ctx && SoundManager.ctx.state === 'suspended') {
+                SoundManager.ctx.resume();
+            } else if (!SoundManager.ctx) {
+                SoundManager.init();
+            }
+        }, { once: true });
+
         // Init Auth if available
         if (window.AuthSDK) {
             window.AuthSDK.init({

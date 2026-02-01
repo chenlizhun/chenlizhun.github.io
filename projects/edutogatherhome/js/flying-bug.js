@@ -52,11 +52,65 @@ class FlyingBug {
         this.clickHandler = (e) => this.handleSpawnBall(e);
         document.addEventListener('click', this.clickHandler);
         
+        // Music System
+        this.audioCtx = null;
+        this.songs = [
+            // Twinkle Twinkle Little Star
+            [1,1,5,5,6,6,5, 4,4,3,3,2,2,1, 5,5,4,4,3,3,2, 5,5,4,4,3,3,2, 1,1,5,5,6,6,5, 4,4,3,3,2,2,1],
+            // Little Bee
+            [5,3,3, 4,2,2, 1,2,3,4,5,5,5, 5,3,3, 4,2,2, 1,3,5,5,3, 2,2,2,2,2,3,4, 3,3,3,3,3,4,5, 5,3,3, 4,2,2, 1,3,5,5,1],
+            // Two Tigers
+            [1,2,3,1, 1,2,3,1, 3,4,5, 3,4,5, 5,6,5,4,3,1, 5,6,5,4,3,1, 2,5,1, 2,5,1]
+        ];
+        this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)];
+        this.currentNoteIndex = 0;
+
         console.log('FlyingBug: Initialized!');
         
         // Start Wandering
         this.startWandering();
         this.start();
+    }
+    
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+    }
+
+    playNote(note) {
+        if (!this.audioCtx) this.initAudio();
+        
+        const frequencies = {
+            1: 261.63, // C4
+            2: 293.66, // D4
+            3: 329.63, // E4
+            4: 349.23, // F4
+            5: 392.00, // G4
+            6: 440.00, // A4
+            7: 493.88, // B4
+            8: 523.25  // C5
+        };
+        
+        const freq = frequencies[note] || 440;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.type = 'sine'; // Smooth sound
+        osc.frequency.value = freq;
+        
+        gain.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.5);
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        osc.start();
+        osc.stop(this.audioCtx.currentTime + 0.5);
     }
     
     start() {
@@ -67,6 +121,9 @@ class FlyingBug {
     handleSpawnBall(e) {
         console.log('FlyingBug: Click detected at', e.clientX, e.clientY);
         
+        // Init audio on first click
+        this.initAudio();
+
         // Ignore clicks on interactive elements
         // Removed [onclick] to be safer, added label
         if (e.target.closest('button, a, input, select, textarea, label')) {
@@ -74,27 +131,47 @@ class FlyingBug {
             return;
         }
 
-        console.log('FlyingBug: Spawning ball!');
+        console.log('FlyingBug: Spawning note!');
+        
+        // Get next note
+        const note = this.currentSong[this.currentNoteIndex];
+        this.currentNoteIndex = (this.currentNoteIndex + 1) % this.currentSong.length; // Loop song
+
         const ball = {
             id: Date.now() + Math.random(),
             x: e.clientX,
             y: e.clientY,
             vy: 2, // Falling speed
             element: document.createElement('div'),
-            color: this.getRandomColor()
+            note: note,
+            color: '#4299e1' // Fixed color (Blue)
         };
 
-        // Style the ball
+        // Create inner span for text to counter-rotate
+        const textSpan = document.createElement('span');
+        textSpan.textContent = note;
+        textSpan.style.display = 'block';
+        textSpan.style.transform = 'rotate(-45deg)'; 
+
+        // Style the ball (Note)
+        ball.element.style.display = 'flex';
+        ball.element.style.justifyContent = 'center';
+        ball.element.style.alignItems = 'center';
         ball.element.style.position = 'fixed';
-        ball.element.style.width = '16px';
-        ball.element.style.height = '16px';
+        ball.element.style.width = '24px';
+        ball.element.style.height = '24px';
+        ball.element.style.color = 'white';
+        ball.element.style.textShadow = '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'; // Stroke effect for visibility
+        ball.element.style.fontWeight = 'bold';
+        ball.element.style.fontSize = '16px'; // Slightly larger
         ball.element.style.backgroundColor = ball.color;
-        ball.element.style.borderRadius = '50%';
+        ball.element.style.borderRadius = '0 50% 50% 50%'; // Water drop shape
+        ball.element.style.transform = 'rotate(45deg)';
         ball.element.style.zIndex = '9998';
         ball.element.style.pointerEvents = 'none';
-        ball.element.style.left = (ball.x - 8) + 'px'; // Center it (16/2)
-        ball.element.style.top = (ball.y - 8) + 'px';
-        ball.element.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        ball.element.style.left = (ball.x - 12) + 'px'; // Center it (24/2)
+        ball.element.style.top = (ball.y - 12) + 'px';
+        ball.element.style.boxShadow = '1px 1px 4px rgba(0,0,0,0.3)';
         
         document.body.appendChild(ball.element);
         this.balls.push(ball);
@@ -262,6 +339,9 @@ class FlyingBug {
     }
 
     eatBall(ball) {
+        // Play Sound!
+        this.playNote(ball.note);
+
         // Remove ball
         ball.element.remove();
         this.balls = this.balls.filter(b => b.id !== ball.id);
